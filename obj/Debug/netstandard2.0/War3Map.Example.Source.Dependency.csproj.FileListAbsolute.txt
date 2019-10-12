@@ -1,0 +1,9 @@
+C:\Users\Azureus\Documents\.git\DOTNET\TimeAbyssWC3\War3Map.Example\War3Map.Example.Source.Dependency\bin\Debug\netstandard2.0\War3Map.Example.Source.Dependency.deps.json
+C:\Users\Azureus\Documents\.git\DOTNET\TimeAbyssWC3\War3Map.Example\War3Map.Example.Source.Dependency\bin\Debug\netstandard2.0\War3Map.Example.Source.Dependency.dll
+C:\Users\Azureus\Documents\.git\DOTNET\TimeAbyssWC3\War3Map.Example\War3Map.Example.Source.Dependency\bin\Debug\netstandard2.0\War3Map.Example.Source.Dependency.pdb
+C:\Users\Azureus\Documents\.git\DOTNET\TimeAbyssWC3\War3Map.Example\War3Map.Example.Source.Dependency\obj\Debug\netstandard2.0\PlatformCompat.Analyzers.settings
+C:\Users\Azureus\Documents\.git\DOTNET\TimeAbyssWC3\War3Map.Example\War3Map.Example.Source.Dependency\obj\Debug\netstandard2.0\War3Map.Example.Source.Dependency.AssemblyInfoInputs.cache
+C:\Users\Azureus\Documents\.git\DOTNET\TimeAbyssWC3\War3Map.Example\War3Map.Example.Source.Dependency\obj\Debug\netstandard2.0\War3Map.Example.Source.Dependency.AssemblyInfo.cs
+C:\Users\Azureus\Documents\.git\DOTNET\TimeAbyssWC3\War3Map.Example\War3Map.Example.Source.Dependency\obj\Debug\netstandard2.0\War3Map.Example.Source.Dependency.dll
+C:\Users\Azureus\Documents\.git\DOTNET\TimeAbyssWC3\War3Map.Example\War3Map.Example.Source.Dependency\obj\Debug\netstandard2.0\War3Map.Example.Source.Dependency.pdb
+C:\Users\Azureus\Documents\.git\DOTNET\TimeAbyssWC3\War3Map.Example\War3Map.Example.Source.Dependency\obj\Debug\netstandard2.0\War3Map.Example.Source.Dependency.csprojAssemblyReference.cache
