@@ -1,8 +1,0 @@
-C:\Users\Azureus\Documents\.git\DOTNET\TimeAbyssWC3\War3.NoxRaven\bin\Debug\netstandard2.0\War3.NoxRaven.deps.json
-C:\Users\Azureus\Documents\.git\DOTNET\TimeAbyssWC3\War3.NoxRaven\bin\Debug\netstandard2.0\War3.NoxRaven.dll
-C:\Users\Azureus\Documents\.git\DOTNET\TimeAbyssWC3\War3.NoxRaven\bin\Debug\netstandard2.0\War3.NoxRaven.pdb
-C:\Users\Azureus\Documents\.git\DOTNET\TimeAbyssWC3\War3.NoxRaven\obj\Debug\netstandard2.0\War3.NoxRaven.csprojAssemblyReference.cache
-C:\Users\Azureus\Documents\.git\DOTNET\TimeAbyssWC3\War3.NoxRaven\obj\Debug\netstandard2.0\War3.NoxRaven.AssemblyInfoInputs.cache
-C:\Users\Azureus\Documents\.git\DOTNET\TimeAbyssWC3\War3.NoxRaven\obj\Debug\netstandard2.0\War3.NoxRaven.AssemblyInfo.cs
-C:\Users\Azureus\Documents\.git\DOTNET\TimeAbyssWC3\War3.NoxRaven\obj\Debug\netstandard2.0\War3.NoxRaven.dll
-C:\Users\Azureus\Documents\.git\DOTNET\TimeAbyssWC3\War3.NoxRaven\obj\Debug\netstandard2.0\War3.NoxRaven.pdb
