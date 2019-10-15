@@ -11,10 +11,7 @@ namespace War3.NoxRaven.Units
 {
     /// <summary>
     /// To use in own code simply create class which has inner reference to this class.
-    /// <code>class MyHeroClass{<para />
-    /// HeroEntity Reference;<para />
-    /// public float SizeMultiplier;<para />
-    /// }</code>
+    /// Call function <see cref="InitUnitLogic"/>. It will initialize indexing logic for all units. Put it somewhere after all players were initialized.
     /// </summary>
     public class UnitEntity
     {
@@ -29,10 +26,6 @@ namespace War3.NoxRaven.Units
         public unit UnitRef;
         private trigger DamageTrig;
         private trigger DeathTrig;
-        /// <summary>
-        /// For custom recycling if the class is wrapped.
-        /// </summary>
-        public Action Recycling = null;
         // Unit Extra Parameters
         // ******************
         // * Damage related *
@@ -148,13 +141,13 @@ namespace War3.NoxRaven.Units
 
             // Recycling of dead units
             DeathTrig = CreateTrigger();
-            TriggerRegisterDeathEvent(DeathTrig, u);
-            TriggerAddAction(DeathTrig, () => { AwaitRemoval(u); });
+            TriggerRegisterUnitEvent(DeathTrig, u, EVENT_UNIT_DEATH);
+            TriggerAddAction(DeathTrig, ParseRemovalDeath);
             u = null;
         }
 
         /// <summary>
-        /// If you want to have custom struct in your map use this.
+        /// Put this initializer somewhere after all players have been initialized.
         /// </summary>
         public static void InitUnitLogic()
         {
@@ -172,7 +165,7 @@ namespace War3.NoxRaven.Units
             }
 
             // Deattach when unit leaves the map
-            TriggerRegisterLeaveRegion(CreateTrigger(), reg, Filter(() => { AwaitRemoval(GetLeavingUnit()); return false; }));
+            TriggerRegisterLeaveRegion(CreateTrigger(), reg, Filter(ParseRemovalLeave));
             TimerStart(CreateTimer(), RegenerationTimeout, true, () => { foreach (UnitEntity ue in Indexer.Values) ue.Regenerate(); });
             // Recycle stuff
             RemoveRect(rec);
@@ -195,6 +188,15 @@ namespace War3.NoxRaven.Units
             u = null;
             return false;
         }
+        private static bool ParseRemovalLeave()
+        {
+            AwaitRemoval(GetLeavingUnit());
+            return false;
+        }
+        private static void ParseRemovalDeath()
+        {
+            AwaitRemoval(GetDyingUnit());
+        }
         /// <summary>
         /// Do not call RemoveUnit on indexed unit or permaleak.
         /// </summary>
@@ -202,22 +204,26 @@ namespace War3.NoxRaven.Units
         private static void AwaitRemoval(unit u)
         {
             UnitEntity ue = Cast(u);
+
             if (GetUnitAbilityLevel(u, FourCC("Aloc")) > 0) return;
             if (!Indexer.ContainsKey(u)) return; // this is a very weird thing to happen, but will happen for Neutrals so yeah
             if (IsUnitType(u, UNIT_TYPE_HERO)) return; // always leak heroes
             if (ue.Corpse) return;
 
             ue.Corpse = true;
-            Utils.DelayedInvoke(KeepCorpsesFor, () => { ue.DeattachClass(); });
+            Utils.DelayedInvoke(KeepCorpsesFor, ue.DeattachClass);
             ue = null;
+        }
+        /// <summary>
+        /// Call this to remove unit instantly.
+        /// Not calling will leak.
+        /// </summary>
+        public void GracefulRemove()
+        {
+            DeattachClass();
         }
         protected virtual void DeattachClass()
         {
-            if (Recycling != null)
-            {
-                Recycling.Invoke();
-                Recycling = null;
-            }
             DestroyTrigger(DamageTrig);
             DestroyTrigger(DeathTrig);
             Indexer.Remove(UnitRef);

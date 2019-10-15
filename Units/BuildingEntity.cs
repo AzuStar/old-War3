@@ -19,7 +19,6 @@ namespace War3.NoxRaven.Units
 
         public override float WeapondDamage()
         {
-            Utils.DisplayMessageToEveryone("Overriden damage", 20);
             return base.WeapondDamage();
         }
         protected override void DeattachClass()
