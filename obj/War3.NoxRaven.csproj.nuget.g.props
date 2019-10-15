@@ -21,4 +21,13 @@
       <Link>LICENSE</Link>
     </Content>
   </ItemGroup>
+  <ItemGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
+    <Content Include="$(NuGetPackageRoot)war3api.blizzard\1.31.1.1\contentFiles\any\netstandard1.0\LICENSE" Condition="Exists('$(NuGetPackageRoot)war3api.blizzard\1.31.1.1\contentFiles\any\netstandard1.0\LICENSE')">
+      <NuGetPackageId>War3Api.Blizzard</NuGetPackageId>
+      <NuGetPackageVersion>1.31.1.1</NuGetPackageVersion>
+      <NuGetItemType>Content</NuGetItemType>
+      <Private>False</Private>
+      <Link>LICENSE</Link>
+    </Content>
+  </ItemGroup>
 </Project>
