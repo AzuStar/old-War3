@@ -1,4 +1,4 @@
-﻿namespace War3.NoxRaven
+﻿namespace NoxRaven
 {
     /// <summary>
     /// Defines the Type of Recipent

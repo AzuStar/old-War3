@@ -5,7 +5,7 @@ using System.Text;
 using static War3Api.Common;
 using static War3Api.Blizzard;
 
-namespace War3.NoxRaven
+namespace NoxRaven
 {
     public static class Utils
     {
@@ -18,8 +18,15 @@ namespace War3.NoxRaven
         /// <param name="timespan"></param>
         public static void DisplayMessageToEveryone(string msg, float timespan)
         {
-            foreach (Player p in Player.AllPlayers)
+            foreach (NoxPlayer p in NoxPlayer.AllPlayers)
                 DisplayTimedTextToPlayer(p.PlayerRef, 0, 0, timespan, msg);
+        }
+        internal static void Error(string message, Type t)
+        {
+            Master.BadLoad = true;
+            Master.ErrorCount++;
+            foreach (NoxPlayer p in NoxPlayer.AllPlayers)
+                DisplayTimedTextToPlayer(p.PlayerRef, 0, 0, 90f, "|cffFF0000ERROR IN: " + t.FullName + "|r\nMessage:" + message);
         }
         /// <summary>
         /// Use this function to invoke something (anything) with a delay.
@@ -38,11 +45,18 @@ namespace War3.NoxRaven
             int len = StringLength(proxy);
             if (i >= 1000000000)
                 return SubString(proxy, 0, len - 9) + "." + SubString(proxy, len - 9, len - 8) + "B";
-            else if(i >= 1000000)
+            else if (i >= 1000000)
                 return SubString(proxy, 0, len - 6) + "." + SubString(proxy, len - 9, len - 8) + "M";
-            else if (i >= 1000)
-                return SubString(proxy, 0, len - 3) + "." + SubString(proxy, len - 3, len - 2) + "K";
             return proxy;
+        }
+        public static void RandomDirectedFloatText(string msg, location loc, float size, float r, float g, float b, float alpha, float dur)
+        {
+            texttag tt = CreateTextTagLocBJ(msg, loc, 0, size, r, g, b, alpha);
+            SetTextTagVelocityBJ(tt, 40, 90 + GetRandomReal(-13, 13));
+            SetTextTagPermanent(tt, false);
+            SetTextTagFadepoint(tt, dur);
+            SetTextTagLifespan(tt, dur+1);
+            tt = null;
         }
     }
 }

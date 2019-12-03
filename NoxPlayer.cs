@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Text;
 using static War3Api.Common;
 
-namespace War3.NoxRaven
+namespace NoxRaven
 {
     /// <summary>
     /// Class for player data, might add some neat stuff here later on.
     /// Extend to your needs for players in map.
     /// </summary>
-    public class Player
+    public class NoxPlayer
     {
-        public static List<Player> AllPlayers = new List<Player>();
+        public static List<NoxPlayer> AllPlayers = new List<NoxPlayer>();
         /// <summary>
         /// Throw-away value for <see cref="PlayerRef"/>.
         /// </summary>
@@ -21,7 +21,7 @@ namespace War3.NoxRaven
         /// </summary>
         public player PlayerRef;
 
-        public Player(int id)
+        public NoxPlayer(int id)
         {
             Id = id;
             PlayerRef = Player(id);
