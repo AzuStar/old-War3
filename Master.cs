@@ -8,6 +8,7 @@ namespace NoxRaven
 {
     public static class Master
     {
+        public static int Version = 1;
         public static bool BadLoad = false;
         public static int ErrorCount = 0;
         /// <summary>
@@ -20,6 +21,13 @@ namespace NoxRaven
             for (int i = 0; i < UnitEntity.Abilities_BonusDamage.Length; i++)
             {
                 UnitEntity.Abilities_BonusDamage[i] = abilid;
+                if ((i + 1) % 10 == 0) abilid += 246;
+                abilid++;
+            }
+            abilid = FourCC("AR00");
+            for (int i = 0; i < UnitEntity.Abilities_BonusArmor.Length; i++)
+            {
+                UnitEntity.Abilities_BonusArmor[i] = abilid;
                 if ((i + 1) % 10 == 0) abilid += 246;
                 abilid++;
             }
@@ -64,7 +72,8 @@ namespace NoxRaven
                     "Errors encountered: "+I2S(ErrorCount), 999f);
                 return;
             }
-            Utils.DisplayMessageToEveryone("|cffacf2f0Map loaded correctly!|r", 2f);
+            Utils.DisplayMessageToEveryone("|cffacf2f0Map loaded correctly!|r", 2f);// Do not remove this, I promise this will hurt
+            Utils.DisplayMessageToEveryone("|cffacf2f0NoxRaven Version: |r|cffff0000"+Version+"|r", 2f);//you can remove this :)
         }
     }
 }
