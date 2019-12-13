@@ -32,17 +32,18 @@ namespace NoxRaven
         public float TimeRemain;
         public effect SpecialEffect;
         /// <summary>
-        /// Data of a status. Type is object, which means you can cast it into list, array...?
+        /// Data of a status. Type is dynamic, which means you can make it into list, array...?
         /// </summary>
-        public object Data = null;
+        public dynamic Data;
         /// <summary>
         /// This is for reseting ability if level greater
         /// </summary>
         public int Level;
         public float TotalDuration;
+        public float PeriodicTimeout = 1;
 
         /// <summary>
-        /// 
+        /// Classic
         /// </summary>
         /// <param name="id"></param>
         /// <param name="type"></param>
@@ -52,7 +53,7 @@ namespace NoxRaven
         /// <param name="duration"></param>
         /// <param name="stacking"></param>
         /// <param name="periodic"></param>
-        internal Status(int id, StatusType type, UnitEntity source, UnitEntity target, int level, float duration, bool stacking, bool periodic)
+        internal Status(int id, StatusType type, UnitEntity source, UnitEntity target, int level, float duration, bool stacking)
         {
             Id = id;
             Type = type;
@@ -60,29 +61,78 @@ namespace NoxRaven
             Target = target;
             Level = level;
             Stacking = stacking;
-            Periodic = periodic;
             t = CreateTimer();
-            if (periodic)
-            {
-                TimeRemain = duration;
-                TimerStart(t, 1f, false, PeriodicTimerRestart);
-            }
-            else
-                TimerStart(t, duration, false, Remove);
+            TimerStart(t, duration, false, Remove);
             if (stacking) Stacks++;
             if (Type.Apply != null)
                 Type.Apply.Invoke(this);
             SpecialEffect = AddSpecialEffectTarget(Type.Effectpath, target.UnitRef, Type.Attachment);
         }
 
+        /// <summary>
+        /// Periodic
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="type"></param>
+        /// <param name="source"></param>
+        /// <param name="target"></param>
+        /// <param name="level"></param>
+        /// <param name="duration"></param>
+        /// <param name="timeout"></param>
+        /// <param name="stacking"></param>
+        internal Status(int id, StatusType type, UnitEntity source, UnitEntity target, int level, float duration, float timeout, bool stacking)
+        {
+            Id = id;
+            Type = type;
+            Source = source;
+            Target = target;
+            Level = level;
+            Stacking = stacking;
+            Periodic = true;
+            PeriodicTimeout = timeout;
+            t = CreateTimer();
+            TimeRemain = duration;
+            TimerStart(t, PeriodicTimeout, false, PeriodicTimerRestart);
+            if (stacking) Stacks++;
+            if (Type.Apply != null)
+                Type.Apply.Invoke(this);
+            SpecialEffect = AddSpecialEffectTarget(Type.Effectpath, target.UnitRef, Type.Attachment);
+        }
+
+        /// <summary>
+        /// Permanent
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="type"></param>
+        /// <param name="source"></param>
+        /// <param name="target"></param>
+        /// <param name="level"></param>
+        /// <param name="stacking"></param>
+        internal Status(int id, StatusType type, UnitEntity source, UnitEntity target, int level, bool stacking)
+        {
+            Id = id;
+            Type = type;
+            Source = source;
+            Target = target;
+            Level = level;
+            Stacking = stacking;
+            Periodic = true;
+            if (stacking) Stacks++;
+            if (Type.Apply != null)
+                Type.Apply.Invoke(this);
+            SpecialEffect = AddSpecialEffectTarget(Type.Effectpath, target.UnitRef, Type.Attachment);
+        }
+
+        //internal Status() { }
+
         private void PeriodicTimerRestart()
         {
             if (Type.Apply != null)
                 Type.Apply.Invoke(this);
-
+            TotalDuration += PeriodicTimeout;
             TimeRemain--; //later
             if (TimeRemain > 0)
-                TimerStart(t, 1f, false, PeriodicTimerRestart);
+                TimerStart(t, PeriodicTimeout, false, PeriodicTimerRestart);
             else
                 Remove();
         }
@@ -99,15 +149,15 @@ namespace NoxRaven
         /// <param name="duration"></param>
         /// <param name="stacking"></param>
         /// <param name="periodic"></param>
-        public Status Reapply(float duration, int level, bool stacking, bool periodic)
+        public Status Reapply(float duration, int level, bool stacking)
         {
-            if (periodic)
+            if (Periodic)
             {
                 if (TimeRemain < duration)
                     TimeRemain = duration;
                 PauseTimer(t);
                 TotalDuration += TimerGetElapsed(t);
-                TimerStart(t, 1f, false, PeriodicTimerRestart);
+                TimerStart(t, PeriodicTimeout, false, PeriodicTimerRestart);
                 if (stacking) Stacks++; // periodic events are never reset
             }
             else
@@ -115,6 +165,16 @@ namespace NoxRaven
                 PauseTimer(t);
                 TotalDuration += TimerGetElapsed(t);
                 TimerStart(t, duration, false, Remove);
+                if (stacking) Reset(1, level); // reset if stack
+                else if (Level < level) Reset(0, level); // reset to new level
+            }
+            return this;
+        }
+
+        public Status ReapplyPermanent(int level, bool stacking)
+        {
+            if(t == null)
+            {
                 if (stacking) Reset(1, level); // reset if stack
                 else if (Level < level) Reset(0, level); // reset to new level
             }

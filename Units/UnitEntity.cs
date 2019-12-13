@@ -316,6 +316,20 @@ namespace NoxRaven.Units
             DamageEngineIgnore = false;
         }
         /// <summary>
+        /// Extra function in case damage needs to be altered, counted, recordered, redirected, well...anyfuckingthing :)<para></para>
+        /// Return multiplier for incoming damage, default 1 (aka damage not reduced)
+        /// </summary>
+        /// <param name="damageSource"></param>
+        /// <param name="damage"></param>
+        /// <param name="onHit"></param>
+        /// <param name="crit"></param>
+        /// <param name="spell"></param>
+        /// <returns></returns>
+        public virtual float RecievePhysicalDamage(UnitEntity damageSource, float damage, bool onHit, bool crit, bool spell)
+        {
+            return 1;
+        }
+        /// <summary>
         /// Damage parsers that takes care of all calculations. Damage parser calculates outgoing damage from the unit.
         /// </summary>
         /// <param name="target">Whos is the target</param>
@@ -333,10 +347,11 @@ namespace NoxRaven.Units
                     Utils.RandomDirectedFloatText("BLOCK!", loc, 9f, 75, 123, 189, 255, 1.5f);
                 }
             // maths
-            float pars = damage * DamageMultiplier * (1 - Math.Min(target.DamageReduction, 1));
+            float pars = damage * RecievePhysicalDamage(this, damage, onHit, crit, spell);
+            pars *= DamageMultiplier * (1 - Math.Min(target.DamageReduction, 1));
             float armor = BlzGetUnitArmor(target);
             if (armor < 0)
-                pars *= (1.71f - Pow(1f - ARMOR_CONST, -armor)); // war3 real armor reduction is 1.71 - xxx
+                pars *= (1.71f - Pow(1f - ARMOR_CONST, -armor)); // war3 real armor reduction is 1.71 - xxx why? - no idea
             else pars *= 1 / (1 + armor * ARMOR_CONST * (1 - ArmorPenetration)); // Inverse armor reduction function, got by solving: Armor * CONST / (1 + ARMOR * CONST)
 
             // The logic

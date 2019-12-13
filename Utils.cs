@@ -11,6 +11,13 @@ namespace NoxRaven
     {
         public const float PI = 3.14159f;
         public const float DEGTORAD = PI / 180;
+        public static item WalkableItem;
+
+        static Utils()
+        {
+            WalkableItem = CreateItem(FourCC(""), 0, 0);
+            SetItemVisible(WalkableItem, false);
+        }
         /// <summary>
         /// Display message to every player.
         /// </summary>
@@ -57,6 +64,20 @@ namespace NoxRaven
             SetTextTagFadepoint(tt, dur);
             SetTextTagLifespan(tt, dur+1);
             tt = null;
+        }
+
+        public static bool IsCurrentlyWalkable(float x, float y)
+        {
+            bool flag = false;
+            if (!IsTerrainPathable(x, y, PATHING_TYPE_WALKABILITY)) return flag;
+            SetItemPosition(WalkableItem, x, y);
+            location loc = GetItemLoc(WalkableItem);
+            float itemx = GetLocationX(loc);
+            float itemy = GetLocationY(loc);
+            flag = itemx == x && itemy == y;
+            RemoveLocation(loc);
+            loc = null;
+            return flag;
         }
     }
 }
