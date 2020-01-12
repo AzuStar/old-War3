@@ -32,9 +32,9 @@ namespace NoxRaven
         public float TimeRemain;
         public effect SpecialEffect;
         /// <summary>
-        /// Data of a status. Type is object, which means you can cast it into list, array...?
+        /// Data of a status. Type is dynamic, which means you can make it into list, array...?
         /// </summary>
-        public object Data = null;
+        public dynamic Data;
         /// <summary>
         /// This is for reseting ability if level greater
         /// </summary>
@@ -54,6 +54,9 @@ namespace NoxRaven
         /// <param name="periodic"></param>
         internal Status(int id, StatusType type, UnitEntity source, UnitEntity target, int level, float duration, bool stacking, bool periodic)
         {
+            //if(type.DataType != null)
+            //Data = Activator.CreateInstance(type.DataType);
+
             Id = id;
             Type = type;
             Source = source;
@@ -75,11 +78,13 @@ namespace NoxRaven
             SpecialEffect = AddSpecialEffectTarget(Type.Effectpath, target.UnitRef, Type.Attachment);
         }
 
+        //internal Status() { }
+
         private void PeriodicTimerRestart()
         {
             if (Type.Apply != null)
                 Type.Apply.Invoke(this);
-
+            TotalDuration += 1;
             TimeRemain--; //later
             if (TimeRemain > 0)
                 TimerStart(t, 1f, false, PeriodicTimerRestart);

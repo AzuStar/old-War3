@@ -20,7 +20,7 @@ namespace NoxRaven.Units
         private static Dictionary<int, Type> CustomTypes = new Dictionary<int, Type>();
         private static float KeepCorpsesFor = 25;
         private static bool DamageEngineIgnore = false;
-        private static float RegenerationTimeout = 0.1f;
+        private static float RegenerationTimeout = 0.04f;
         internal static int[] Abilities_BonusDamage = new int[19];
         internal static int[] Abilities_Corruption = new int[13];
         internal static int[] Abilities_BonusArmor = new int[14];
@@ -37,7 +37,6 @@ namespace NoxRaven.Units
         /// </summary>
         public unit UnitRef;
         private trigger DamageTrig;
-        private trigger DeathTrig;
 
         private Dictionary<int, Status> Statuses = new Dictionary<int, Status>();
 
@@ -73,6 +72,13 @@ namespace NoxRaven.Units
         /// Additive(+)
         /// </summary>
         public float CritDamage = 1.5f;
+        /// <summary>
+        /// Base attack speed / AttackSpeed = New Attack Speed <para></para>
+        /// 1/2 = 0.5 (2 attacks a second)<para></para>
+        /// 2/4 = 0.5 (2 attacks a second)
+        /// </summary>
+        private float AttackSpeed = 1;
+        private float BaseAttackCooldown;
 
         // ******************
         // * Health related *
@@ -122,6 +128,10 @@ namespace NoxRaven.Units
         /// </summary>
         private int GreenArmor = 0;
         /// <summary>
+        /// Negative and positive grey armor.
+        /// </summary>
+        private float GreyArmor = 0;
+        /// <summary>
         /// Chance to evade projectile (any tier 1).
         /// Additive(+)
         /// Range: 0.00-1.00
@@ -148,6 +158,9 @@ namespace NoxRaven.Units
         {
             UnitRef = u;
             SetBaseHP(BlzGetUnitMaxHP(u));
+            BaseAttackCooldown = BlzGetUnitAttackCooldown(UnitRef, 0);
+            AddAttackSpeed(0);
+            GreyArmor = BlzGetUnitArmor(u);
             Ranged = IsUnitType(u, UNIT_TYPE_RANGED_ATTACKER);
             // Damage Utilization
             DamageTrig = CreateTrigger();
@@ -156,10 +169,13 @@ namespace NoxRaven.Units
 
             //foreach(ability a in GetUnit)
 
-            // Recycling of dead units
-            DeathTrig = CreateTrigger();
-            TriggerRegisterDeathEvent(DeathTrig, u);
-            TriggerAddAction(DeathTrig, () => { AwaitRemoval(UnitRef); });
+            //// Recycling of dead units
+            //DeathTrig = CreateTrigger();
+            //TriggerRegisterDeathEvent(DeathTrig, u);
+            //TriggerAddAction(DeathTrig, () =>
+            //{
+            //    AwaitRemoval(this, this);
+            //});
             u = null;
         }
         /// <summary>
@@ -213,7 +229,7 @@ namespace NoxRaven.Units
 
 
             // Deattach when unit leaves the map
-            TriggerRegisterLeaveRegion(CreateTrigger(), reg, Filter(() => { AwaitRemoval(GetLeavingUnit()); return false; }));
+            TriggerRegisterLeaveRegion(CreateTrigger(), reg, Filter(() => { ((UnitEntity)GetLeavingUnit()).DeattachClass(); return false; })); // catch unit removal, destroy everything attached
             // Utility functions
             TimerStart(CreateTimer(), RegenerationTimeout, true, () => { foreach (UnitEntity ue in Indexer.Values) ue.Regenerate(); });
 
@@ -241,36 +257,35 @@ namespace NoxRaven.Units
         /// Do not call RemoveUnit on indexed unit or permaleak.
         /// </summary>
         /// <param name="u"></param>
-        private static void AwaitRemoval(unit u)
+        private static void AwaitRemoval(UnitEntity u, UnitEntity killer)
         {
-            if (!Indexer.ContainsKey(GetHandleId(u))) return; // this is a very weird thing to happen, but will happen for Neutrals so yeah
+            //if (!Indexer.ContainsKey(GetHandleId(u))) return; // this is a very weird thing to happen, but will happen for Neutrals so yeah
+            // Bug in Lua code
+            List<Status> rem = new List<Status>(u.Statuses.Values);
+            foreach(Status stat in rem)
+                stat.Remove();
+            u.Statuses.Clear();// just in case  
+            
+            if (u.Corpse) return;
 
-            UnitEntity ue = Cast(u);
-
-            if (ue.Corpse) return;
-
-            if (ue.OnDeath())
+            if (u.OnDeath(killer))
             {
-                ue.GracefulRemove();
+                u.DeattachClass();
                 return;
             }
 
-            if (GetUnitAbilityLevel(u, FourCC("Aloc")) > 0) return;
+            if (GetUnitAbilityLevel(u, FourCC("Aloc")) > 0) return; // wat
             if (IsUnitType(u, UNIT_TYPE_HERO)) return; // always leak heroes
 
-            foreach (Status s in ue.Statuses.Values)
-                s.Remove();
-            ue.Statuses.Clear();// just in case
-
-            ue.Corpse = true;
-            Utils.DelayedInvoke(KeepCorpsesFor, () => { ue.DeattachClass(); });
+            u.Corpse = true;
+            Utils.DelayedInvoke(KeepCorpsesFor, () => { u.DeattachClass(); }); // ah shiet, change to let resurrections
             //ue = null;
         }
         /// <summary>
         /// Called when unit dies and becomes corpe.<para></para>
         /// Return true to remove it instantly and false to leave corpse.
         /// </summary>
-        protected virtual bool OnDeath()
+        protected virtual bool OnDeath(UnitEntity killer)
         {
             return false;
         }
@@ -285,13 +300,11 @@ namespace NoxRaven.Units
         protected virtual void DeattachClass()
         {
             DestroyTrigger(DamageTrig);
-            DestroyTrigger(DeathTrig);
             Indexer.Remove(GetHandleId(UnitRef));
             Statuses = null;
             RemoveUnit(this);
             UnitRef = null;
             DamageTrig = null;
-            DeathTrig = null;
         }
 
 
@@ -309,11 +322,32 @@ namespace NoxRaven.Units
 
             source.DealPhysicalDamage(this, dmg, true, true, false);
         }
-        protected void Damage(unit target, float damage)
+        /// <summary>
+        /// Ensure all damage goes through this.
+        /// </summary>
+        /// <param name="target"></param>
+        /// <param name="damage"></param>
+        public void Damage(UnitEntity target, float damage)
         {
             DamageEngineIgnore = true;
             UnitDamageTarget(this, target, damage, true, false, ATTACK_TYPE_CHAOS, DAMAGE_TYPE_UNIVERSAL, null);
+            //Utils.DisplayMessageToEveryone(GetUnitName(target) + " damaged by " + GetUnitName(this) + " for " + damage + " has now "+GetWidgetLife(target), 100);
             DamageEngineIgnore = false;
+            if (Utils.IsUnitDead(target)) AwaitRemoval(target, this);// weird bug
+        }
+        /// <summary>
+        /// Extra function in case damage needs to be altered, counted, recordered, redirected, well...anyfuckingthing :)<para></para>
+        /// Return multiplier for incoming damage, default 1 (aka damage not reduced)
+        /// </summary>
+        /// <param name="damageSource"></param>
+        /// <param name="damage"></param>
+        /// <param name="onHit"></param>
+        /// <param name="crit"></param>
+        /// <param name="spell"></param>
+        /// <returns></returns>
+        public virtual float RecievePhysicalDamage(UnitEntity damageSource, float damage, bool onHit, bool crit, bool spell)
+        {
+            return 1;
         }
         /// <summary>
         /// Damage parsers that takes care of all calculations. Damage parser calculates outgoing damage from the unit.
@@ -325,18 +359,19 @@ namespace NoxRaven.Units
         public virtual void DealPhysicalDamage(UnitEntity target, float damage, bool onHit, bool crit, bool spell)
         {
             location loc = Location(GetUnitX(target) + GetRandomReal(0, 20), GetUnitY(target) + GetRandomReal(0, 10));
-
+            float pars = damage;
             if (!spell)
                 if (GetRandomReal(0, 1) < target.Block)
                 {
-                    damage *= 0.05f;
-                    Utils.RandomDirectedFloatText("BLOCK!", loc, 9f, 75, 123, 189, 255, 1.5f);
+                    pars *= 0.05f;
+                    Utils.RandomDirectedFloatText("BLOCK!", loc, 9f, 75, 123, 189, 0, 1.5f);
                 }
             // maths
-            float pars = damage * DamageMultiplier * (1 - Math.Min(target.DamageReduction, 1));
+            pars *= target.RecievePhysicalDamage(this, damage, onHit, crit, spell);
+            pars *= (1 - Math.Min(target.DamageReduction, 1));
             float armor = BlzGetUnitArmor(target);
             if (armor < 0)
-                pars *= (1.71f - Pow(1f - ARMOR_CONST, -armor)); // war3 real armor reduction is 1.71 - xxx
+                pars *= (1.71f - Pow(1f - ARMOR_CONST, -armor)); // war3 real armor reduction is 1.71-pow(xxx) - why? - no idea
             else pars *= 1 / (1 + armor * ARMOR_CONST * (1 - ArmorPenetration)); // Inverse armor reduction function, got by solving: Armor * CONST / (1 + ARMOR * CONST)
 
             // The logic
@@ -358,7 +393,7 @@ namespace NoxRaven.Units
                 }
             }
 
-            Damage(target.UnitRef, pars);
+            Damage(target, pars);
             if (spell) Heal(pars * SpellVamp);
             else Heal(pars * Lifesteal);
             // Now that's done
@@ -374,10 +409,18 @@ namespace NoxRaven.Units
             RemoveLocation(loc);
             loc = null;
         }
+        /// <summary>
+        /// Perfect damage, when dice is 1 and 1
+        /// </summary>
+        /// <returns></returns>
         public virtual float AbilityDamage()
         {
             return (BlzGetUnitBaseDamage(this, 0) + 1 + BonusDamage) * DamageMultiplier;
         }
+        /// <summary>
+        /// Perfect damage, when dice is 1 and 1
+        /// </summary>
+        /// <returns></returns>
         public virtual float WeapondDamage()
         {
             return (BlzGetUnitBaseDamage(this, 0) + 1 + BonusDamage) * DamageMultiplier;
@@ -408,6 +451,13 @@ namespace NoxRaven.Units
             TotalHPPercent = percent;
             CalculateTotalHP();
         }
+        public float GetAttackReload() => BlzGetUnitAttackCooldown(UnitRef, 0);
+        public float GetAttackSpeed() => AttackSpeed;
+        public void AddAttackSpeed(float attackSpeed)
+        {
+            AttackSpeed += attackSpeed;
+            BlzSetUnitAttackCooldown(UnitRef, BaseAttackCooldown/AttackSpeed, 0);
+        }
         /// <summary>
         /// Get the +xxx on unit.
         /// </summary>
@@ -434,6 +484,12 @@ namespace NoxRaven.Units
         public void AddBonusDamage(int val)
         {
             SetBonusDamage(BonusDamage + val);
+        }
+        public float GetGreyArmor() => GreyArmor;
+        public void SetGreyArmor(float val)
+        {
+            GreyArmor = val;
+            BlzSetUnitArmor(UnitRef, val + GreenArmor);
         }
         /// <summary>
         /// Get units's -xxx armor.

@@ -40,6 +40,7 @@ namespace NoxRaven
             Id = 100 + ++Count;
             Apply = apply;
             Reset = reset;
+            OnRemove = onRemove;
             Effectpath = specialEffectPath;
             Attachment = specialEffectAttachmentPoint;
         }
@@ -56,6 +57,7 @@ namespace NoxRaven
             Id = id;
             Apply = apply;
             Reset = reset;
+            OnRemove = onRemove;
             Effectpath = specialEffectPath;
             Attachment = specialEffectAttachmentPoint;
         }
@@ -66,7 +68,7 @@ namespace NoxRaven
         /// <param name="duration"></param>
         public Status ApplyStatus(UnitEntity source, UnitEntity target, int level, float duration, bool stacking, bool periodic)
         {
-            if (target.Corpse) return null;
+            //if (Utils.IsUnitDead(target)) return null;
             int resultId = Id;
             if (Id > 100)
                 resultId = (Id - 101) * 100 + 101 + GetPlayerId(GetOwningPlayer(source.UnitRef));

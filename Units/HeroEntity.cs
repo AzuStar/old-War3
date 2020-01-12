@@ -95,10 +95,8 @@ namespace NoxRaven.Units
             // For now just use war3 built-in experience manipulator
             int lvl = GetHeroLevel(UnitRef);
             CacheExp += exp * MultiplierExp;
-            Utils.DisplayMessageToEveryone(R2S(CacheExp), 20);
             AddHeroXP(UnitRef, R2I(CacheExp), true);
             CacheExp -= R2I(CacheExp);
-            Utils.DisplayMessageToEveryone(R2S(CacheExp), 20);
             int difference = GetHeroLevel(UnitRef) - lvl;
             if (difference > 0) LevelUp(difference, GetHeroLevel(UnitRef));
         }
