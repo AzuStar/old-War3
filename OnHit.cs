@@ -8,7 +8,7 @@ namespace NoxRaven
 {
     public sealed class OnHit
     {
-        public int Data;
+        public dynamic Data;
         private OnHitType Type;
         private float Chance;
 

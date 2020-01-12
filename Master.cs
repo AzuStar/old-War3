@@ -8,6 +8,8 @@ namespace NoxRaven
 {
     public static class Master
     {
+        public static float FPS = 64;
+        public static float FPS_TIME = 1 / FPS;
         public static int Version = 1;
         public static bool BadLoad = false;
         public static int ErrorCount = 0;
@@ -60,6 +62,7 @@ namespace NoxRaven
                 abilid++;
             }
             UnitEntity.InitUnitLogic();
+            TimerStart(CreateTimer(), 1800, true, GCRoutine);
         }
         /// <summary>
         /// Put at the very end of Main.
@@ -74,6 +77,10 @@ namespace NoxRaven
             }
             Utils.DisplayMessageToEveryone("|cffacf2f0Map loaded correctly!|r", 2f);// Do not remove this, I promise this will hurt
             Utils.DisplayMessageToEveryone("|cffacf2f0NoxRaven Version: |r|cffff0000"+Version+"|r", 2f);//you can remove this :)
+        }
+        private static void GCRoutine()
+        {
+            GC.Collect();
         }
     }
 }

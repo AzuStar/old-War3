@@ -19,13 +19,11 @@ namespace NoxRaven
         }, null, @"Abilities\Spells\Human\Thunderclap\ThunderclapTarget.mdl", @"origin");
         public readonly int Id;
         public static int Count;
-        public bool EffectsSet = false;
         public String Effectpath;
         public String Attachment;
         public StatusFunction Apply { get; private set; }
         public StatusFunction Reset { get; private set; }
         public StatusFunction OnRemove { get; private set; }
-        public float PeriodicTimeout = 1;
         public override int GetHashCode()
         {
             return Id;
@@ -43,7 +41,6 @@ namespace NoxRaven
             Apply = apply;
             Reset = reset;
             OnRemove = onRemove;
-            EffectsSet = (specialEffectAttachmentPoint == "" && specialEffectPath == "");
             Effectpath = specialEffectPath;
             Attachment = specialEffectAttachmentPoint;
         }
@@ -55,13 +52,12 @@ namespace NoxRaven
         /// <param name="reset"></param>
         /// <param name="specialEffectPath"></param>
         /// <param name="specialEffectAttachmentPoint"></param>
-        private StatusType(int id, StatusFunction apply, StatusFunction onRemove, StatusFunction reset, String specialEffectPath, String specialEffectAttachmentPoint)
+        public StatusType(int id, StatusFunction apply, StatusFunction onRemove, StatusFunction reset, String specialEffectPath, String specialEffectAttachmentPoint)
         {
             Id = id;
             Apply = apply;
             Reset = reset;
             OnRemove = onRemove;
-            EffectsSet = (specialEffectAttachmentPoint == "" && specialEffectPath == "");
             Effectpath = specialEffectPath;
             Attachment = specialEffectAttachmentPoint;
         }
@@ -70,42 +66,17 @@ namespace NoxRaven
         /// <param name="source"></param>
         /// <param name="target"></param>
         /// <param name="duration"></param>
-        public Status ApplyStatus(UnitEntity source, UnitEntity target, int level, float duration, bool stacking)
+        public Status ApplyStatus(UnitEntity source, UnitEntity target, int level, float duration, bool stacking, bool periodic)
         {
-            if (target.Corpse) return null;
+            //if (Utils.IsUnitDead(target)) return null;
             int resultId = Id;
             if (Id > 100)
                 resultId = (Id - 101) * 100 + 101 + GetPlayerId(GetOwningPlayer(source.UnitRef));
             if (!target.ContainsStatus(resultId))
                 // create new status and add it to unit
-                return target.AddStatus(resultId, new Status(resultId, this, source, target, level, duration, stacking));
+                return target.AddStatus(resultId, new Status(resultId, this, source, target, level, duration, stacking, periodic));
             else
-                return target.GetStatus(resultId).Reapply(duration, level, stacking);
-        }
-        public Status ApplyPermanentStatus(UnitEntity source, UnitEntity target, int level, bool stacking)
-        {
-            if (target.Corpse) return null;
-            int resultId = Id;
-            if (Id > 100)
-                resultId = (Id - 101) * 100 + 101 + GetPlayerId(GetOwningPlayer(source.UnitRef));
-            if (!target.ContainsStatus(resultId))
-                // create new status and add it to unit
-                return target.AddStatus(resultId, new Status(resultId, this, source, target, level, duration, stacking));
-            else
-                return target.GetStatus(resultId).Reapply(duration, level, stacking);
-        }
-
-        public Status ApplyPeriodicStatus(UnitEntity source, UnitEntity target, int level, float duration, float timeout, bool stacking)
-        {
-            if (target.Corpse) return null;
-            int resultId = Id;
-            if (Id > 100)
-                resultId = (Id - 101) * 100 + 101 + GetPlayerId(GetOwningPlayer(source.UnitRef));
-            if (!target.ContainsStatus(resultId))
-                // create new status and add it to unit
-                return target.AddStatus(resultId, new Status(resultId, this, source, target, level, duration, stacking));
-            else
-                return target.GetStatus(resultId).Reapply(duration, level, stacking);
+                return target.GetStatus(resultId).Reapply(duration, level, stacking, periodic);
         }
 
         public Status GetStatus(UnitEntity source, UnitEntity target)
