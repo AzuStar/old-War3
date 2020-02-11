@@ -5,13 +5,13 @@ Credits for contribution, these are the terms!<br /><br /><br />
 
 ## How to use
 ```csharp
-// Add 6 human players who are playing right now
+// Add 6 human players who are playing right now to global number of playing players
 for (int i = 0; i < 6; i++)
     if (IsPlayerSlotState(Player(i), PLAYER_SLOT_STATE_PLAYING) && GetPlayerController(Player(i)) == MAP_CONTROL_USER)
-        Players.Add(new SurvivorPlayer(i));
+        Globals.Players.Add(new SurvivorPlayer(i));
 // Add enemy force and friendly force
-UndeadForce = new EnemyForce(20);
-LastLiving = new NoxPlayer(6);
+Globals.UndeadForce = new EnemyForce(20);
+Globals.LastLiving = new NoxPlayer(6);
 // Unit Indexing after players known
 // Register any custom Type indexes
 // Dont forget to add it to all others!
