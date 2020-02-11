@@ -5,6 +5,7 @@ using System.Text;
 using static War3Api.Common;
 using static War3Api.Blizzard;
 using NoxRaven.Units;
+using System.Numerics;
 
 namespace NoxRaven
 {
@@ -58,13 +59,16 @@ namespace NoxRaven
         }
         public static void RandomDirectedFloatText(string msg, location loc, float size, float r, float g, float b, float alpha, float dur)
         {
-            location newloc = PolarProjectionBJ(loc, GetRandomReal(0, 5), GetRandomReal(0, 360));
-            texttag tt = CreateTextTagLocBJ(msg, newloc, 0, size, r, g, b, alpha);
+            //float x = GetLocationX(loc) + GetRandomReal(0, 5) * Cos(GetRandomReal(0, 360) * bj_DEGTORAD);
+            //float y = GetLocationY(loc) + GetRandomReal(0, 5) * Sin(GetRandomReal(0, 360) * bj_DEGTORAD);
+            texttag tt = CreateTextTagLocBJ(msg, loc, 0, size, r, g, b, alpha);
+            //SetTextTagText(tt, msg, size);
+            //SetTextTagPos(tt, x, y, 0);
+            //SetTextTagColorBJ(tt, r, g, b, alpha);
             SetTextTagVelocityBJ(tt, 40, 90);
             SetTextTagPermanent(tt, false);
             SetTextTagFadepoint(tt, dur);
             SetTextTagLifespan(tt, dur + 1);
-            RemoveLocation(newloc);
         }
 
         public static bool IsCurrentlyWalkable(float x, float y)
@@ -72,9 +76,9 @@ namespace NoxRaven
             bool flag = false;
             if (IsTerrainPathable(x, y, PATHING_TYPE_WALKABILITY)) return flag;
             SetItemPosition(WalkableItem, x, y);
-            float itemx = GetItemX(WalkableItem)-x;
+            float itemx = GetItemX(WalkableItem) - x;
             itemx *= itemx;
-            float itemy = GetItemY(WalkableItem)-y;
+            float itemy = GetItemY(WalkableItem) - y;
             itemy *= itemy;
             flag = itemx + itemy <= WalkableOverhead;
             SetItemVisible(WalkableItem, false);
@@ -93,15 +97,35 @@ namespace NoxRaven
             return Atan2(y2 - y1, x2 - x1) * bj_RADTODEG + 180;
         }
 
-        public static bool IsUnitDead(UnitEntity unit)
+        public static bool IsUnitDead(unit u)
         {
-            return IsUnitType(unit, UNIT_TYPE_DEAD) || GetWidgetLife(unit.UnitRef) <= 0;
+            return GetWidgetLife(u) <= 0 || IsUnitType(u, UNIT_TYPE_DEAD);
         }
 
         public static void DisplayEffect(string effectPath, float x, float y, float duration)
         {
             effect ef = AddSpecialEffect(effectPath, x, y);
-            DelayedInvoke(duration, ()=> { DestroyEffect(ef); });
+            DelayedInvoke(duration, () => { DestroyEffect(ef); });
+        }
+
+        public static void DisplayEffectTarget(string effectPath, widget wi, string attach, float duration)
+        {
+            effect ef = AddSpecialEffectTarget(effectPath, wi, attach);
+            DelayedInvoke(duration, () => { DestroyEffect(ef); });
+        }
+        /// <summary>
+        /// Returns item's current slot in u's inventory, otherwise -1.
+        /// </summary>
+        /// <param name="u"></param>
+        /// <param name="it"></param>
+        /// <returns></returns>
+        public static int GetItemSlot(unit u, item it)
+        {
+            for (int i = 0; i < UnitInventorySize(u); i++)
+            {
+                if (UnitItemInSlot(u, i) == it) return i;
+            }
+            return -1;
         }
     }
 }

@@ -6,7 +6,7 @@ using static War3Api.Common;
 
 namespace NoxRaven.Units
 {
-    public class HeroEntity : UnitEntity
+    public class NoxHero : NoxUnit
     {
         internal static int[] Abilities_Intelligence = new int[18];
         internal static int[] Abilities_Strength = new int[18];
@@ -24,8 +24,8 @@ namespace NoxRaven.Units
         protected float PerLevelAgi;
         protected float PerLevelInt;
 
-        private float MultiplierExp = 1;
-        private float CacheExp;
+        protected float MultiplierExp = 1;
+        protected float CacheExp;
 
         // Access functions
         public int GetBonusStr() => BonusStr;
@@ -74,17 +74,29 @@ namespace NoxRaven.Units
             }
         }
         // Compatibility functions
-        public void AddBonusStr(int val)
+        public virtual void AddBonusStr(int val)
         {
             SetBonusStr(BonusStr + val);
         }
-        public void AddBonusAgi(int val)
+        public virtual void AddBonusAgi(int val)
         {
             SetBonusAgi(BonusAgi + val);
         }
-        public void AddBonusInt(int val)
+        public virtual void AddBonusInt(int val)
         {
             SetBonusInt(BonusInt + val);
+        }
+        public virtual void AddBaseStr(int val)
+        {
+            SetHeroStr(UnitRef, GetHeroStr(UnitRef, false) + val, true);
+        }
+        public virtual void AddBaseAgi(int val)
+        {
+            SetHeroAgi(UnitRef, GetHeroAgi(UnitRef, false) + val, true);
+        }
+        public virtual void AddBaseInt(int val)
+        {
+            SetHeroInt(UnitRef, GetHeroInt(UnitRef, false) + val, true);
         }
         /// <summary>
         /// Add experience to the character. Float.
@@ -123,14 +135,13 @@ namespace NoxRaven.Units
             CacheInt += PerLevelInt * times;
             int complete = R2I(CacheStr);
             CacheStr -= complete;
-            SetHeroStr(UnitRef, GetHeroStr(UnitRef, false) + complete, true);
+            AddBaseStr(complete);
             complete = R2I(CacheAgi);
             CacheAgi -= complete;
-            SetHeroAgi(UnitRef, GetHeroAgi(UnitRef, false) + complete, true);
+            AddBaseAgi(complete);
             complete = R2I(CacheInt);
             CacheInt -= complete;
-            SetHeroInt(UnitRef, GetHeroInt(UnitRef, false) + complete, true);
-
+            AddBaseInt(complete);
         }
 
         // Leave this empty because heroes are not usually deallocated
@@ -138,15 +149,15 @@ namespace NoxRaven.Units
         {
         }
 
-        public HeroEntity(Common.unit u) : base(u)
+        public NoxHero(Common.unit u) : base(u)
         {
         }
 
-        public new static HeroEntity Cast(unit u)
+        public new static NoxHero Cast(unit u)
         {
-            return (HeroEntity)Indexer[GetHandleId(u)];
+            return (NoxHero)Indexer[GetHandleId(u)];
         }
-        public static implicit operator HeroEntity(unit u)
+        public static implicit operator NoxHero(unit u)
         {
             return Cast(u);
         }

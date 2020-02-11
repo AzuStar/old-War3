@@ -22,7 +22,7 @@ namespace NoxRaven
         /// </summary>
         /// <param name="source"></param>
         /// <param name="target"></param>
-        public void ApplyOnHit(UnitEntity source, UnitEntity target)
+        public void ApplyOnHit(NoxUnit source, NoxUnit target)
         {
             if (GetRandomReal(0, 1) < source.TriggerChance * Chance)
                 for (int i = 0; i < source.OnHitApplied_Times; i++)

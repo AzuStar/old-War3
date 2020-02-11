@@ -9,7 +9,7 @@ using NoxRaven.Units;
 namespace NoxRaven
 {
     /// <summary>
-    /// Some really special utilities that does not really belong (or may be not yet) in UnitEntity
+    /// Some really special utilities that do not really belong (or may be not yet) in NoxUnit
     /// </summary>
     public static class UnitExperimentals
     {

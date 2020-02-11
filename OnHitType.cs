@@ -11,7 +11,7 @@ namespace NoxRaven
         //public static Dictionary<int, OnHitType> Indexer = new Dictionary<int, OnHitType>();
         // index it yourself, sorry(
 
-        public delegate void OnHitCallback(UnitEntity source, UnitEntity target, OnHit data);
+        public delegate void OnHitCallback(NoxUnit source, NoxUnit target, OnHit data);
         public readonly bool Epic;
         public readonly OnHitCallback Callback;
 

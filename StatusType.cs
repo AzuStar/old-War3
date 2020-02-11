@@ -66,7 +66,7 @@ namespace NoxRaven
         /// <param name="source"></param>
         /// <param name="target"></param>
         /// <param name="duration"></param>
-        public Status ApplyStatus(UnitEntity source, UnitEntity target, int level, float duration, bool stacking, bool periodic)
+        public Status ApplyStatus(NoxUnit source, NoxUnit target, int level, float duration, bool stacking, bool periodic)
         {
             //if (Utils.IsUnitDead(target)) return null;
             int resultId = Id;
@@ -79,7 +79,7 @@ namespace NoxRaven
                 return target.GetStatus(resultId).Reapply(duration, level, stacking, periodic);
         }
 
-        public Status GetStatus(UnitEntity source, UnitEntity target)
+        public Status GetStatus(NoxUnit source, NoxUnit target)
         {
             int resultId = Id;
             if (Id > 100)

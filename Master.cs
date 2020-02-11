@@ -15,53 +15,54 @@ namespace NoxRaven
         public static int ErrorCount = 0;
         /// <summary>
         /// Run when all static data is initialized.<para></para>
-        /// Types taht need to be initialized before running: UnitEntity Custom Classes, Players
+        /// Types taht need to be initialized before running: UnitEntity Custom Classes, Players, Items
         /// </summary>
         public static void RunAfterExtensionsReady()
         {
             int abilid = FourCC("AD00");
-            for (int i = 0; i < UnitEntity.Abilities_BonusDamage.Length; i++)
+            for (int i = 0; i < NoxUnit.Abilities_BonusDamage.Length; i++)
             {
-                UnitEntity.Abilities_BonusDamage[i] = abilid;
+                NoxUnit.Abilities_BonusDamage[i] = abilid;
                 if ((i + 1) % 10 == 0) abilid += 246;
                 abilid++;
             }
             abilid = FourCC("AR00");
-            for (int i = 0; i < UnitEntity.Abilities_BonusArmor.Length; i++)
+            for (int i = 0; i < NoxUnit.Abilities_BonusArmor.Length; i++)
             {
-                UnitEntity.Abilities_BonusArmor[i] = abilid;
+                NoxUnit.Abilities_BonusArmor[i] = abilid;
                 if ((i + 1) % 10 == 0) abilid += 246;
                 abilid++;
             }
             abilid = FourCC("CR00");
-            for (int i = 0; i < UnitEntity.Abilities_Corruption.Length; i++)
+            for (int i = 0; i < NoxUnit.Abilities_Corruption.Length; i++)
             {
-                UnitEntity.Abilities_Corruption[i] = abilid;
+                NoxUnit.Abilities_Corruption[i] = abilid;
                 if ((i + 1) % 10 == 0) abilid += 246;
                 abilid++;
             }
             abilid = FourCC("ST00");
-            for (int i = 0; i < HeroEntity.Abilities_Strength.Length; i++)
+            for (int i = 0; i < NoxHero.Abilities_Strength.Length; i++)
             {
-                HeroEntity.Abilities_Strength[i] = abilid;
+                NoxHero.Abilities_Strength[i] = abilid;
                 if ((i + 1) % 10 == 0) abilid += 246;
                 abilid++;
             }
             abilid = FourCC("AG00");
-            for (int i = 0; i < HeroEntity.Abilities_Agility.Length; i++)
+            for (int i = 0; i < NoxHero.Abilities_Agility.Length; i++)
             {
-                HeroEntity.Abilities_Agility[i] = abilid;
+                NoxHero.Abilities_Agility[i] = abilid;
                 if ((i + 1) % 10 == 0) abilid += 246;
                 abilid++;
             }
             abilid = FourCC("IN00");
-            for (int i = 0; i < HeroEntity.Abilities_Intelligence.Length; i++)
+            for (int i = 0; i < NoxHero.Abilities_Intelligence.Length; i++)
             {
-                HeroEntity.Abilities_Intelligence[i] = abilid;
+                NoxHero.Abilities_Intelligence[i] = abilid;
                 if ((i + 1) % 10 == 0) abilid += 246;
                 abilid++;
             }
-            UnitEntity.InitUnitLogic();
+            NoxUnit.InitUnitLogic();
+            NoxItem.InitItemLogic();
             TimerStart(CreateTimer(), 1800, true, GCRoutine);
         }
         /// <summary>
@@ -78,6 +79,9 @@ namespace NoxRaven
             Utils.DisplayMessageToEveryone("|cffacf2f0Map loaded correctly!|r", 2f);// Do not remove this, I promise this will hurt
             Utils.DisplayMessageToEveryone("|cffacf2f0NoxRaven Version: |r|cffff0000"+Version+"|r", 2f);//you can remove this :)
         }
+        /// <summary>
+        /// TODO: Dynamically adjust this
+        /// </summary>
         private static void GCRoutine()
         {
             GC.Collect();

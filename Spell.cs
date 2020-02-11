@@ -18,7 +18,7 @@ namespace NoxRaven
             Indexer.Add(SpellId, this);
         }
 
-        public void AddSpellToUnit(UnitEntity target)
+        public void AddSpellToUnit(NoxUnit target)
         {
             UnitAddAbility(target.UnitRef, SpellId);
         }

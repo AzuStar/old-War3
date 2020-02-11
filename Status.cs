@@ -11,8 +11,8 @@ namespace NoxRaven
     {
         public int Id;
         public StatusType Type;
-        public UnitEntity Source;
-        public UnitEntity Target;
+        public NoxUnit Source;
+        public NoxUnit Target;
         timer t;
         /// <summary>
         /// How many stack have been applied, stacking begins from 1, 0 means status is non-stackable, flag Staking will also be <see langword="false"/>.
@@ -52,7 +52,7 @@ namespace NoxRaven
         /// <param name="duration"></param>
         /// <param name="stacking"></param>
         /// <param name="periodic"></param>
-        internal Status(int id, StatusType type, UnitEntity source, UnitEntity target, int level, float duration, bool stacking, bool periodic)
+        internal Status(int id, StatusType type, NoxUnit source, NoxUnit target, int level, float duration, bool stacking, bool periodic)
         {
             //if(type.DataType != null)
             //Data = Activator.CreateInstance(type.DataType);
