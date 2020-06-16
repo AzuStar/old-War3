@@ -9,6 +9,7 @@ namespace NoxRaven
 {
     /// <summary>
     /// Not *yet* indexed item without data.
+    /// Improve logic to address more cases. (targeted abils can be created through trigger spell effect tho)
     /// </summary>
     public class NoxItem
     {
@@ -62,7 +63,7 @@ namespace NoxRaven
             Use = use;
         }
         /// <summary>
-        /// 4 characters
+        /// FourcCC 4 characters
         /// </summary>
         /// <param name="itemTypeId"></param>
         /// <param name="pickUp"></param>

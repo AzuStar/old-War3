@@ -8,9 +8,9 @@ namespace NoxRaven
 {
     public static class Master
     {
-        public static float FPS = 64;
-        public static float FPS_TIME = 1 / FPS;
-        public static int Version = 1;
+        public const float FPS = 64;
+        public const float FPS_TIME = 1 / FPS;
+        public const int Version = 1;
         public static bool BadLoad = false;
         public static int ErrorCount = 0;
         /// <summary>

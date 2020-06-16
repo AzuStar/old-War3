@@ -11,7 +11,7 @@ namespace NoxRaven
     /// </summary>
     public class NoxPlayer
     {
-        public static List<NoxPlayer> AllPlayers = new List<NoxPlayer>();
+        public static Dictionary<int, NoxPlayer> AllPlayers = new Dictionary<int, NoxPlayer>();
         /// <summary>
         /// Throw-away value for <see cref="PlayerRef"/>.
         /// </summary>
@@ -25,7 +25,7 @@ namespace NoxRaven
         {
             Id = id;
             PlayerRef = Player(id);
-            AllPlayers.Add(this);
+            AllPlayers.Add(id, this);
         }
 
         public void SendMessage(string msg, float timeout, RecipientType whoGets)

@@ -23,7 +23,6 @@ namespace NoxRaven
 
         public Projectile()
         {
-
         }
     }
 }

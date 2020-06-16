@@ -5,32 +5,36 @@ using static War3Api.Common;
 using static War3Api.Blizzard;
 using NoxRaven.Units;
 
-namespace NoxRaven
+namespace NoxRaven.Statuses
 {
-    public class Status
+    public sealed class Status
     {
-        public int Id;
-        public StatusType Type;
-        public NoxUnit Source;
-        public NoxUnit Target;
+        public int Id { get; private set; }
+        public SimpleStatusType Type { get; private set; }
+        public NoxUnit Source { get; private set; }
+        public NoxUnit Target { get; private set; }
         timer t;
+        effect SpecialEffect;
         /// <summary>
-        /// How many stack have been applied, stacking begins from 1, 0 means status is non-stackable, flag Staking will also be <see langword="false"/>.
+        /// How many stack have been applied, non-stackable has <see cref="Stacking"/> flag set to <see langword="false"/>.
         /// </summary>
-        public int Stacks;
+        public int Stacks { get; private set; }
+        /// <summary>
+        /// Limit for stack, eg up to 3/4/5 stacks max
+        /// </summary>
+        public int StacksLim { get; private set; }
         /// <summary>
         /// Flag
         /// </summary>
-        public bool Stacking;
+        public bool Stacking { get; private set; }
         /// <summary>
         /// Flag
         /// </summary>
-        public bool Periodic;
+        public bool Periodic { get; private set; }
         /// <summary>
         /// This is only used by periodic
         /// </summary>
         public float TimeRemain;
-        public effect SpecialEffect;
         /// <summary>
         /// Data of a status. Type is dynamic, which means you can make it into list, array...?
         /// </summary>
@@ -38,8 +42,9 @@ namespace NoxRaven
         /// <summary>
         /// This is for reseting ability if level greater
         /// </summary>
-        public int Level;
-        public float TotalDuration;
+        public int Level { get; private set; }
+        public float TotalDuration { get; private set; }
+        public float PeriodicTimeout;
 
         /// <summary>
         /// 
@@ -52,7 +57,7 @@ namespace NoxRaven
         /// <param name="duration"></param>
         /// <param name="stacking"></param>
         /// <param name="periodic"></param>
-        internal Status(int id, StatusType type, NoxUnit source, NoxUnit target, int level, float duration, bool stacking, bool periodic)
+        internal Status(int id, SimpleStatusType type, NoxUnit source, NoxUnit target, int level, int initialStacks, int stacksLim, float duration, float periodicTimeout, bool stacking, bool periodic)
         {
             //if(type.DataType != null)
             //Data = Activator.CreateInstance(type.DataType);
@@ -64,15 +69,17 @@ namespace NoxRaven
             Level = level;
             Stacking = stacking;
             Periodic = periodic;
+            PeriodicTimeout = periodicTimeout;
+            StacksLim = stacksLim;
             t = CreateTimer();
             if (periodic)
             {
                 TimeRemain = duration;
-                TimerStart(t, 1f, false, PeriodicTimerRestart);
+                TimerStart(t, PeriodicTimeout, false, PeriodicTimerRestart);
             }
             else
                 TimerStart(t, duration, false, Remove);
-            if (stacking) Stacks++;
+            if (stacking) Stacks += initialStacks;
             if (Type.Apply != null)
                 Type.Apply.Invoke(this);
             SpecialEffect = AddSpecialEffectTarget(Type.Effectpath, target.UnitRef, Type.Attachment);
@@ -85,9 +92,9 @@ namespace NoxRaven
             if (Type.Apply != null)
                 Type.Apply.Invoke(this);
             TotalDuration += 1;
-            TimeRemain--; //later
+            TimeRemain -= PeriodicTimeout;
             if (TimeRemain > 0)
-                TimerStart(t, 1f, false, PeriodicTimerRestart);
+                TimerStart(t, PeriodicTimeout, false, PeriodicTimerRestart);
             else
                 Remove();
         }
@@ -99,28 +106,29 @@ namespace NoxRaven
             else Stacks += stacks;
         }
         /// <summary>
-        /// Reapplies status, refreshing timer and other stuff. Can change status data runtime (stacking rules and peridoic)
+        /// Reapplies status, refreshing timer and other stuff. Can't change Status signature.
         /// </summary>
         /// <param name="duration"></param>
         /// <param name="stacking"></param>
         /// <param name="periodic"></param>
-        public Status Reapply(float duration, int level, bool stacking, bool periodic)
+        public Status Reapply(float duration, int level, int bonusStacks)
         {
-            if (periodic)
+            if (Periodic)
             {
+                Level = level;
                 if (TimeRemain < duration)
                     TimeRemain = duration;
-                PauseTimer(t);
-                TotalDuration += TimerGetElapsed(t);
-                TimerStart(t, 1f, false, PeriodicTimerRestart);
-                if (stacking) Stacks++; // periodic events are never reset
+                if (Stacking) Stacks += bonusStacks; // periodic events are never reset
             }
             else
             {
-                PauseTimer(t);
-                TotalDuration += TimerGetElapsed(t);
-                TimerStart(t, duration, false, Remove);
-                if (stacking) Reset(1, level); // reset if stack
+                if (TimerGetRemaining(t) < duration)
+                {
+                    PauseTimer(t);
+                    TotalDuration += TimerGetElapsed(t);
+                    TimerStart(t, duration, false, Remove);
+                }
+                if (Stacking) Reset(bonusStacks, level); // reset if stack
                 else if (Level < level) Reset(0, level); // reset to new level
             }
             return this;
@@ -156,6 +164,8 @@ namespace NoxRaven
             if (Type.Reset != null)
                 Type.Reset.Invoke(this);
             Stacks += addToStack;
+            if (Stacks > StacksLim)
+                Stacks = StacksLim;
             Level = newLevel;
             if (Type.Apply != null)
                 Type.Apply.Invoke(this);

@@ -5,18 +5,27 @@ using static War3Api.Common;
 using static War3Api.Blizzard;
 using NoxRaven.Units;
 
-namespace NoxRaven
+namespace NoxRaven.Statuses
 {
-    public class StatusType
+    public class SimpleStatusType
     {
         public delegate void StatusFunction(Status status);
-        public static StatusType Stun = new StatusType(0, (status) =>
+        public static SimpleStatusType Stun = new SimpleStatusType(0, (status) =>
         {
-            PauseUnit(status.Target.UnitRef, true);
+            PauseUnit(status.Target, true);
         }, (status) =>
         {
-            PauseUnit(status.Target.UnitRef, false);
-        }, null, @"Abilities\Spells\Human\Thunderclap\ThunderclapTarget.mdl", @"origin");
+            PauseUnit(status.Target, false);
+        }, null, @"Abilities\Spells\Human\Thunderclap\ThunderclapTarget.mdl", @"overhead");
+        public static SimpleStatusType Slow = new SimpleStatusType(1, (status) =>
+        {
+            status.Target.AddMoveSpeedPercent(-(float)status.Level / 100);
+            SetUnitVertexColor(status.Target, 55 + R2I(RMaxBJ(100 - status.Level * 2, 0)), 55 + R2I(RMaxBJ(100 - status.Level * 2, 0)), 255, 255);
+        }, (status) =>
+        {
+            status.Target.AddMoveSpeedPercent((float)status.Level / 100);
+            SetUnitVertexColor(status.Target, 255, 255, 255, 255);
+        }, null, null, null);
         public readonly int Id;
         public static int Count;
         public String Effectpath;
@@ -35,7 +44,7 @@ namespace NoxRaven
         /// <param name="reset"></param>
         /// <param name="specialEffectPath"></param>
         /// <param name="specialEffectAttachmentPoint"></param>
-        public StatusType(StatusFunction apply, StatusFunction reset, StatusFunction onRemove, String specialEffectPath, String specialEffectAttachmentPoint)
+        public SimpleStatusType(StatusFunction apply, StatusFunction reset, StatusFunction onRemove, String specialEffectPath, String specialEffectAttachmentPoint)
         {
             Id = 100 + ++Count;
             Apply = apply;
@@ -52,7 +61,7 @@ namespace NoxRaven
         /// <param name="reset"></param>
         /// <param name="specialEffectPath"></param>
         /// <param name="specialEffectAttachmentPoint"></param>
-        public StatusType(int id, StatusFunction apply, StatusFunction onRemove, StatusFunction reset, String specialEffectPath, String specialEffectAttachmentPoint)
+        public SimpleStatusType(int id, StatusFunction apply, StatusFunction onRemove, StatusFunction reset, String specialEffectPath, String specialEffectAttachmentPoint)
         {
             Id = id;
             Apply = apply;
@@ -66,7 +75,7 @@ namespace NoxRaven
         /// <param name="source"></param>
         /// <param name="target"></param>
         /// <param name="duration"></param>
-        public Status ApplyStatus(NoxUnit source, NoxUnit target, int level, float duration, bool stacking, bool periodic)
+        public virtual Status ApplyStatus(NoxUnit source, NoxUnit target, int level, float duration)
         {
             //if (Utils.IsUnitDead(target)) return null;
             int resultId = Id;
@@ -74,9 +83,8 @@ namespace NoxRaven
                 resultId = (Id - 101) * 100 + 101 + GetPlayerId(GetOwningPlayer(source.UnitRef));
             if (!target.ContainsStatus(resultId))
                 // create new status and add it to unit
-                return target.AddStatus(resultId, new Status(resultId, this, source, target, level, duration, stacking, periodic));
-            else
-                return target.GetStatus(resultId).Reapply(duration, level, stacking, periodic);
+                return target.AddStatus(resultId, new Status(resultId, this, source, target, level, 0, 0, duration, 0, false, false));
+            return target.GetStatus(resultId).Reapply(duration, level, 0);
         }
 
         public Status GetStatus(NoxUnit source, NoxUnit target)

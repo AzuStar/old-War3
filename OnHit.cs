@@ -10,23 +10,24 @@ namespace NoxRaven
     {
         public dynamic Data;
         private OnHitType Type;
-        private float Chance;
+        public int Count = 0;
 
-        public OnHit(OnHitType type, float chance)
+        internal OnHit(OnHitType type)
         {
             Type = type;
-            Chance = chance;
         }
         /// <summary>
         /// Reverse the source and target to make it AmHit.
         /// </summary>
         /// <param name="source"></param>
         /// <param name="target"></param>
-        public void ApplyOnHit(NoxUnit source, NoxUnit target)
+        public void ApplyOnHit(NoxUnit source, NoxUnit target, float damage, float processedDamage)
         {
-            if (GetRandomReal(0, 1) < source.TriggerChance * Chance)
-                for (int i = 0; i < source.OnHitApplied_Times; i++)
-                    Type.Callback.Invoke(source, target, this);
+            if (GetRandomReal(0, 1) < source.TriggerChance * Type.Chance)
+                if (!Type.Epic)
+                    for (int i = 0; i < Count; i++)
+                        Type.Callback.Invoke(source, target, damage, processedDamage, this);
+                else Type.Callback.Invoke(source, target, damage, processedDamage, this);
         }
     }
 }

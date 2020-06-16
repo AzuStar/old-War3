@@ -6,6 +6,7 @@ using NoxRaven;
 
 using static War3Api.Common;
 using static War3Api.Blizzard;
+using NoxRaven.Statuses;
 
 namespace NoxRaven.Units
 {
@@ -40,8 +41,8 @@ namespace NoxRaven.Units
 
         private Dictionary<int, Status> Statuses = new Dictionary<int, Status>();
 
-        public List<OnHit> OnHits = new List<OnHit>();
-        public List<OnHit> AmHits = new List<OnHit>();
+        public Dictionary<int, OnHit> OnHits = new Dictionary<int, OnHit>();
+        //public Dictionary<int, OnHit> AmHits = new Dictionary<int, OnHit>();
         // Unit Extra Parameters
         // ******************
         // * Damage related *
@@ -51,7 +52,11 @@ namespace NoxRaven.Units
         /// </summary>
         public bool Ranged;
         /// <summary>
-        /// This is +xxx damage.
+        /// This is +xxx damage on unit.
+        /// </summary>
+        private int GreenDamage = 0;
+        /// <summary>
+        /// This is flat bonus to green damage.
         /// </summary>
         private int BonusDamage = 0;
         /// <summary>
@@ -61,7 +66,7 @@ namespace NoxRaven.Units
         /// <summary>
         /// Total damage multiplication. Multiplicative(*)
         /// </summary>
-        private float DamageMultiplier = 1;
+        public float DamageMultiplier = 1;
         /// <summary>
         /// Additive(+)
         /// Range: 0.00-1.00
@@ -167,10 +172,8 @@ namespace NoxRaven.Units
         /// For example, passive ability with 25% activation chance to deal extra damage will have 50% chance if this value is 2.
         /// </summary>
         public float TriggerChance = 1;
-        /// <summary>
-        /// May be later.
-        /// </summary>
-        public int OnHitApplied_Times = 1;
+        private float MovementSpeedPercent = 1;
+        private float BaseMovementSpeed = 220;
 
 
         protected NoxUnit(unit u)
@@ -180,33 +183,31 @@ namespace NoxRaven.Units
             BaseAttackCooldown = BlzGetUnitAttackCooldown(UnitRef, 0);
             AddAttackSpeed(0);
             GreyArmor = BlzGetUnitArmor(u);
+            BaseMovementSpeed = GetUnitMoveSpeed(u);
             Ranged = IsUnitType(u, UNIT_TYPE_RANGED_ATTACKER);
             // Damage Utilization
             DamageTrig = CreateTrigger();
             TriggerRegisterUnitEvent(DamageTrig, u, EVENT_UNIT_DAMAGED);
             TriggerAddAction(DamageTrig, DamageHandler);
-            UnitAddAbility(u, FourCC("ARDP"));
+            UnitAddAbility(u, FourCC("ARDP")); //arm decimal
             BlzUnitHideAbility(u, FourCC("ARDP"), true);
-            //foreach(ability a in GetUnit)
-
-            //// Recycling of dead units
-            //DeathTrig = CreateTrigger();
-            //TriggerRegisterDeathEvent(DeathTrig, u);
-            //TriggerAddAction(DeathTrig, () =>
-            //{
-            //    AwaitRemoval(this, this);
-            //});
             u = null;
+            Init();
         }
+
+        /// <summary>
+        /// This is called at the very end by the lowest Init() in inheritance hierarchy
+        /// </summary>
+        public virtual void Init() { }
         /// <summary>
         /// Put a custom type that will be attached to a unit when indexing.
         /// Custom type has to extend this class and invoke base(u) in the constructor.
         /// </summary>
         /// <param name="unitId"></param>
-        /// <param name="t"></param>
+        /// <param name="t">hit type</param>
         public static void AddCustomType(int unitId, Type t)
         {
-            if (t.IsAssignableFrom(typeof(NoxUnit)))
+            if (typeof(NoxUnit).IsAssignableFrom(t))
             {
                 Utils.Error("You have tried to parse type that does not inherit this class!", typeof(NoxUnit));
                 return;
@@ -235,18 +236,8 @@ namespace NoxRaven.Units
             RegionAddRect(reg, rec);
             TriggerRegisterEnterRegion(CreateTrigger(), reg, Filter(AttachClass));
 
-            foreach (NoxPlayer p in NoxPlayer.AllPlayers)
-            {
-                // Add existing units
-                GroupEnumUnitsOfPlayer(g, p.PlayerRef, Filter(AttachClass));
-                GroupClear(g);
-            }
-            // extra neutral players
-            GroupEnumUnitsOfPlayer(g, Player(PLAYER_NEUTRAL_PASSIVE), Filter(AttachClass));
-            GroupClear(g);
-            GroupEnumUnitsOfPlayer(g, Player(PLAYER_NEUTRAL_AGGRESSIVE), Filter(AttachClass));
-            GroupClear(g);
-
+            // Add existing units
+            GroupEnumUnitsInRect(g, rec, Filter(AttachClass));
 
             // Deattach when unit leaves the map
             TriggerRegisterLeaveRegion(CreateTrigger(), reg, Filter(() => { ((NoxUnit)GetLeavingUnit()).DeattachClass(); return false; })); // catch unit removal, destroy everything attached
@@ -280,11 +271,7 @@ namespace NoxRaven.Units
         private static void AwaitRemoval(NoxUnit u, NoxUnit killer)
         {
             //if (!Indexer.ContainsKey(GetHandleId(u))) return; // this is a very weird thing to happen, but will happen for Neutrals so yeah
-            // Bug in Lua code
-            List<Status> rem = new List<Status>(u.Statuses.Values);
-            foreach (Status stat in rem)
-                stat.Remove();
-            u.Statuses.Clear();// just in case  
+  
 
             if (u.Corpse) return;
             killer.OnKill();
@@ -293,11 +280,15 @@ namespace NoxRaven.Units
                 u.DeattachClass();
                 return;
             }
+            foreach (Status st in u.Statuses.Values)
+                st.Remove();
+            u.Statuses.Clear();// just in case
 
             if (GetUnitAbilityLevel(u, FourCC("Aloc")) > 0) return; // wat
             if (IsUnitType(u, UNIT_TYPE_HERO)) return; // always leak heroes
 
             u.Corpse = true;
+
             Utils.DelayedInvoke(KeepCorpsesFor, () => { u.DeattachClass(); }); // ah shiet, change to let resurrections
             //ue = null;
         }
@@ -326,9 +317,10 @@ namespace NoxRaven.Units
         protected virtual void DeattachClass()
         {
             OnHits.Clear();
-            AmHits.Clear();
+            //AmHits.Clear();
             DestroyTrigger(DamageTrig);
             Indexer.Remove(GetHandleId(UnitRef));
+            OnHits = null;
             Statuses = null;
             RemoveUnit(this);
             UnitRef = null;
@@ -346,7 +338,7 @@ namespace NoxRaven.Units
             NoxUnit source = Cast(GetEventDamageSource());
             // ~this is the target
             //if (!Ranged) // later
-            float dmg = source.WeapondDamage();
+            float dmg = source.WeaponDamage();
 
             source.DealPhysicalDamage(this, dmg, true, true, false);
         }
@@ -360,7 +352,7 @@ namespace NoxRaven.Units
             DamageEngineIgnore = true;
             UnitDamageTarget(this, target, damage, true, false, ATTACK_TYPE_CHAOS, DAMAGE_TYPE_UNIVERSAL, null);
             DamageEngineIgnore = false;
-            if (Utils.IsUnitDead(target)) AwaitRemoval(target, this);// weird bug
+            if (IsUnitDeadBJ(target)) AwaitRemoval(target, this);// weird bug BECAUSE WC3REFUNDED SHIT HI-HI
         }
         /// <summary>
         /// Extra function in case damage needs to be altered, counted, recordered, redirected, well...anyfuckingthing :)<para></para>
@@ -385,7 +377,7 @@ namespace NoxRaven.Units
         /// <param name="crit">Can it crit?</param>
         public virtual void DealPhysicalDamage(NoxUnit target, float damage, bool onHit, bool crit, bool spell)
         {
-            location loc = GetUnitLoc(target);//Location(GetUnitX(target) + GetRandomReal(0, 20), GetUnitY(target) + GetRandomReal(0, 10));
+            location loc = Location(GetUnitX(target) + GetRandomReal(0, 10), GetUnitY(target) + GetRandomReal(0, 5));
             float pars = damage;
             if (!spell)
                 if (GetRandomReal(0, 1) < target.Block)
@@ -399,7 +391,7 @@ namespace NoxRaven.Units
             if (armor < 0)
                 pars *= (1.71f - Pow(1f - ARMOR_CONST, -armor)); // war3 real armor reduction is 1.71-pow(xxx) - why? - no idea
             else pars *= 1 / (1 + armor * ARMOR_CONST * (1 - ArmorPenetration)); // Inverse armor reduction function, got by solving: Armor * CONST / (1 + ARMOR * CONST)
-            
+
             pars = target.RecievePhysicalDamage(this, damage, pars, onHit, crit, spell);
             // The logic
 
@@ -409,14 +401,14 @@ namespace NoxRaven.Units
 
                 if (GetLocalPlayer() == GetOwningPlayer(this) || GetLocalPlayer() == GetOwningPlayer(target))
                 {
-                    Utils.RandomDirectedFloatText(Utils.NotateNumber(R2I(pars)), loc, 9f, 255, 0, 0, 0, 1.5f);
+                    Utils.RandomDirectedFloatText(Utils.NotateNumber(R2I(pars)), loc, 7f, 255, 0, 0, 0, 1.5f);
                 }
             }
             else
             {
                 if (GetLocalPlayer() == GetOwningPlayer(this) || GetLocalPlayer() == GetOwningPlayer(target))
                 {
-                    Utils.RandomDirectedFloatText(Utils.NotateNumber(R2I(pars)), loc, 7.9f, 255, 255, 255, 0, 1);
+                    Utils.RandomDirectedFloatText(Utils.NotateNumber(R2I(pars)), loc, 5.9f, 255, 255, 255, 0, 1);
                 }
             }
 
@@ -427,8 +419,9 @@ namespace NoxRaven.Units
             // Onhits
             if (onHit)
             {
-                foreach (OnHit onhit in OnHits)
-                    onhit.ApplyOnHit(this, target);
+                List<OnHit> onhits = new List<OnHit>(OnHits.Values);
+                foreach (OnHit onhit in onhits)
+                    onhit.ApplyOnHit(this, target, damage, pars);
                 //ApplyAmHits(source);
             }
 
@@ -442,19 +435,19 @@ namespace NoxRaven.Units
         /// <returns></returns>
         public virtual float AbilityDamage()
         {
-            return (BlzGetUnitBaseDamage(this, 0) + 1 + BonusDamage) * DamageMultiplier;
+            return (BlzGetUnitBaseDamage(this, 0) + 1 + GreenDamage) * DamageMultiplier;
         }
         /// <summary>
         /// Perfect damage, when dice is 1 and roll is 1
         /// </summary>
         /// <returns></returns>
-        public virtual float WeapondDamage()
+        public virtual float WeaponDamage()
         {
-            return (BlzGetUnitBaseDamage(this, 0) + 1 + BonusDamage) * DamageMultiplier;
+            return (BlzGetUnitBaseDamage(this, 0) + 1 + GreenDamage) * DamageMultiplier;
         }
         protected virtual void CalculateTotalMana()
         {
-            BlzSetUnitMaxMana(this, R2I(BaseMana * TotalManaPercent + 0.19f));
+            BlzSetUnitMaxMana(this, R2I(BaseMana * TotalManaPercent + Utils.ROUND_DOWN_CONST_OVERHEAD));
         }
         public float GetBaseMana() => BaseMana;
         public void SetBaseMana(float val)
@@ -480,7 +473,7 @@ namespace NoxRaven.Units
         /// </summary>
         protected virtual void CalculateTotalHP()
         {
-            BlzSetUnitMaxHP(this, R2I(BaseHP * TotalHPPercent + 0.19f)); // rounding issues
+            BlzSetUnitMaxHP(this, R2I(BaseHP * TotalHPPercent + Utils.ROUND_DOWN_CONST_OVERHEAD)); // rounding issues
         }
         public float GetBaseHP() => BaseHP;
         public void SetBaseHP(float val)
@@ -500,6 +493,20 @@ namespace NoxRaven.Units
             CalculateTotalHP();
         }
         public float GetAttackReload() => BlzGetUnitAttackCooldown(UnitRef, 0);
+        public float GetAttackCooldown() => BaseAttackCooldown;
+        public void MultAttackCooldown(float val)
+        {
+            
+            if (val < 0)
+            {
+                BaseAttackCooldown /= (1 + val);
+            }
+            else
+            {
+                BaseAttackCooldown *= (1 - val);
+            }
+            BlzSetUnitAttackCooldown(UnitRef, BaseAttackCooldown / AttackSpeed, 0);
+        }
         public float GetAttackSpeed() => AttackSpeed;
         /// <summary>
         /// 5% = 0.05f
@@ -511,32 +518,34 @@ namespace NoxRaven.Units
             BlzSetUnitAttackCooldown(UnitRef, BaseAttackCooldown / AttackSpeed, 0);
         }
         public int GetBaseDamage() => BlzGetUnitBaseDamage(UnitRef, 0);
-        public void AddBaseDamage(int val)
+        public virtual void AddBaseDamage(int val)
         {
             BlzSetUnitBaseDamage(UnitRef, GetBaseDamage() + val, 0);
-            SetBonusDamage(BonusDamage + R2I(BlzGetUnitBaseDamage(UnitRef, 0) * BonusDamagePercent));
+            SetGreenDamage(BonusDamage + R2I(BlzGetUnitBaseDamage(UnitRef, 0) * BonusDamagePercent));
+        }
+        public int GetBonusDamage() => BonusDamage;
+
+        public float GetBonusDamageMultiplier() => BonusDamagePercent;
+
+        public virtual void AddBonusDamagePercent(float val)
+        {
+            BonusDamagePercent += val;
+            SetGreenDamage(BonusDamage + R2I(BlzGetUnitBaseDamage(UnitRef, 0) * BonusDamagePercent + Utils.ROUND_DOWN_CONST_OVERHEAD));
+        }
+        public virtual void AddBonusDamage(int val)
+        {
+            BonusDamage += val;
+            SetGreenDamage(BonusDamage + R2I(BlzGetUnitBaseDamage(UnitRef, 0) * BonusDamagePercent + Utils.ROUND_DOWN_CONST_OVERHEAD));
         }
         /// <summary>
         /// Get the +xxx on unit.
         /// </summary>
         /// <returns></returns>
-        public int GetBonusDamage() => BonusDamage;
-
-        public float GetBonusDamageMultiplier() => BonusDamagePercent;
-
-        public void AddBonusDamagePercent(float val)
-        {
-            BonusDamagePercent += val;
-            SetBonusDamage(BonusDamage + R2I(BlzGetUnitBaseDamage(UnitRef, 0) * BonusDamagePercent));
-        }
-        public void AddBonusDamage(int val)
-        {
-            BonusDamage += val;
-            SetBonusDamage(BonusDamage + R2I(BlzGetUnitBaseDamage(UnitRef, 0) * BonusDamagePercent));
-        }
+        public int GetGreenDamage() => GreenDamage;
         // This guy makes +xxx damage magic
-        private void SetBonusDamage(int val)
+        private void SetGreenDamage(int val)
         {
+            GreenDamage = val;
             for (int i = Abilities_BonusDamage.Length - 1; i >= 0; i--)
             {
                 UnitRemoveAbility(this, Abilities_BonusDamage[i]);
@@ -549,7 +558,7 @@ namespace NoxRaven.Units
             }
         }
         public float GetGreyArmor() => GreyArmor;
-        public void SetGreyArmor(float val)
+        public virtual void SetGreyArmor(float val)
         {
             GreyArmor = val;
             BlzSetUnitArmor(UnitRef, val + GreenArmor);
@@ -560,13 +569,13 @@ namespace NoxRaven.Units
         /// <returns></returns>
         public float GetGreenArmor() => GreenArmor;
         /// <summary>
-        /// Set unit's -xxx or +xxx armor. Does not support decimal point yet.
+        /// Set unit's -xxx.x or +xxx.x armor. Does support single precision decimal point.
         /// </summary>
         /// <param name="val"></param>
         public void SetGreenArmor(float val)
         {
             int leftover = R2I(val);
-            int decimals = R2I((val - R2I(val))*10);
+            int decimals = R2I((val - R2I(val)) * 10);
             SetUnitAbilityLevel(UnitRef, FourCC("ARDP"), decimals + 1);
             GreenArmor = val;
             foreach (int abil in Abilities_BonusArmor)
@@ -598,12 +607,29 @@ namespace NoxRaven.Units
                     }
                 }
         }
-        public bool ContainsStatus(int id)
+        internal bool ContainsOnHit(int id)
+        {
+            return OnHits.ContainsKey(id);
+        }
+        internal OnHit AddOnHit(int id, OnHit toAdd)
+        {
+            OnHits.Add(id, toAdd);
+            return toAdd;
+        }
+        internal OnHit GetOnHit(int id)
+        {
+            return OnHits[id];
+        }
+        internal void RemoveOnHit(int id)
+        {
+            OnHits.Remove(id);
+        }
+        internal bool ContainsStatus(int id)
         {
             //if(st.GetHashCode()<=100)
             return Statuses.ContainsKey(id);
         }
-        public Status AddStatus(int id, Status toAdd)
+        internal Status AddStatus(int id, Status toAdd)
         {
             Statuses.Add(id, toAdd);
             return toAdd;
@@ -615,6 +641,16 @@ namespace NoxRaven.Units
         public Status GetStatus(int id)
         {
             return Statuses[id];
+        }
+        public virtual void AddMoveSpeedPercent(float val)
+        {
+            MovementSpeedPercent += val;
+            SetUnitMoveSpeed(this, BaseMovementSpeed * MovementSpeedPercent);
+        }
+        public virtual void AddBaseMoveSpeed(float val)
+        {
+            BaseMovementSpeed += val;
+            SetUnitMoveSpeed(this, BaseMovementSpeed * MovementSpeedPercent);
         }
         /// <summary>
         /// This is called every time regeneration handles.
@@ -628,28 +664,39 @@ namespace NoxRaven.Units
         /// Heal unit by % missing hp. Unit with 50% HP and 10% Missing Healing will receive effective 5% heal.
         /// </summary>
         /// <param name="percentHealed"></param>
-        public void HealPercentMissing(float percentHealed)
+        public void HealPercentMissing(float percentHealed, bool show = false)
         {
-            Heal(percentHealed * (BlzGetUnitMaxHP(this) - GetWidgetLife(this)));
+            Heal(percentHealed * (BlzGetUnitMaxHP(this) - GetWidgetLife(this)), show);
         }
         /// <summary>
         /// Simple function that heals a unit by percentHealed (%) of Max HP.<para />
         /// Range of percentHealed: 0.00 - 1.00
         /// </summary>
         /// <param name="percentHealed"></param>
-        public void HealPercentMax(float percentHealed)
+        public void HealPercentMax(float percentHealed, bool show = false)
         {
-            Heal(percentHealed * BlzGetUnitMaxHP(this));
+            Heal(percentHealed * BlzGetUnitMaxHP(this), show);
         }
         /// <summary>
         /// Simple function that heals a unit by howMuch amount (flat).
         /// </summary>
         /// <param name="howMuch"></param>
-        public void Heal(float howMuch)
+        public virtual void Heal(float howMuch, bool show = false)
         {
-            SetWidgetLife(this, GetWidgetLife(this) + howMuch * HealingFromAllSources);
+            float pars = howMuch * HealingFromAllSources;
+            SetWidgetLife(this, GetWidgetLife(this) + pars);
+            if (show)
+            {
+                location loc = Location(GetUnitX(this) + GetRandomReal(0, 10), GetUnitY(this) + GetRandomReal(0, 5));
+                if (GetLocalPlayer() == GetOwningPlayer(this))
+                {
+                    Utils.RandomDirectedFloatText("+" + Utils.NotateNumber(R2I(pars)), loc, 7f, 55, 255, 55, 0, 1.2f);
+                }
+                RemoveLocation(loc);
+                loc = null;
+            }
         }
-        public void ReplenishMana(float howMuch)
+        public virtual void ReplenishMana(float howMuch)
         {
             SetUnitManaBJ(this, GetUnitState(this, UNIT_STATE_MANA) + howMuch * ManaFromAllSources);
         }

@@ -1,9 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using War3Net.CodeAnalysis.Common;
+﻿using War3Net.CodeAnalysis.Common;
 
-namespace War3Map.TimeAbyss.Source
+namespace NoxRaven
 {
     [NativeLuaMemberContainer]
     public class LuaMethods
@@ -12,5 +9,6 @@ namespace War3Map.TimeAbyss.Source
         public static extern string LuaToString(dynamic obj);
         [NativeLuaMember("type")]
         public static extern string LuaType(dynamic obj);
+
     }
 }

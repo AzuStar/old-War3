@@ -30,7 +30,7 @@ namespace NoxRaven
         public void RegisterEffect(Action effect)
         {
             trigger tr = CreateTrigger();
-            foreach (NoxPlayer p in NoxPlayer.AllPlayers)
+            foreach (NoxPlayer p in NoxPlayer.AllPlayers.Values)
                 TriggerRegisterPlayerUnitEvent(tr, p.PlayerRef, EVENT_PLAYER_UNIT_SPELL_EFFECT, null);
             // check if correct spell fired
             TriggerAddCondition(tr, Filter(() => GetSpellAbilityId() == SpellId));

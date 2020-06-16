@@ -52,9 +52,9 @@ namespace NoxRaven.IO
             PromisedString ret = new PromisedString();
             trigger SyncThread = CreateTrigger();
             for (int i = 0; i < 100; i++)
-                foreach (NoxPlayer pl in NoxPlayer.AllPlayers)
+                foreach (NoxPlayer pl in NoxPlayer.AllPlayers.Values)
                     BlzTriggerRegisterPlayerSyncEvent(SyncThread, pl.PlayerRef, I2S(i) + "sync" + I2S(ReadCount), false);
-            foreach (NoxPlayer pl in NoxPlayer.AllPlayers)
+            foreach (NoxPlayer pl in NoxPlayer.AllPlayers.Values)
                 BlzTriggerRegisterPlayerSyncEvent(SyncThread, pl.PlayerRef, "async" + I2S(ReadCount), false); // util
             TriggerAddAction(SyncThread, () =>
             {

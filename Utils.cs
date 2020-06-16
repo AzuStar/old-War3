@@ -6,11 +6,13 @@ using static War3Api.Common;
 using static War3Api.Blizzard;
 using NoxRaven.Units;
 using System.Numerics;
+using System.Linq;
 
 namespace NoxRaven
 {
     public static class Utils
     {
+        public const float ROUND_DOWN_CONST_OVERHEAD = 0.19f;
         public static item WalkableItem;
         public static float WalkableOverhead = 10;
 
@@ -27,15 +29,15 @@ namespace NoxRaven
         /// <param name="timespan"></param>
         public static void DisplayMessageToEveryone(string msg, float timespan)
         {
-            foreach (NoxPlayer p in NoxPlayer.AllPlayers)
+            foreach (NoxPlayer p in NoxPlayer.AllPlayers.Values)
                 DisplayTimedTextToPlayer(p.PlayerRef, 0, 0, timespan, msg);
         }
         internal static void Error(string message, Type t)
         {
             Master.BadLoad = true;
             Master.ErrorCount++;
-            foreach (NoxPlayer p in NoxPlayer.AllPlayers)
-                DisplayTimedTextToPlayer(p.PlayerRef, 0, 0, 90f, "|cffFF0000ERROR IN: " + t.FullName + "|r\nMessage:" + message);
+            foreach (NoxPlayer p in NoxPlayer.AllPlayers.Values)
+                DisplayTimedTextToPlayer(p.PlayerRef, 0, 0, 900f, "|cffFF0000ERROR IN: " + t.FullName + "|r\nMessage:" + message);
         }
         /// <summary>
         /// Use this function to invoke something (anything) with a delay.
@@ -97,21 +99,29 @@ namespace NoxRaven
             return Atan2(y2 - y1, x2 - x1) * bj_RADTODEG + 180;
         }
 
+        /// <summary>
+        /// Warcraft 3 just really retarded
+        /// </summary>
+        /// <param name="u"></param>
+        /// <returns></returns>
+        [Obsolete]
         public static bool IsUnitDead(unit u)
         {
             return GetWidgetLife(u) <= 0 || IsUnitType(u, UNIT_TYPE_DEAD);
         }
 
-        public static void DisplayEffect(string effectPath, float x, float y, float duration)
+        public static effect DisplayEffect(string effectPath, float x, float y, float duration)
         {
             effect ef = AddSpecialEffect(effectPath, x, y);
             DelayedInvoke(duration, () => { DestroyEffect(ef); });
+            return ef;
         }
 
-        public static void DisplayEffectTarget(string effectPath, widget wi, string attach, float duration)
+        public static effect DisplayEffectTarget(string effectPath, widget wi, string attach, float duration)
         {
             effect ef = AddSpecialEffectTarget(effectPath, wi, attach);
             DelayedInvoke(duration, () => { DestroyEffect(ef); });
+            return ef;
         }
         /// <summary>
         /// Returns item's current slot in u's inventory, otherwise -1.
@@ -127,5 +137,33 @@ namespace NoxRaven
             }
             return -1;
         }
+
+        /// <summary>
+        /// Returns list of *ammount* units from another list, no repeat. Use filter to REMOVE units you don't want in match.
+        /// </summary>
+        /// <param name="unitArray"></param>
+        /// <param name="amount"></param>
+        /// <returns></returns>
+        public static List<NoxUnit> RandomNUnitsFromList(NoxUnit[] unitArray, int amount, Predicate<NoxUnit> filter)// can't cast list<> to basetype list<> >_<
+        {
+            List<NoxUnit> unitList = new List<NoxUnit>(unitArray);
+            if (filter != null)
+                unitList.RemoveAll(filter);
+            if (amount >= unitList.Count) return unitList;
+            List<NoxUnit> list = new List<NoxUnit>();
+            List<int> range = new List<int>();
+            for (int i = 0; i < unitList.Count; i++)
+                range.Add(i);
+            for (int i = 0; i < amount; i++)
+            {
+                Random r = new Random();
+                int index = GetRandomInt(0, range.Count - 1);
+                list.Add(unitList[range[index]]);
+                range.RemoveAt(index);
+            }
+
+            return list;
+        }
+
     }
 }
