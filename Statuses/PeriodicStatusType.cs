@@ -8,16 +8,16 @@ using NoxRaven.Units;
 
 namespace NoxRaven.Statuses
 {
-    class PeriodicStatusType : SimpleStatusType
+    public class PeriodicStatusType : SimpleStatusType
     {
         public float PeriodicTimeoutTime;
 
-        public PeriodicStatusType(StatusFunction apply, StatusFunction reset, StatusFunction onRemove, float periodicTimeoutTime, string specialEffectPath, string specialEffectAttachmentPoint) : base(apply, reset, onRemove, specialEffectPath, specialEffectAttachmentPoint)
+        public PeriodicStatusType(StatusFunction apply, StatusFunction reset, StatusFunction onRemove, string specialEffectPath, string specialEffectAttachmentPoint, float periodicTimeoutTime = 1) : base(apply, reset, onRemove, specialEffectPath, specialEffectAttachmentPoint)
         {
             PeriodicTimeoutTime = periodicTimeoutTime;
         }
 
-        public PeriodicStatusType(int id, StatusFunction apply, StatusFunction onRemove, StatusFunction reset, float periodicTimeoutTime, string specialEffectPath, string specialEffectAttachmentPoint) : base(id, apply, onRemove, reset, specialEffectPath, specialEffectAttachmentPoint)
+        public PeriodicStatusType(int id, StatusFunction apply, StatusFunction onRemove, StatusFunction reset, string specialEffectPath, string specialEffectAttachmentPoint, float periodicTimeoutTime = 1) : base(id, apply, onRemove, reset, specialEffectPath, specialEffectAttachmentPoint)
         {
             PeriodicTimeoutTime = periodicTimeoutTime;
         }

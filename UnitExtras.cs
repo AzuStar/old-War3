@@ -28,7 +28,7 @@ namespace NoxRaven
             });
         }
         /// <summary>
-        /// Pulls targets from range over duration with power stress. <para></para>
+        /// Pulls targets from range over duration with power stress. <br />
         /// Power - how hard this algortihm tries to pull targets. power = 1 means everyone in range will gets slowly pulled towards center.
         /// </summary>
         /// <param name="range"></param>

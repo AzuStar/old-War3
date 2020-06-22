@@ -14,7 +14,7 @@ namespace NoxRaven
         public static bool BadLoad = false;
         public static int ErrorCount = 0;
         /// <summary>
-        /// Run when all static data is initialized.<para></para>
+        /// Run when all static data is initialized.<br />
         /// Types taht need to be initialized before running: UnitEntity Custom Classes, Players, Items
         /// </summary>
         public static void RunAfterExtensionsReady()

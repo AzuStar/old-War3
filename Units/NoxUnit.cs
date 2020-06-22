@@ -12,12 +12,12 @@ namespace NoxRaven.Units
 {
     /// <summary>
     /// To use in own code simply create class which has inner reference to this class.
-    /// Call function <see cref="Master.RunAfterExtensionsReady"/>. It will initialize indexing logic for all units. Put it somewhere after all players and custom classes were initialized.<para></para>
+    /// Call function <see cref="Master.RunAfterExtensionsReady"/>. It will initialize indexing logic for all units. Put it somewhere after all players and custom classes were initialized.<br><br></br></br>
     /// <b>Never RemoveUnit() indexed unit or it will permaleak.</b>
     /// </summary>
     public class NoxUnit
     {
-        protected static Dictionary<int, NoxUnit> Indexer = new Dictionary<int, NoxUnit>();
+        protected internal static Dictionary<int, NoxUnit> Indexer = new Dictionary<int, NoxUnit>();
         private static Dictionary<int, Type> CustomTypes = new Dictionary<int, Type>();
         private static float KeepCorpsesFor = 25;
         private static bool DamageEngineIgnore = false;
@@ -82,8 +82,8 @@ namespace NoxRaven.Units
         /// </summary>
         public float CritDamage = 1.5f;
         /// <summary>
-        /// Base attack speed / AttackSpeed = New Attack Speed <para></para>
-        /// 1/2 = 0.5 (2 attacks a second)<para></para>
+        /// Base attack speed / AttackSpeed = New Attack Speed <br />
+        /// 1/2 = 0.5 (2 attacks a second)<br />
         /// 2/4 = 0.5 (2 attacks a second)
         /// </summary>
         private float AttackSpeed = 1;
@@ -299,7 +299,7 @@ namespace NoxRaven.Units
         {
         }
         /// <summary>
-        /// Called when unit dies and becomes corpe.<para></para>
+        /// Called when unit dies and becomes corpe.<br />
         /// Return true to remove it instantly and false to leave corpse.
         /// </summary>
         protected virtual bool OnDeath(NoxUnit killer)
@@ -355,7 +355,7 @@ namespace NoxRaven.Units
             if (IsUnitDeadBJ(target)) AwaitRemoval(target, this);// weird bug BECAUSE WC3REFUNDED SHIT HI-HI
         }
         /// <summary>
-        /// Extra function in case damage needs to be altered, counted, recordered, redirected, well...anyfuckingthing :)<para></para>
+        /// Extra function in case damage needs to be altered, counted, recordered, redirected, well...anyfuckingthing :)<br />
         /// Return output damage. Can even customly process it if you want. Eg take processedDamage (after armour, damage reduction..etc) and return -5 to that value
         /// </summary>
         /// <param name="damageSource"></param>
