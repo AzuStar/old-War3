@@ -10,7 +10,7 @@ namespace NoxRaven
     public sealed class DimFloat
     {
         /// <summary>
-        /// Higher - stronger diminish<para></para>
+        /// Higher - stronger diminish<br />
         /// Also creates upper boundary Lim(f) -> 1/<see cref="DIMINISH_CONST"/>
         /// </summary>
         public const float DIMINISH_CONST = 0.06f;

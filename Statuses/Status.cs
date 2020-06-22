@@ -32,9 +32,13 @@ namespace NoxRaven.Statuses
         /// </summary>
         public bool Periodic { get; private set; }
         /// <summary>
-        /// This is only used by periodic
+        /// <b>Periodic-only</b><br></br>
         /// </summary>
         public float TimeRemain;
+        /// <summary>
+        /// <b>Periodic-only</b><br></br>
+        /// </summary>
+        public int PeriodicTicks { get; private set; }
         /// <summary>
         /// Data of a status. Type is dynamic, which means you can make it into list, array...?
         /// </summary>
@@ -74,6 +78,7 @@ namespace NoxRaven.Statuses
             t = CreateTimer();
             if (periodic)
             {
+                PeriodicTicks = 0;
                 TimeRemain = duration;
                 TimerStart(t, PeriodicTimeout, false, PeriodicTimerRestart);
             }
@@ -85,13 +90,14 @@ namespace NoxRaven.Statuses
             SpecialEffect = AddSpecialEffectTarget(Type.Effectpath, target.UnitRef, Type.Attachment);
         }
 
-        //internal Status() { }
+        internal Status() { }
 
         private void PeriodicTimerRestart()
         {
             if (Type.Apply != null)
                 Type.Apply.Invoke(this);
-            TotalDuration += 1;
+            PeriodicTicks++;
+            TotalDuration += PeriodicTimeout;
             TimeRemain -= PeriodicTimeout;
             if (TimeRemain > 0)
                 TimerStart(t, PeriodicTimeout, false, PeriodicTimerRestart);
@@ -164,8 +170,9 @@ namespace NoxRaven.Statuses
             if (Type.Reset != null)
                 Type.Reset.Invoke(this);
             Stacks += addToStack;
-            if (Stacks > StacksLim)
-                Stacks = StacksLim;
+            if (StacksLim != 0)
+                if (Stacks > StacksLim)
+                    Stacks = StacksLim;
             Level = newLevel;
             if (Type.Apply != null)
                 Type.Apply.Invoke(this);
