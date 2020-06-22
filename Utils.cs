@@ -12,6 +12,7 @@ namespace NoxRaven
 {
     public static class Utils
     {
+        public delegate bool UnitFilter(NoxUnit nu);
         public const float ROUND_DOWN_CONST_OVERHEAD = 0.19f;
         public static item WalkableItem;
         public static float WalkableOverhead = 10;
@@ -139,7 +140,7 @@ namespace NoxRaven
         }
 
         /// <summary>
-        /// Returns list of *ammount* units from another list, no repeat. Use filter to REMOVE units you don't want in match.
+        /// Returns list of *amount* units from another list, no repeat. Use filter to REMOVE units you don't want in match.
         /// </summary>
         /// <param name="unitArray"></param>
         /// <param name="amount"></param>
@@ -156,13 +157,22 @@ namespace NoxRaven
                 range.Add(i);
             for (int i = 0; i < amount; i++)
             {
-                Random r = new Random();
                 int index = GetRandomInt(0, range.Count - 1);
                 list.Add(unitList[range[index]]);
                 range.RemoveAt(index);
             }
 
             return list;
+        }
+
+        public static List<NoxUnit> GetUnitList(UnitFilter filter)
+        {
+            http
+            List<NoxUnit> lis = new List<NoxUnit>();
+            foreach (NoxUnit nu in NoxUnit.Indexer.Values)
+                if (filter.Invoke(nu))
+                    lis.Add(nu);
+            return lis;
         }
 
     }

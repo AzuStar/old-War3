@@ -17,7 +17,7 @@ namespace NoxRaven.Units
     /// </summary>
     public class NoxUnit
     {
-        protected static Dictionary<int, NoxUnit> Indexer = new Dictionary<int, NoxUnit>();
+        protected internal static Dictionary<int, NoxUnit> Indexer = new Dictionary<int, NoxUnit>();
         private static Dictionary<int, Type> CustomTypes = new Dictionary<int, Type>();
         private static float KeepCorpsesFor = 25;
         private static bool DamageEngineIgnore = false;
