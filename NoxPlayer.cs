@@ -13,25 +13,27 @@ namespace NoxRaven
     {
         public static Dictionary<int, NoxPlayer> AllPlayers = new Dictionary<int, NoxPlayer>();
         /// <summary>
-        /// Throw-away value for <see cref="PlayerRef"/>.
+        /// Throw-away value for <see cref="_Self"/>.
         /// </summary>
         public int Id;
         /// <summary>
         /// Real reference to player.
         /// </summary>
-        public player PlayerRef;
+        public player _Self;
 
         public NoxPlayer(int id)
         {
             Id = id;
-            PlayerRef = Player(id);
+            _Self = Player(id);
             AllPlayers.Add(id, this);
         }
+
+        public static NoxPlayer GetFromId(int id) => AllPlayers[id];
 
         public void SendMessage(string msg, float timeout, RecipientType whoGets)
         {
             timer msgt = CreateTimer();
-            TimerStart(msgt, timeout, false, () => { BlzDisplayChatMessage(PlayerRef, (int)whoGets, msg); DestroyTimer(msgt); });
+            TimerStart(msgt, timeout, false, () => { BlzDisplayChatMessage(_Self, (int)whoGets, msg); DestroyTimer(msgt); });
         }
     }
 }

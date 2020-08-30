@@ -8,7 +8,7 @@ using static War3Api.Blizzard;
 
 namespace NoxRaven.Statuses
 {
-    public class StackingStatusType : SimpleStatusType
+    public class StackingStatusType : TimedStatusType
     {
         public readonly int StackLimit;
         public readonly int InitialStacks;
@@ -18,21 +18,12 @@ namespace NoxRaven.Statuses
             InitialStacks = initialStacks;
         }
 
-        public StackingStatusType(int id, StatusFunction apply, StatusFunction onRemove, StatusFunction reset, string specialEffectPath, string specialEffectAttachmentPoint, int stackLimit = 0, int initialStacks = 1) : base(id, apply, onRemove, reset, specialEffectPath, specialEffectAttachmentPoint)
+        public Status ApplyStatus(NoxUnit source, NoxUnit target, int level, float duration, int applyStacks = 1)
         {
-            StackLimit = stackLimit;
-            InitialStacks = initialStacks;
-        }
-
-        public Status ApplyStatus(NoxUnit source, NoxUnit target, int level, float duration, int applyStacks)
-        {
-            int resultId = Id;
-            if (Id > 100)
-                resultId = (Id - 101) * 100 + 101 + GetPlayerId(GetOwningPlayer(source.UnitRef));
-            if (!target.ContainsStatus(resultId))
+            if (!target.ContainsStatus(Id))
                 // create new status and add it to unit
-                return target.AddStatus(resultId, new Status(resultId, this, source, target, level, InitialStacks, StackLimit, duration, 0, false, false));
-            return target.GetStatus(resultId).Reapply(duration, level, applyStacks);
+                return target.AddStatus(Id, new Status(Id, this, source, target, level, InitialStacks, StackLimit, duration, 0, false, false, false));
+            return target.GetStatus(Id).Reapply(duration, level, applyStacks);
         }
 
         private new Status ApplyStatus(NoxUnit source, NoxUnit target, int level, float duration)

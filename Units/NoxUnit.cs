@@ -36,13 +36,20 @@ namespace NoxRaven.Units
         /// <summary>
         /// Unit itself.
         /// </summary>
-        public unit UnitRef;
+        public readonly unit _Self;
         private trigger DamageTrig;
+
+        public NoxUnitMethods Interfaces = null;
+
+
+        //protected List<NoxUnitMethods> Interfaces = new List<NoxUnitMethods>() { DefaultInteface };
+
 
         private Dictionary<int, Status> Statuses = new Dictionary<int, Status>();
 
         public Dictionary<int, OnHit> OnHits = new Dictionary<int, OnHit>();
         //public Dictionary<int, OnHit> AmHits = new Dictionary<int, OnHit>();
+        #region Unit Stats
         // Unit Extra Parameters
         // ******************
         // * Damage related *
@@ -174,13 +181,13 @@ namespace NoxRaven.Units
         public float TriggerChance = 1;
         private float MovementSpeedPercent = 1;
         private float BaseMovementSpeed = 220;
-
+        #endregion
 
         protected NoxUnit(unit u)
         {
-            UnitRef = u;
+            _Self = u;
             SetBaseHP(BlzGetUnitMaxHP(u));
-            BaseAttackCooldown = BlzGetUnitAttackCooldown(UnitRef, 0);
+            BaseAttackCooldown = BlzGetUnitAttackCooldown(_Self, 0);
             AddAttackSpeed(0);
             GreyArmor = BlzGetUnitArmor(u);
             BaseMovementSpeed = GetUnitMoveSpeed(u);
@@ -192,13 +199,65 @@ namespace NoxRaven.Units
             UnitAddAbility(u, FourCC("ARDP")); //arm decimal
             BlzUnitHideAbility(u, FourCC("ARDP"), true);
             u = null;
-            Init();
+            Interfaces = new NoxUnitMethods()
+            {
+                Regenerate = () =>
+                {
+                    Heal(RegenFlat * RegenerationTimeout);
+                    ReplenishMana(RegenManaFlat * RegenerationTimeout);
+                },
+                AbilityDamage = () =>
+                {
+                    return (BlzGetUnitBaseDamage(this, 0) + 1 + GreenDamage) * DamageMultiplier;
+                },
+                WeaponDamage = () =>
+                {
+                    return (BlzGetUnitBaseDamage(this, 0) + 1 + GreenDamage) * DamageMultiplier;
+                },
+                CalculateTotalHP = () =>
+                {
+                    BlzSetUnitMaxHP(this, R2I(BaseHP * TotalHPPercent + Utils.ROUND_DOWN_CONST_OVERHEAD)); // rounding issues
+                },
+                AddBaseDamage = (int val) =>
+                {
+                    BlzSetUnitBaseDamage(_Self, GetBaseDamage() + val, 0);
+                    SetGreenDamage(BonusDamage + R2I(BlzGetUnitBaseDamage(_Self, 0) * BonusDamagePercent));
+                },
+                AddBonusDamage = (int val) =>
+                {
+                    BonusDamage += val;
+                    SetGreenDamage(BonusDamage + R2I(BlzGetUnitBaseDamage(_Self, 0) * BonusDamagePercent + Utils.ROUND_DOWN_CONST_OVERHEAD));
+
+                },
+                DeattachClass = () =>
+                {
+                    OnHits.Clear();
+                    //AmHits.Clear();
+                    DestroyTrigger(DamageTrig);
+                    Indexer.Remove(GetHandleId(_Self));
+                    OnHits = null;
+                    Statuses = null;
+                    RemoveUnit(this);
+                    DamageTrig = null;
+                },
+                AddGreyArmor = (float val) =>
+                {
+                    SetGreenArmor(GreyArmor += val);
+                },
+                AddMoveSpeedpercent = (float val) =>
+                {
+                    MovementSpeedPercent += val;
+                    SetUnitMoveSpeed(this, BaseMovementSpeed * MovementSpeedPercent);
+                },
+                AddBaseMoveSpeed = (float val) =>
+                {
+                    BaseMovementSpeed += val;
+                    SetUnitMoveSpeed(this, BaseMovementSpeed * MovementSpeedPercent);
+                },
+                CalculateTotalMana
+            };
         }
 
-        /// <summary>
-        /// This is called at the very end by the lowest Init() in inheritance hierarchy
-        /// </summary>
-        public virtual void Init() { }
         /// <summary>
         /// Put a custom type that will be attached to a unit when indexing.
         /// Custom type has to extend this class and invoke base(u) in the constructor.
@@ -240,9 +299,9 @@ namespace NoxRaven.Units
             GroupEnumUnitsInRect(g, rec, Filter(AttachClass));
 
             // Deattach when unit leaves the map
-            TriggerRegisterLeaveRegion(CreateTrigger(), reg, Filter(() => { ((NoxUnit)GetLeavingUnit()).DeattachClass(); return false; })); // catch unit removal, destroy everything attached
+            TriggerRegisterLeaveRegion(CreateTrigger(), reg, Filter(() => { ((NoxUnit)GetLeavingUnit()).Interfaces.DeattachClass(); return false; })); // catch unit removal, destroy everything attached
             // Utility functions
-            TimerStart(CreateTimer(), RegenerationTimeout, true, () => { foreach (NoxUnit ue in Indexer.Values) ue.Regenerate(); });
+            TimerStart(CreateTimer(), RegenerationTimeout, true, () => { foreach (NoxUnit ue in Indexer.Values) ue.Interfaces.Regenerate(); });
 
             // Recycle stuff
             DestroyGroup(g);
@@ -271,13 +330,13 @@ namespace NoxRaven.Units
         private static void AwaitRemoval(NoxUnit u, NoxUnit killer)
         {
             //if (!Indexer.ContainsKey(GetHandleId(u))) return; // this is a very weird thing to happen, but will happen for Neutrals so yeah
-  
+
 
             if (u.Corpse) return;
-            killer.OnKill();
-            if (u.OnDeath(killer))
+            killer.Interfaces.OnKill();
+            if (u.Interfaces.OnDeath(killer))
             {
-                u.DeattachClass();
+                u.Interfaces.DeattachClass();
                 return;
             }
             foreach (Status st in u.Statuses.Values)
@@ -289,22 +348,8 @@ namespace NoxRaven.Units
 
             u.Corpse = true;
 
-            Utils.DelayedInvoke(KeepCorpsesFor, () => { u.DeattachClass(); }); // ah shiet, change to let resurrections
+            Utils.DelayedInvoke(KeepCorpsesFor, () => { u.Interfaces.DeattachClass(); }); // ah shiet, change to let resurrections
             //ue = null;
-        }
-        /// <summary>
-        /// Override to hit kill events
-        /// </summary>
-        protected virtual void OnKill()
-        {
-        }
-        /// <summary>
-        /// Called when unit dies and becomes corpe.<br />
-        /// Return true to remove it instantly and false to leave corpse.
-        /// </summary>
-        protected virtual bool OnDeath(NoxUnit killer)
-        {
-            return false;
         }
         /// <summary>
         /// Call this to remove unit instantly.
@@ -312,21 +357,8 @@ namespace NoxRaven.Units
         /// </summary>
         public void GracefulRemove()
         {
-            DeattachClass();
+            Interfaces.DeattachClass();
         }
-        protected virtual void DeattachClass()
-        {
-            OnHits.Clear();
-            //AmHits.Clear();
-            DestroyTrigger(DamageTrig);
-            Indexer.Remove(GetHandleId(UnitRef));
-            OnHits = null;
-            Statuses = null;
-            RemoveUnit(this);
-            UnitRef = null;
-            DamageTrig = null;
-        }
-
 
         // ****************
         // * Unit Methods *
@@ -336,11 +368,12 @@ namespace NoxRaven.Units
             if (DamageEngineIgnore) return;
             if (GetEventDamage() < 1) return;
             NoxUnit source = Cast(GetEventDamageSource());
+            BlzSetEventDamage(0);
             // ~this is the target
             //if (!Ranged) // later
-            float dmg = source.WeaponDamage();
+            float dmg = source.Interfaces.WeaponDamage();
 
-            source.DealPhysicalDamage(this, dmg, true, true, false);
+            source.DealPhysicalDamage(this, dmg, true, true, false, Ranged);
         }
         /// <summary>
         /// Ensure all damage goes through this.
@@ -354,36 +387,23 @@ namespace NoxRaven.Units
             DamageEngineIgnore = false;
             if (IsUnitDeadBJ(target)) AwaitRemoval(target, this);// weird bug BECAUSE WC3REFUNDED SHIT HI-HI
         }
-        /// <summary>
-        /// Extra function in case damage needs to be altered, counted, recordered, redirected, well...anyfuckingthing :)<br />
-        /// Return output damage. Can even customly process it if you want. Eg take processedDamage (after armour, damage reduction..etc) and return -5 to that value
-        /// </summary>
-        /// <param name="damageSource"></param>
-        /// <param name="damage"></param>
-        /// <param name="onHit"></param>
-        /// <param name="crit"></param>
-        /// <param name="spell"></param>
-        /// <returns></returns>
-        public virtual float RecievePhysicalDamage(NoxUnit damageSource, float damage, float processedDamage, bool onHit, bool crit, bool spell)
-        {
-            return processedDamage;
-        }
+
         /// <summary>
         /// Damage parsers that takes care of all calculations. Damage parser calculates outgoing damage from the unit.
         /// </summary>
         /// <param name="target">Whos is the target</param>
         /// <param name="damage"></param>
-        /// <param name="onHit">Does it apply on-hit effects?</param>
-        /// <param name="crit">Can it crit?</param>
-        public virtual void DealPhysicalDamage(NoxUnit target, float damage, bool onHit, bool crit, bool spell)
+        /// <param name="triggerOnHit">Does it apply on-hit effects?</param>
+        /// <param name="canCrit">Can it crit?</param>
+        public void DealPhysicalDamage(NoxUnit target, float damage, bool triggerOnHit, bool canCrit, bool isSpell, bool isRanged)
         {
             location loc = Location(GetUnitX(target) + GetRandomReal(0, 10), GetUnitY(target) + GetRandomReal(0, 5));
             float pars = damage;
-            if (!spell)
+            if (!isSpell && !isRanged)
                 if (GetRandomReal(0, 1) < target.Block)
                 {
                     pars *= 0.05f;
-                    Utils.RandomDirectedFloatText("BLOCK!", loc, 9f, 75, 123, 189, 0, 1.5f);
+                    Utils.DamageTextDirectionRandom("BLOCK!", loc, 9f, 75, 123, 189, 0, 1.5f, GetOwningPlayer(this), GetOwningPlayer(target));
                 }
             // maths
             pars *= (1 - Math.Min(target.DamageReduction, 1));
@@ -392,32 +412,26 @@ namespace NoxRaven.Units
                 pars *= (1.71f - Pow(1f - ARMOR_CONST, -armor)); // war3 real armor reduction is 1.71-pow(xxx) - why? - no idea
             else pars *= 1 / (1 + armor * ARMOR_CONST * (1 - ArmorPenetration)); // Inverse armor reduction function, got by solving: Armor * CONST / (1 + ARMOR * CONST)
 
-            pars = target.RecievePhysicalDamage(this, damage, pars, onHit, crit, spell);
+            pars = target.Interfaces.OnPhysicalDamage(this, damage, pars, triggerOnHit, canCrit, isSpell, isRanged);
             // The logic
 
-            if (crit && GetRandomReal(0, 1) < CritChance)
+            if (canCrit && GetRandomReal(0, 1) < CritChance)
             {
                 pars *= CritDamage;
 
-                if (GetLocalPlayer() == GetOwningPlayer(this) || GetLocalPlayer() == GetOwningPlayer(target))
-                {
-                    Utils.RandomDirectedFloatText(Utils.NotateNumber(R2I(pars)), loc, 7f, 255, 0, 0, 0, 1.5f);
-                }
+                Utils.DamageTextDirectionRandom(Utils.NotateNumber(R2I(pars)), loc, 7f, 255, 0, 0, 0, 1.5f, GetOwningPlayer(this), GetOwningPlayer(target));
             }
             else
             {
-                if (GetLocalPlayer() == GetOwningPlayer(this) || GetLocalPlayer() == GetOwningPlayer(target))
-                {
-                    Utils.RandomDirectedFloatText(Utils.NotateNumber(R2I(pars)), loc, 5.9f, 255, 255, 255, 0, 1);
-                }
+                Utils.DamageTextDirectionRandom(Utils.NotateNumber(R2I(pars)), loc, 5.9f, 255, 255, 255, 0, 1, GetOwningPlayer(this), GetOwningPlayer(target));
             }
 
             Damage(target, pars);
-            if (spell) Heal(pars * SpellVamp);
+            if (isSpell) Heal(pars * SpellVamp);
             else Heal(pars * Lifesteal);
             // Now that's done
             // Onhits
-            if (onHit)
+            if (triggerOnHit)
             {
                 List<OnHit> onhits = new List<OnHit>(OnHits.Values);
                 foreach (OnHit onhit in onhits)
@@ -429,74 +443,45 @@ namespace NoxRaven.Units
             RemoveLocation(loc);
             loc = null;
         }
-        /// <summary>
-        /// Perfect damage, when dice is 1 and roll is 1
-        /// </summary>
-        /// <returns></returns>
-        public virtual float AbilityDamage()
-        {
-            return (BlzGetUnitBaseDamage(this, 0) + 1 + GreenDamage) * DamageMultiplier;
-        }
-        /// <summary>
-        /// Perfect damage, when dice is 1 and roll is 1
-        /// </summary>
-        /// <returns></returns>
-        public virtual float WeaponDamage()
-        {
-            return (BlzGetUnitBaseDamage(this, 0) + 1 + GreenDamage) * DamageMultiplier;
-        }
-        protected virtual void CalculateTotalMana()
-        {
-            BlzSetUnitMaxMana(this, R2I(BaseMana * TotalManaPercent + Utils.ROUND_DOWN_CONST_OVERHEAD));
-        }
         public float GetBaseMana() => BaseMana;
         public void SetBaseMana(float val)
         {
             BaseMana = val;
-            CalculateTotalMana();
+            Interfaces.CalculateTotalMana();
         }
         public void AddBaseMana(float val)
         {
             BaseMana += val;
-            CalculateTotalMana();
+            Interfaces.CalculateTotalMana();
         }
         public float GetBonusManaPercent() => TotalManaPercent;
         public void SetBonusManaPercent(float percent)
         {
             TotalHPPercent = percent;
-            CalculateTotalMana();
-        }
-        /// <summary>
-        /// Override to your needs.
-        /// This sets new total HP.
-        /// Don't forget float poor precision offset.
-        /// </summary>
-        protected virtual void CalculateTotalHP()
-        {
-            BlzSetUnitMaxHP(this, R2I(BaseHP * TotalHPPercent + Utils.ROUND_DOWN_CONST_OVERHEAD)); // rounding issues
+            Interfaces.CalculateTotalMana();
         }
         public float GetBaseHP() => BaseHP;
         public void SetBaseHP(float val)
         {
             BaseHP = val;
-            CalculateTotalHP();
+            Interfaces.CalculateTotalHP();
         }
         public void AddBaseHP(float val)
         {
             BaseHP += val;
-            CalculateTotalHP();
+            Interfaces.CalculateTotalHP();
         }
         public float GetBonusHPPercent() => TotalHPPercent;
         public void SetBonusHPPercent(float percent)
         {
             TotalHPPercent = percent;
-            CalculateTotalHP();
+            Interfaces.CalculateTotalHP();
         }
-        public float GetAttackReload() => BlzGetUnitAttackCooldown(UnitRef, 0);
+        public float GetAttackReload() => BlzGetUnitAttackCooldown(_Self, 0);
         public float GetAttackCooldown() => BaseAttackCooldown;
         public void MultAttackCooldown(float val)
         {
-            
+
             if (val < 0)
             {
                 BaseAttackCooldown /= (1 + val);
@@ -505,7 +490,7 @@ namespace NoxRaven.Units
             {
                 BaseAttackCooldown *= (1 - val);
             }
-            BlzSetUnitAttackCooldown(UnitRef, BaseAttackCooldown / AttackSpeed, 0);
+            BlzSetUnitAttackCooldown(_Self, BaseAttackCooldown / AttackSpeed, 0);
         }
         public float GetAttackSpeed() => AttackSpeed;
         /// <summary>
@@ -515,27 +500,17 @@ namespace NoxRaven.Units
         public void AddAttackSpeed(float attackSpeed)
         {
             AttackSpeed += attackSpeed;
-            BlzSetUnitAttackCooldown(UnitRef, BaseAttackCooldown / AttackSpeed, 0);
+            BlzSetUnitAttackCooldown(_Self, BaseAttackCooldown / AttackSpeed, 0);
         }
-        public int GetBaseDamage() => BlzGetUnitBaseDamage(UnitRef, 0);
-        public virtual void AddBaseDamage(int val)
-        {
-            BlzSetUnitBaseDamage(UnitRef, GetBaseDamage() + val, 0);
-            SetGreenDamage(BonusDamage + R2I(BlzGetUnitBaseDamage(UnitRef, 0) * BonusDamagePercent));
-        }
+        public int GetBaseDamage() => BlzGetUnitBaseDamage(_Self, 0);
         public int GetBonusDamage() => BonusDamage;
 
         public float GetBonusDamageMultiplier() => BonusDamagePercent;
 
-        public virtual void AddBonusDamagePercent(float val)
+        public void AddBonusDamagePercent(float val)
         {
             BonusDamagePercent += val;
-            SetGreenDamage(BonusDamage + R2I(BlzGetUnitBaseDamage(UnitRef, 0) * BonusDamagePercent + Utils.ROUND_DOWN_CONST_OVERHEAD));
-        }
-        public virtual void AddBonusDamage(int val)
-        {
-            BonusDamage += val;
-            SetGreenDamage(BonusDamage + R2I(BlzGetUnitBaseDamage(UnitRef, 0) * BonusDamagePercent + Utils.ROUND_DOWN_CONST_OVERHEAD));
+            SetGreenDamage(BonusDamage + R2I(BlzGetUnitBaseDamage(_Self, 0) * BonusDamagePercent + Utils.ROUND_DOWN_CONST_OVERHEAD));
         }
         /// <summary>
         /// Get the +xxx on unit.
@@ -558,10 +533,10 @@ namespace NoxRaven.Units
             }
         }
         public float GetGreyArmor() => GreyArmor;
-        public virtual void SetGreyArmor(float val)
+        public void SetGreyArmor(float val)
         {
             GreyArmor = val;
-            BlzSetUnitArmor(UnitRef, val + GreenArmor);
+            BlzSetUnitArmor(_Self, val + GreenArmor);
         }
         /// <summary>
         /// Get units's -xxx armor.
@@ -576,7 +551,7 @@ namespace NoxRaven.Units
         {
             int leftover = R2I(val);
             int decimals = R2I((val - R2I(val)) * 10);
-            SetUnitAbilityLevel(UnitRef, FourCC("ARDP"), decimals + 1);
+            SetUnitAbilityLevel(_Self, FourCC("ARDP"), decimals + 1);
             GreenArmor = val;
             foreach (int abil in Abilities_BonusArmor)
                 UnitRemoveAbility(this, abil);
@@ -642,24 +617,6 @@ namespace NoxRaven.Units
         {
             return Statuses[id];
         }
-        public virtual void AddMoveSpeedPercent(float val)
-        {
-            MovementSpeedPercent += val;
-            SetUnitMoveSpeed(this, BaseMovementSpeed * MovementSpeedPercent);
-        }
-        public virtual void AddBaseMoveSpeed(float val)
-        {
-            BaseMovementSpeed += val;
-            SetUnitMoveSpeed(this, BaseMovementSpeed * MovementSpeedPercent);
-        }
-        /// <summary>
-        /// This is called every time regeneration handles.
-        /// </summary>
-        protected virtual void Regenerate()
-        {
-            Heal(RegenFlat * RegenerationTimeout);
-            ReplenishMana(RegenManaFlat * RegenerationTimeout);
-        }
         /// <summary>
         /// Heal unit by % missing hp. Unit with 50% HP and 10% Missing Healing will receive effective 5% heal.
         /// </summary>
@@ -688,10 +645,7 @@ namespace NoxRaven.Units
             if (show)
             {
                 location loc = Location(GetUnitX(this) + GetRandomReal(0, 10), GetUnitY(this) + GetRandomReal(0, 5));
-                if (GetLocalPlayer() == GetOwningPlayer(this))
-                {
-                    Utils.RandomDirectedFloatText("+" + Utils.NotateNumber(R2I(pars)), loc, 7f, 55, 255, 55, 0, 1.2f);
-                }
+                Utils.DamageTextDirectionRandom("+" + Utils.NotateNumber(R2I(pars)), loc, 7f, 55, 255, 55, 0, 1.2f, GetOwningPlayer(this), null);
                 RemoveLocation(loc);
                 loc = null;
             }
@@ -711,7 +665,7 @@ namespace NoxRaven.Units
         }
         public static implicit operator unit(NoxUnit ue)
         {
-            return ue.UnitRef;
+            return ue._Self;
         }
 
     }

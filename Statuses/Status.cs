@@ -18,7 +18,7 @@ namespace NoxRaven.Statuses
         /// <summary>
         /// How many stack have been applied, non-stackable has <see cref="Stacking"/> flag set to <see langword="false"/>.
         /// </summary>
-        public int Stacks { get; private set; }
+        public int Stacks { get; private set; } = 0;
         /// <summary>
         /// Limit for stack, eg up to 3/4/5 stacks max
         /// </summary>
@@ -31,6 +31,10 @@ namespace NoxRaven.Statuses
         /// Flag
         /// </summary>
         public bool Periodic { get; private set; }
+        /// <summary>
+        /// Flag that specifies if effect is permanent
+        /// </summary>
+        public bool Permanent { get; private set; }
         /// <summary>
         /// <b>Periodic-only</b><br></br>
         /// </summary>
@@ -61,7 +65,7 @@ namespace NoxRaven.Statuses
         /// <param name="duration"></param>
         /// <param name="stacking"></param>
         /// <param name="periodic"></param>
-        internal Status(int id, SimpleStatusType type, NoxUnit source, NoxUnit target, int level, int initialStacks, int stacksLim, float duration, float periodicTimeout, bool stacking, bool periodic)
+        internal Status(int id, SimpleStatusType type, NoxUnit source, NoxUnit target, int level, int initialStacks, int stacksLim, float duration, float periodicTimeout, bool stacking, bool periodic, bool permanent)
         {
             //if(type.DataType != null)
             //Data = Activator.CreateInstance(type.DataType);
@@ -73,21 +77,25 @@ namespace NoxRaven.Statuses
             Level = level;
             Stacking = stacking;
             Periodic = periodic;
+            Permanent = permanent;
             PeriodicTimeout = periodicTimeout;
             StacksLim = stacksLim;
-            t = CreateTimer();
-            if (periodic)
+            if (!Permanent)
             {
-                PeriodicTicks = 0;
-                TimeRemain = duration;
-                TimerStart(t, PeriodicTimeout, false, PeriodicTimerRestart);
+                t = CreateTimer();
+                if (periodic)
+                {
+                    PeriodicTicks = 0;
+                    TimeRemain = duration;
+                    TimerStart(t, PeriodicTimeout, false, PeriodicTimerRestart);
+                }
+                else
+                    TimerStart(t, duration, false, Remove);
             }
-            else
-                TimerStart(t, duration, false, Remove);
             if (stacking) Stacks += initialStacks;
             if (Type.Apply != null)
                 Type.Apply.Invoke(this);
-            SpecialEffect = AddSpecialEffectTarget(Type.Effectpath, target.UnitRef, Type.Attachment);
+            SpecialEffect = AddSpecialEffectTarget(Type.Effectpath, target._Self, Type.Attachment);
         }
 
         internal Status() { }
@@ -119,7 +127,7 @@ namespace NoxRaven.Statuses
         /// <param name="periodic"></param>
         public Status Reapply(float duration, int level, int bonusStacks)
         {
-            if (Periodic)
+            if (!Permanent && Periodic)
             {
                 Level = level;
                 if (TimeRemain < duration)
@@ -128,12 +136,13 @@ namespace NoxRaven.Statuses
             }
             else
             {
-                if (TimerGetRemaining(t) < duration)
-                {
-                    PauseTimer(t);
-                    TotalDuration += TimerGetElapsed(t);
-                    TimerStart(t, duration, false, Remove);
-                }
+                if (!Permanent)
+                    if (TimerGetRemaining(t) < duration)
+                    {
+                        PauseTimer(t);
+                        TotalDuration += TimerGetElapsed(t);
+                        TimerStart(t, duration, false, Remove);
+                    }
                 if (Stacking) Reset(bonusStacks, level); // reset if stack
                 else if (Level < level) Reset(0, level); // reset to new level
             }
@@ -145,14 +154,17 @@ namespace NoxRaven.Statuses
         /// </summary>
         public void Remove()
         {
-            PauseTimer(t);
-            TotalDuration += TimerGetElapsed(t);
+            if (!Permanent)
+            {
+                PauseTimer(t);
+                TotalDuration += TimerGetElapsed(t);
+                DestroyTimer(t);
+            }
             if (Type.Reset != null)
                 Type.Reset.Invoke(this);
             if (Type.OnRemove != null)
                 Type.OnRemove.Invoke(this);
             Target.RemoveStatus(Id);
-            DestroyTimer(t);
             DestroyEffect(SpecialEffect);
             t = null;
             Data = null;

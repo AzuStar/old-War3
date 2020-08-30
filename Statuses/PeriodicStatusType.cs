@@ -8,7 +8,7 @@ using NoxRaven.Units;
 
 namespace NoxRaven.Statuses
 {
-    public class PeriodicStatusType : SimpleStatusType
+    public class PeriodicStatusType : TimedStatusType
     {
         public float PeriodicTimeoutTime;
 
@@ -17,20 +17,12 @@ namespace NoxRaven.Statuses
             PeriodicTimeoutTime = periodicTimeoutTime;
         }
 
-        public PeriodicStatusType(int id, StatusFunction apply, StatusFunction onRemove, StatusFunction reset, string specialEffectPath, string specialEffectAttachmentPoint, float periodicTimeoutTime = 1) : base(id, apply, onRemove, reset, specialEffectPath, specialEffectAttachmentPoint)
-        {
-            PeriodicTimeoutTime = periodicTimeoutTime;
-        }
-
         public override Status ApplyStatus(NoxUnit source, NoxUnit target, int level, float duration)
         {
-            int resultId = Id;
-            if (Id > 100)
-                resultId = (Id - 101) * 100 + 101 + GetPlayerId(GetOwningPlayer(source.UnitRef));
-            if (!target.ContainsStatus(resultId))
+            if (!target.ContainsStatus(Id))
                 // create new status and add it to unit
-                return target.AddStatus(resultId, new Status(resultId, this, source, target, level, 0, 0, duration, PeriodicTimeoutTime, false, false));
-            return target.GetStatus(resultId).Reapply(duration, level, 0);
+                return target.AddStatus(Id, new Status(Id, this, source, target, level, 0, 0, duration, PeriodicTimeoutTime, false, false, false));
+            return target.GetStatus(Id).Reapply(duration, level, 0);
         }
 
     }

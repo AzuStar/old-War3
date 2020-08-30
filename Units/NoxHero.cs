@@ -36,11 +36,11 @@ namespace NoxRaven.Units
             BonusStr = val;
             for (int i = Abilities_Strength.Length - 1; i >= 0; i--)
             {
-                UnitRemoveAbility(UnitRef, Abilities_Strength[i]);
+                UnitRemoveAbility(_Self, Abilities_Strength[i]);
                 int comparator = R2I(Pow(2, i));
                 if (comparator <= val)
                 {
-                    UnitAddAbility(UnitRef, Abilities_Strength[i]);
+                    UnitAddAbility(_Self, Abilities_Strength[i]);
                     val -= comparator;
                 }
             }
@@ -50,11 +50,11 @@ namespace NoxRaven.Units
             BonusAgi = val;
             for (int i = Abilities_Agility.Length - 1; i >= 0; i--)
             {
-                UnitRemoveAbility(UnitRef, Abilities_Agility[i]);
+                UnitRemoveAbility(_Self, Abilities_Agility[i]);
                 int comparator = R2I(Pow(2, i));
                 if (comparator <= val)
                 {
-                    UnitAddAbility(UnitRef, Abilities_Agility[i]);
+                    UnitAddAbility(_Self, Abilities_Agility[i]);
                     val -= comparator;
                 }
             }
@@ -64,11 +64,11 @@ namespace NoxRaven.Units
             BonusInt = val;
             for (int i = Abilities_Intelligence.Length - 1; i >= 0; i--)
             {
-                UnitRemoveAbility(UnitRef, Abilities_Intelligence[i]);
+                UnitRemoveAbility(_Self, Abilities_Intelligence[i]);
                 int comparator = R2I(Pow(2, i));
                 if (comparator <= val)
                 {
-                    UnitAddAbility(UnitRef, Abilities_Intelligence[i]);
+                    UnitAddAbility(_Self, Abilities_Intelligence[i]);
                     val -= comparator;
                 }
             }
@@ -88,15 +88,15 @@ namespace NoxRaven.Units
         }
         public virtual void AddBaseStr(int val)
         {
-            SetHeroStr(UnitRef, GetHeroStr(UnitRef, false) + val, true);
+            SetHeroStr(_Self, GetHeroStr(_Self, false) + val, true);
         }
         public virtual void AddBaseAgi(int val)
         {
-            SetHeroAgi(UnitRef, GetHeroAgi(UnitRef, false) + val, true);
+            SetHeroAgi(_Self, GetHeroAgi(_Self, false) + val, true);
         }
         public virtual void AddBaseInt(int val)
         {
-            SetHeroInt(UnitRef, GetHeroInt(UnitRef, false) + val, true);
+            SetHeroInt(_Self, GetHeroInt(_Self, false) + val, true);
         }
         /// <summary>
         /// Add experience to the character. Float.
@@ -105,12 +105,12 @@ namespace NoxRaven.Units
         public virtual void AddExperience(float exp)
         {
             // For now just use war3 built-in experience manipulator
-            int lvl = GetHeroLevel(UnitRef);
+            int lvl = GetHeroLevel(_Self);
             CacheExp += exp * MultiplierExp;
-            AddHeroXP(UnitRef, R2I(CacheExp), true);
+            AddHeroXP(_Self, R2I(CacheExp), true);
             CacheExp -= R2I(CacheExp);
-            int difference = GetHeroLevel(UnitRef) - lvl;
-            if (difference > 0) LevelUp(difference, GetHeroLevel(UnitRef));
+            int difference = GetHeroLevel(_Self) - lvl;
+            if (difference > 0) LevelUp(difference, GetHeroLevel(_Self));
         }
         /// <summary>
         /// Returns how much experience is retured forLevel;

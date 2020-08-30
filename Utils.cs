@@ -31,14 +31,14 @@ namespace NoxRaven
         public static void DisplayMessageToEveryone(string msg, float timespan)
         {
             foreach (NoxPlayer p in NoxPlayer.AllPlayers.Values)
-                DisplayTimedTextToPlayer(p.PlayerRef, 0, 0, timespan, msg);
+                DisplayTimedTextToPlayer(p._Self, 0, 0, timespan, msg);
         }
         internal static void Error(string message, Type t)
         {
             Master.BadLoad = true;
             Master.ErrorCount++;
             foreach (NoxPlayer p in NoxPlayer.AllPlayers.Values)
-                DisplayTimedTextToPlayer(p.PlayerRef, 0, 0, 900f, "|cffFF0000ERROR IN: " + t.FullName + "|r\nMessage:" + message);
+                DisplayTimedTextToPlayer(p._Self, 0, 0, 900f, "|cffFF0000ERROR IN: " + t.FullName + "|r\nMessage:" + message);
         }
         /// <summary>
         /// Use this function to invoke something (anything) with a delay.
@@ -60,14 +60,14 @@ namespace NoxRaven
                 return SubString(proxy, 0, len - 6) + "." + SubString(proxy, len - 9, len - 8) + "M";
             return proxy;
         }
-        public static void RandomDirectedFloatText(string msg, location loc, float size, float r, float g, float b, float alpha, float dur)
+        public static void DamageTextDirectionRandom(string msg, location loc, float size, float r, float g, float b, float alpha, float dur, player p1, player p2)
         {
-            //float x = GetLocationX(loc) + GetRandomReal(0, 5) * Cos(GetRandomReal(0, 360) * bj_DEGTORAD);
-            //float y = GetLocationY(loc) + GetRandomReal(0, 5) * Sin(GetRandomReal(0, 360) * bj_DEGTORAD);
-            texttag tt = CreateTextTagLocBJ(msg, loc, 0, size, r, g, b, alpha);
-            //SetTextTagText(tt, msg, size);
-            //SetTextTagPos(tt, x, y, 0);
-            //SetTextTagColorBJ(tt, r, g, b, alpha);
+            float x = GetLocationX(loc) + GetRandomReal(0, 5) * Cos(GetRandomReal(0, 360) * bj_DEGTORAD);
+            float y = GetLocationY(loc) + GetRandomReal(0, 5) * Sin(GetRandomReal(0, 360) * bj_DEGTORAD);
+            texttag tt = null;
+            if (GetLocalPlayer() == p1 || GetLocalPlayer() == p2)
+                tt = CreateTextTagLocBJ(msg, loc, 0, size, r, g, b, alpha);
+            SetTextTagPos(tt, x, y, 0);
             SetTextTagVelocityBJ(tt, 40, 90);
             SetTextTagPermanent(tt, false);
             SetTextTagFadepoint(tt, dur);
@@ -165,9 +165,15 @@ namespace NoxRaven
             return list;
         }
 
+        public static Vector2 LocationToVector(location loc)
+        {
+            Vector2 vec = new Vector2(GetLocationX(loc), GetLocationY(loc));
+            RemoveLocation(loc);
+            return vec;
+        }
+
         public static List<NoxUnit> GetUnitList(UnitFilter filter)
         {
-            http
             List<NoxUnit> lis = new List<NoxUnit>();
             foreach (NoxUnit nu in NoxUnit.Indexer.Values)
                 if (filter.Invoke(nu))

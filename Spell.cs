@@ -20,7 +20,7 @@ namespace NoxRaven
 
         public void AddSpellToUnit(NoxUnit target)
         {
-            UnitAddAbility(target.UnitRef, SpellId);
+            UnitAddAbility(target._Self, SpellId);
         }
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace NoxRaven
         {
             trigger tr = CreateTrigger();
             foreach (NoxPlayer p in NoxPlayer.AllPlayers.Values)
-                TriggerRegisterPlayerUnitEvent(tr, p.PlayerRef, EVENT_PLAYER_UNIT_SPELL_EFFECT, null);
+                TriggerRegisterPlayerUnitEvent(tr, p._Self, EVENT_PLAYER_UNIT_SPELL_EFFECT, null);
             // check if correct spell fired
             TriggerAddCondition(tr, Filter(() => GetSpellAbilityId() == SpellId));
             // this is truly amazing how you can add delegates with this thing
