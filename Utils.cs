@@ -4,7 +4,6 @@ using System.Text;
 
 using static War3Api.Common;
 using static War3Api.Blizzard;
-using NoxRaven.Units;
 using System.Numerics;
 using System.Linq;
 
@@ -50,6 +49,12 @@ namespace NoxRaven
             timer t = CreateTimer();
             TimerStart(t, timeout, false, () => { effect.Invoke(); DestroyTimer(t); });
         }
+
+        // public static void InvokeOverTime(float timeout, float tick, Action effect)
+        // {
+        //     timer t = CreateTimer();
+        //     TimerStart(t, timeout, true, () => { effect.Invoke(); DestroyTimer(t); });
+        // }
         public static string NotateNumber(int i)
         {
             string proxy = I2S(i);
@@ -60,13 +65,13 @@ namespace NoxRaven
                 return SubString(proxy, 0, len - 6) + "." + SubString(proxy, len - 9, len - 8) + "M";
             return proxy;
         }
-        public static void DamageTextDirectionRandom(string msg, location loc, float size, float r, float g, float b, float alpha, float dur, player p1, player p2)
+        public static void TextDirectionRandom(string msg, location loc, float size, float r, float g, float b, float alpha, float dur, player p)
         {
             float x = GetLocationX(loc) + GetRandomReal(0, 5) * Cos(GetRandomReal(0, 360) * bj_DEGTORAD);
             float y = GetLocationY(loc) + GetRandomReal(0, 5) * Sin(GetRandomReal(0, 360) * bj_DEGTORAD);
             texttag tt = null;
-            if (GetLocalPlayer() == p1 || GetLocalPlayer() == p2)
-                tt = CreateTextTagLocBJ(msg, loc, 0, size, r, g, b, alpha);
+            if (GetLocalPlayer() == p)
+                tt = CreateTextTagLocBJ(msg, loc, 20, size, r, g, b, alpha);
             SetTextTagPos(tt, x, y, 0);
             SetTextTagVelocityBJ(tt, 40, 90);
             SetTextTagPermanent(tt, false);

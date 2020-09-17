@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 using NoxRaven;
-using NoxRaven.Units;
 using static War3Api.Common;
 
 namespace NoxRaven
