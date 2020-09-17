@@ -4,7 +4,8 @@ using System.Text;
 
 namespace NoxRaven.Events
 {
-    public class Event
+    public abstract class Event
     {
+
     }
 }
