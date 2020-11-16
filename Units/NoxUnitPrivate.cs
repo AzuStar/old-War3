@@ -61,10 +61,10 @@ public partial class NoxUnit
         // Add existing units
         GroupEnumUnitsInRect(g, rec, Filter(AttachClass));
 
-        // // Deattach when unit leaves the map
-        // TriggerRegisterLeaveRegion(CreateTrigger(), reg, Filter(() => { ((NoxUnit)GetLeavingUnit()).OnRemoval(); return false; })); // catch unit removal, destroy everything attached
-        // // Utility functions
-        // TimerStart(CreateTimer(), RegenerationTimeout, true, () => { foreach (NoxUnit ue in Indexer.Values) ue.Regenerate(); });
+        // Deattach when unit leaves the map
+        TriggerRegisterLeaveRegion(CreateTrigger(), reg, Filter(() => { ((NoxUnit)GetLeavingUnit()).Remove(); return false; })); // catch unit removal, destroy everything attached
+        // Utility functions
+        TimerStart(CreateTimer(), RegenerationTimeout, true, () => { foreach (NoxUnit ue in Indexer.Values) ue.Regenerate(); });
 
         // Recycle stuff
         DestroyGroup(g);
@@ -139,63 +139,60 @@ public partial class NoxUnit
     {
 
         _Self = u;
-        {
-            // Regenerate = () =>
-            // {
-            //     Heal(RegenFlat * RegenerationTimeout);
-            //     ReplenishMana(RegenManaFlat * RegenerationTimeout);
-            // },
-            // AbilityDamage = () =>
-            // {
-            //     return (BlzGetUnitBaseDamage(this, 0) + 1 + GreenDamage) * DamageMultiplier;
-            // },
-            // WeaponDamage = () =>
-            // {
-            //     return (BlzGetUnitBaseDamage(this, 0) + 1 + GreenDamage) * DamageMultiplier;
-            // },
-            // OnCalculateTotalHP = () =>
-            // {
-            //     
-            // },
-            // OnAddBaseDamage = (int val) =>
-            // {
-            //     BlzSetUnitBaseDamage(_Self, GetBaseDamage() + val, 0);
-            //     SetGreenDamage(BonusDamage + R2I(BlzGetUnitBaseDamage(_Self, 0) * BonusDamagePercent));
-            // },
-            // OnAddBonusDamage = (int val) =>
-            // {
-            //     BonusDamage += val;
-            //     SetGreenDamage(BonusDamage + R2I(BlzGetUnitBaseDamage(_Self, 0) * BonusDamagePercent + Utils.ROUND_DOWN_CONST_OVERHEAD));
+        // Regenerate = () =>
+        // {
+        //     Heal(RegenFlat * RegenerationTimeout);
+        //     ReplenishMana(RegenManaFlat * RegenerationTimeout);
+        // },
+        // AbilityDamage = () =>
+        // {
+        //     return (BlzGetUnitBaseDamage(this, 0) + 1 + GreenDamage) * DamageMultiplier;
+        // },
+        // WeaponDamage = () =>
+        // {
+        //     return (BlzGetUnitBaseDamage(this, 0) + 1 + GreenDamage) * DamageMultiplier;
+        // },
+        // OnCalculateTotalHP = () =>
+        // {
+        //     
+        // },
+        // OnAddBaseDamage = (int val) =>
+        // {
+        //     BlzSetUnitBaseDamage(_Self, GetBaseDamage() + val, 0);
+        //     SetGreenDamage(BonusDamage + R2I(BlzGetUnitBaseDamage(_Self, 0) * BonusDamagePercent));
+        // },
+        // OnAddBonusDamage = (int val) =>
+        // {
+        //     BonusDamage += val;
+        //     SetGreenDamage(BonusDamage + R2I(BlzGetUnitBaseDamage(_Self, 0) * BonusDamagePercent + Utils.ROUND_DOWN_CONST_OVERHEAD));
 
-            // },
-            // OnRemoval = () =>
-            // {
-            //     OnHits.Clear();
-            //     //AmHits.Clear();
-            //     DestroyTrigger(DamageTrig);
-            //     Indexer.Remove(GetHandleId(_Self));
-            //     OnHits = null;
-            //     Statuses = null;
-            //     RemoveUnit(this);
-            //     DamageTrig = null;
-            // },
-            // OnAddGreyArmor = (float val) =>
-            // {
-            //     SetGreenArmor(GreyArmor += val);
-            // },
-            // OnAddMoveSpeedpercent = (float val) =>
-            // {
-            //     MovementSpeedPercent += val;
-            //     SetUnitMoveSpeed(this, BaseMovementSpeed * MovementSpeedPercent);
-            // },
-            // OnAddBaseMoveSpeed = (float val) =>
-            // {
-            //     BaseMovementSpeed += val;
-            //     SetUnitMoveSpeed(this, BaseMovementSpeed * MovementSpeedPercent);
-            // },
-            // CalculateTotalMana
-        };
-
+        // },
+        // OnRemoval = () =>
+        // {
+        //     OnHits.Clear();
+        //     //AmHits.Clear();
+        //     DestroyTrigger(DamageTrig);
+        //     Indexer.Remove(GetHandleId(_Self));
+        //     OnHits = null;
+        //     Statuses = null;
+        //     RemoveUnit(this);
+        //     DamageTrig = null;
+        // },
+        // OnAddGreyArmor = (float val) =>
+        // {
+        //     SetGreenArmor(GreyArmor += val);
+        // },
+        // OnAddMoveSpeedpercent = (float val) =>
+        // {
+        //     MovementSpeedPercent += val;
+        //     SetUnitMoveSpeed(this, BaseMovementSpeed * MovementSpeedPercent);
+        // },
+        // OnAddBaseMoveSpeed = (float val) =>
+        // {
+        //     BaseMovementSpeed += val;
+        //     SetUnitMoveSpeed(this, BaseMovementSpeed * MovementSpeedPercent);
+        // },
+        // CalculateTotalMana
         // WeaponDamage = () => { return 10; };
         // SetBaseHP(BlzGetUnitMaxHP(u));
         // BaseAttackCooldown = BlzGetUnitAttackCooldown(_Self, 0);
@@ -228,11 +225,11 @@ public partial class NoxUnit
     /// Set unit's -xxx.x or +xxx.x armor. Does support single precision decimal point.
     /// </summary>
     /// <param name="val"></param>
-    private void SetGreenArmor(float val)
+    protected void SetGreenArmor(float val)
     {
         int leftover = R2I(val);
         int decimals = R2I((val - R2I(val)) * 10);
-        if(val < 0) decimals = 1 - decimals;
+        if (val < 0) decimals = 1 - decimals;
         SetUnitAbilityLevel(_Self, FourCC("ARDP"), decimals + 1);
         GreenArmor = val;
         foreach (int abil in Abilities_BonusArmor)
@@ -266,7 +263,7 @@ public partial class NoxUnit
     }
 
     // This guy makes +xxx damage magic
-    private void SetGreenDamage(int val)
+    protected void SetGreenDamage(int val)
     {
         GreenDamage = val;
         for (int i = Abilities_BonusDamage.Length - 1; i >= 0; i--)
@@ -281,7 +278,7 @@ public partial class NoxUnit
         }
     }
 
-    private void CalculateTotalHP()
+    protected void CalculateTotalHP()
     {
         CalculateTotalEvent ev = new CalculateTotalEvent()
         {
@@ -291,7 +288,7 @@ public partial class NoxUnit
         BlzSetUnitMaxHP(this, R2I(ev.ExpectedTotal + Utils.ROUND_DOWN_CONST_OVERHEAD)); // rounding issues
     }
 
-    private void CalculateTotalMana()
+    protected void CalculateTotalMana()
     {
         CalculateTotalEvent ev = new CalculateTotalEvent()
         {
@@ -299,6 +296,21 @@ public partial class NoxUnit
         };
         OnCalculateTotalMana(ev);
         BlzSetUnitMaxMana(this, R2I(ev.ExpectedTotal + Utils.ROUND_DOWN_CONST_OVERHEAD)); // rounding issues
+    }
+
+    protected virtual void Regenerate()
+    {
+        RegenerationTickEvent parsEvent = new RegenerationTickEvent()
+        {
+            EventInfo = new NoxRaven.Events.Metas.RegenerationMeta()
+            {
+                Target = _Self
+            },
+            HealthValue = RegenFlat,
+            ManaValue = RegenManaFlat
+        };
+        Heal(parsEvent.HealthValue * RegenerationTimeout);
+        ReplenishMana(parsEvent.ManaValue * RegenerationTimeout);
     }
 
     private float WeaponDamage()

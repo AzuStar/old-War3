@@ -29,6 +29,7 @@ public partial class NoxUnit
     /// </summary>
     public Action<RegenerationEvent> OnRegenerateHP = (e) => { };//
     public Action<RegenerationEvent> OnRegenerateMana = (e) => { };//
+    public Action<RegenerationTickEvent> OnRegenerationTick = (e) => { };
     public Action<CalculateTotalEvent> OnCalculateTotalMana = (e) => { };//
     /// <summary>
     /// This sets new total HP.

@@ -1,6 +1,6 @@
 namespace NoxRaven.Events.EventTypes
 {
-    public class IntAddEvent
+    public class IntAddEvent : Event
     {
         public int Value;
     }

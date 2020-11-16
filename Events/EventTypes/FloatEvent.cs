@@ -1,6 +1,6 @@
 namespace NoxRaven.Events.EventTypes
 {
-    public class FloatEvent
+    public class FloatEvent : Event
     {
         public float Value;
     }

@@ -12,13 +12,6 @@ namespace NoxRaven.Statuses
     public class SimpleStatusType
     {
         public delegate void StatusFunction(Status status);
-        public static SimpleStatusType Stun = new SimpleStatusType((status) =>
-        {
-            PauseUnit(status.Target, true);
-        }, (status) =>
-        {
-            PauseUnit(status.Target, false);
-        }, null, @"Abilities\Spells\Human\Thunderclap\ThunderclapTarget.mdl", @"overhead");
         // public static SimpleStatusType Slow = new SimpleStatusType((status) =>
         // {
         //     status.Target.AddMoveSpeedPercent(-(float)status.Level / 100);
@@ -60,7 +53,7 @@ namespace NoxRaven.Statuses
         /// <param name="source"></param>
         /// <param name="target"></param>
         /// <param name="duration"></param>
-        public virtual Status ApplyStatus(NoxUnit source, NoxUnit target, int level)
+        public Status ApplyStatus(NoxUnit source, NoxUnit target, int level)
         {
             if (!target.ContainsStatus(Id))
                 // create new status and add it to unit

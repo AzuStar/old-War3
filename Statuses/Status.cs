@@ -34,6 +34,7 @@ namespace NoxRaven.Statuses
         /// Flag that specifies if effect is permanent
         /// </summary>
         public bool Permanent { get; private set; }
+        public float Duration;
         /// <summary>
         /// <b>Periodic-only</b><br></br>
         /// </summary>
@@ -50,7 +51,7 @@ namespace NoxRaven.Statuses
         /// This is for reseting ability if level greater
         /// </summary>
         public int Level { get; private set; }
-        public float TotalDuration { get; private set; }
+        public float TimeElapsed { get; private set; }
         public float PeriodicTimeout;
 
         /// <summary>
@@ -68,7 +69,6 @@ namespace NoxRaven.Statuses
         {
             //if(type.DataType != null)
             //Data = Activator.CreateInstance(type.DataType);
-
             Id = id;
             Type = type;
             Source = source;
@@ -79,6 +79,7 @@ namespace NoxRaven.Statuses
             Permanent = permanent;
             PeriodicTimeout = periodicTimeout;
             StacksLim = stacksLim;
+            Duration = duration;
             if (!Permanent)
             {
                 t = CreateTimer();
@@ -94,7 +95,8 @@ namespace NoxRaven.Statuses
             if (stacking) Stacks += initialStacks;
             if (Type.Apply != null)
                 Type.Apply.Invoke(this);
-            SpecialEffect = AddSpecialEffectTarget(Type.Effectpath, target._Self, Type.Attachment);
+            if (Type.Effectpath != null && Type.Attachment != null)
+                SpecialEffect = AddSpecialEffectTarget(Type.Effectpath, target._Self, Type.Attachment);
         }
 
         internal Status() { }
@@ -104,7 +106,7 @@ namespace NoxRaven.Statuses
             if (Type.Apply != null)
                 Type.Apply.Invoke(this);
             PeriodicTicks++;
-            TotalDuration += PeriodicTimeout;
+            TimeElapsed += PeriodicTimeout;
             TimeRemain -= PeriodicTimeout;
             if (TimeRemain > 0)
                 TimerStart(t, PeriodicTimeout, false, PeriodicTimerRestart);
@@ -139,7 +141,7 @@ namespace NoxRaven.Statuses
                     if (TimerGetRemaining(t) < duration)
                     {
                         PauseTimer(t);
-                        TotalDuration += TimerGetElapsed(t);
+                        TimeElapsed += TimerGetElapsed(t);
                         TimerStart(t, duration, false, Remove);
                     }
                 if (Stacking) Reset(bonusStacks, level); // reset if stack
@@ -156,7 +158,7 @@ namespace NoxRaven.Statuses
             if (!Permanent)
             {
                 PauseTimer(t);
-                TotalDuration += TimerGetElapsed(t);
+                TimeElapsed += TimerGetElapsed(t);
                 DestroyTimer(t);
             }
             if (Type.Reset != null)

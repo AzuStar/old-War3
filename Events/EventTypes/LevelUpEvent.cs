@@ -2,8 +2,9 @@ using NoxRaven.Events.Metas;
 
 namespace NoxRaven.Events.EventTypes
 {
-    public class KillEvent : Event
+    public class LevelUpEvent : Event
     {
-        public KillMeta EventInfo;
+        public LevelUpMeta EventInfo;
+
     }
 }

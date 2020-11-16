@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using NoxRaven.Events.EventTypes;
+using NoxRaven.Events.Metas;
 using War3Api;
 using static War3Api.Common;
 
@@ -29,6 +31,15 @@ public class NoxHero : NoxUnit
     public int GetBonusStr() => BonusStr;
     public int GetBonusAgi() => BonusAgi;
     public int GetBonusInt() => BonusInt;
+
+    public Action<LevelUpEvent> OnLevelUp = (e) => { };
+
+    public static Action<RegenerationTickEvent> HeroRegeneration = (e) =>
+    {
+        e.HealthValue += GetHeroStr(e.EventInfo.Target, true) * 0.04f;
+        e.ManaValue += GetHeroInt(e.EventInfo.Target, true) * 0.03f;
+    };
+
     public void SetBonusStr(int val)
     {
         BonusStr = val;
@@ -108,7 +119,8 @@ public class NoxHero : NoxUnit
         AddHeroXP(_Self, R2I(CacheExp), true);
         CacheExp -= R2I(CacheExp);
         int difference = GetHeroLevel(_Self) - lvl;
-        if (difference > 0) LevelUp(difference, GetHeroLevel(_Self));
+        // if (difference > 0) 
+        LevelUp(difference, GetHeroLevel(_Self));
     }
     /// <summary>
     /// Returns how much experience is retured forLevel;
@@ -126,8 +138,18 @@ public class NoxHero : NoxUnit
     /// </summary>
     /// <param name="times"></param>
     /// <param name="previouslvl"></param>
-    public virtual void LevelUp(int times, int previouslvl)
+    public void LevelUp(int times, int previouslvl)
     {
+        LevelUpEvent parsEvent = new LevelUpEvent()
+        {
+            EventInfo = new LevelUpMeta()
+            {
+                Hero = _Self,
+                PreviousLevel = previouslvl,
+                NewLevel = previouslvl + times
+            }
+        };
+        OnLevelUp(parsEvent);
         CacheStr += PerLevelStr * times;
         CacheAgi += PerLevelAgi * times;
         CacheInt += PerLevelInt * times;
@@ -144,6 +166,7 @@ public class NoxHero : NoxUnit
 
     public NoxHero(Common.unit u) : base(u)
     {
+        OnRegenerationTick += HeroRegeneration;
     }
 
     public new static NoxHero Cast(unit u)
