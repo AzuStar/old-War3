@@ -145,6 +145,9 @@ public partial class NoxUnit
     /// For example, passive ability with 25% activation chance to deal extra damage will have 50% chance if this value is 2.
     /// </summary>
     public float TriggerChance = 1;
+    /// <summary>
+    /// Multiplier, starts at 1
+    /// </summary>
     private float MovementSpeedPercent = 1;
     private float BaseMovementSpeed = 220;
 

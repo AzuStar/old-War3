@@ -137,71 +137,16 @@ public partial class NoxUnit
 
     protected NoxUnit(unit u)
     {
-
         _Self = u;
-        // Regenerate = () =>
-        // {
-        //     Heal(RegenFlat * RegenerationTimeout);
-        //     ReplenishMana(RegenManaFlat * RegenerationTimeout);
-        // },
-        // AbilityDamage = () =>
-        // {
-        //     return (BlzGetUnitBaseDamage(this, 0) + 1 + GreenDamage) * DamageMultiplier;
-        // },
-        // WeaponDamage = () =>
-        // {
-        //     return (BlzGetUnitBaseDamage(this, 0) + 1 + GreenDamage) * DamageMultiplier;
-        // },
-        // OnCalculateTotalHP = () =>
-        // {
-        //     
-        // },
-        // OnAddBaseDamage = (int val) =>
-        // {
-        //     BlzSetUnitBaseDamage(_Self, GetBaseDamage() + val, 0);
-        //     SetGreenDamage(BonusDamage + R2I(BlzGetUnitBaseDamage(_Self, 0) * BonusDamagePercent));
-        // },
-        // OnAddBonusDamage = (int val) =>
-        // {
-        //     BonusDamage += val;
-        //     SetGreenDamage(BonusDamage + R2I(BlzGetUnitBaseDamage(_Self, 0) * BonusDamagePercent + Utils.ROUND_DOWN_CONST_OVERHEAD));
 
-        // },
-        // OnRemoval = () =>
-        // {
-        //     OnHits.Clear();
-        //     //AmHits.Clear();
-        //     DestroyTrigger(DamageTrig);
-        //     Indexer.Remove(GetHandleId(_Self));
-        //     OnHits = null;
-        //     Statuses = null;
-        //     RemoveUnit(this);
-        //     DamageTrig = null;
-        // },
-        // OnAddGreyArmor = (float val) =>
-        // {
-        //     SetGreenArmor(GreyArmor += val);
-        // },
-        // OnAddMoveSpeedpercent = (float val) =>
-        // {
-        //     MovementSpeedPercent += val;
-        //     SetUnitMoveSpeed(this, BaseMovementSpeed * MovementSpeedPercent);
-        // },
-        // OnAddBaseMoveSpeed = (float val) =>
-        // {
-        //     BaseMovementSpeed += val;
-        //     SetUnitMoveSpeed(this, BaseMovementSpeed * MovementSpeedPercent);
-        // },
-        // CalculateTotalMana
-        // WeaponDamage = () => { return 10; };
-        // SetBaseHP(BlzGetUnitMaxHP(u));
-        // BaseAttackCooldown = BlzGetUnitAttackCooldown(_Self, 0);
-        // AddAttackSpeed(0);
-        // GreyArmor = BlzGetUnitArmor(u);
-        // BaseMovementSpeed = GetUnitMoveSpeed(u);
+        SetBaseHP(BlzGetUnitMaxHP(u));
+        BaseAttackCooldown = BlzGetUnitAttackCooldown(_Self, 0);
+        AddAttackSpeed(0);
+        GreyArmor = BlzGetUnitArmor(u);
         Ranged = IsUnitType(u, UNIT_TYPE_RANGED_ATTACKER);
         // Damage Utilization
         DamageTrig = CreateTrigger();
+        BaseMovementSpeed = GetUnitMoveSpeed(u);
         TriggerRegisterUnitEvent(DamageTrig, u, EVENT_UNIT_DAMAGED);
         TriggerAddAction(DamageTrig, DamageHandler);
         UnitAddAbility(u, FourCC("ARDP")); //arm decimal

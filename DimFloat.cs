@@ -20,6 +20,7 @@ namespace NoxRaven
 
         public DimFloat(float beginDiminish = 175)
         {
+            BeginDiminish = beginDiminish;
         }
 
         public static DimFloat operator +(DimFloat dim, float f)

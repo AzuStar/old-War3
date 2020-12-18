@@ -123,9 +123,9 @@ namespace NoxRaven
             return ef;
         }
 
-        public static effect DisplayEffectTarget(string effectPath, widget wi, string attach, float duration)
+        public static effect DisplayEffectTarget(string effectPath, string attachmentPoint, widget wi, float duration)
         {
-            effect ef = AddSpecialEffectTarget(effectPath, wi, attach);
+            effect ef = AddSpecialEffectTarget(effectPath, wi, attachmentPoint);
             DelayedInvoke(duration, () => { DestroyEffect(ef); });
             return ef;
         }
@@ -142,6 +142,11 @@ namespace NoxRaven
                 if (UnitItemInSlot(u, i) == it) return i;
             }
             return -1;
+        }
+
+        public static T RandomItemFromList<T>(List<T> list)
+        {
+            return list[GetRandomInt(0, list.Count - 1)];
         }
 
         /// <summary>

@@ -62,6 +62,7 @@ namespace NoxRaven
             }
             NoxUnit.InitUnitLogic();
             NoxItem.InitItemLogic();
+            NoxAbility.InitAbilityLogic();
             TimerStart(CreateTimer(), 1800, true, GCRoutine);
         }
         /// <summary>
@@ -76,7 +77,6 @@ namespace NoxRaven
                 return;
             }
             Utils.DisplayMessageToEveryone("|cffacf2f0Map loaded correctly!|r", 2f);// Do not remove this, I promise this will hurt
-            Utils.DisplayMessageToEveryone("|cffacf2f0NoxRaven Version: |r|cffff0000"+Version+"|r", 2f);//you can remove this :)
         }
         /// <summary>
         /// TODO: Dynamically adjust this

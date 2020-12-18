@@ -364,6 +364,16 @@ public partial class NoxUnit
             loc = null;
         }
     }
+    public virtual void AddBaseMovementSpeed(float howMuch)
+    {
+        BaseMovementSpeed += howMuch;
+        SetUnitMoveSpeed(_Self, BaseMovementSpeed * MovementSpeedPercent);
+    }
+    public virtual void AddPercentMovementSpeed(float howMuch)
+    {
+        MovementSpeedPercent += howMuch;
+        SetUnitMoveSpeed(_Self, BaseMovementSpeed * MovementSpeedPercent);
+    }
     public virtual void ReplenishMana(float howMuch, bool show = false)
     {
         RegenerationEvent ev = new RegenerationEvent()

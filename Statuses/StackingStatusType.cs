@@ -21,8 +21,8 @@ namespace NoxRaven.Statuses
         {
             if (!target.ContainsStatus(Id))
                 // create new status and add it to unit
-                return target.AddStatus(Id, new Status(Id, this, source, target, level, InitialStacks, StackLimit, duration, 0, false, true, false));
-            return target.GetStatus(Id).Reapply(duration, level, applyStacks);
+                return target.AddStatus(Id, new Status(Id, this, source, target, level, InitialStacks, StackLimit, duration, 0, true, false, false));
+            return target.GetStatus(Id).Reapply(0, 0, applyStacks);
         }
 
         private new Status ApplyStatus(NoxUnit source, NoxUnit target, int level, float duration)
