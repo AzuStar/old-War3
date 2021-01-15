@@ -14,7 +14,7 @@ namespace NoxRaven.Statuses
             Neutral, Positive, Negative, Reserved
         }
         public int Id { get; private set; }
-        public StatusType Type { get; private set; }
+        public TimedType Type { get; private set; }
         public NoxUnit Source { get; private set; }
         public NoxUnit Target { get; private set; }
         timer t;
@@ -70,7 +70,7 @@ namespace NoxRaven.Statuses
         /// <param name="duration"></param>
         /// <param name="stacking"></param>
         /// <param name="periodic"></param>
-        private Status(int id, StatusType type, NoxUnit source, NoxUnit target, int level, int initialStacks, int stacksLim, float duration, float periodicTimeout, bool stacking, bool periodic, bool permanent)
+        private Status(int id, TimedType type, NoxUnit source, NoxUnit target, int level, int initialStacks, int stacksLim, float duration, float periodicTimeout, bool stacking, bool periodic, bool permanent = false)
         {
             //if(type.DataType != null)
             //Data = Activator.CreateInstance(type.DataType);
@@ -129,14 +129,26 @@ namespace NoxRaven.Statuses
         /// <summary>
         /// Timed Status
         /// </summary>
-        internal Status(int id, StatusType type, NoxUnit source, NoxUnit target, int level, float duration)
-        : this(id, type, source, target, level, 0, 0, duration, 0, false, false, false) { }
+        internal Status(int id, TimedType type, NoxUnit source, NoxUnit target, int level, float duration)
+        : this(id, type, source, target, level, 0, 0, duration, 0, false, false) { }
+
+        /// <summary>
+        /// Timed Stacking Status
+        /// </summary>
+        internal Status(int id, TimedType type, NoxUnit source, NoxUnit target, int level, float duration, int initialStacks, int stacksLim)
+        : this(id, type, source, target, level, initialStacks, stacksLim, duration, 0, false, false) { }
 
         /// <summary>
         /// Periodic Timed Status
         /// </summary>
-        internal Status(int id, StatusType type, NoxUnit source, NoxUnit target, int level, float duration, float periodicTimeout)
-        : this(id, type, source, target, level, 0, 0, duration, periodicTimeout, false, true, false) { }
+        internal Status(int id, TimedType type, NoxUnit source, NoxUnit target, int level, float duration, float periodicTimeout)
+        : this(id, type, source, target, level, 0, 0, duration, periodicTimeout, false, true) { }
+
+        /// <summary>
+        /// Periodic Timed Stacking Status
+        /// </summary>
+        internal Status(int id, TimedType type, NoxUnit source, NoxUnit target, int level, float duration, float peridoticTimeout, int initialStacks, int stacksLim)
+        : this(id, type, source, target, level, initialStacks, stacksLim, duration, peridoticTimeout, false, true) { }
 
         internal Status() { }
 
@@ -169,7 +181,7 @@ namespace NoxRaven.Statuses
         {
             int prevLevel = Level;
             Duration += bonusDuration;
-            if (!Permanent && Periodic)
+            if (Periodic)
             {
                 if (TimeRemain < Duration)
                     TimeRemain = Duration;
@@ -177,13 +189,12 @@ namespace NoxRaven.Statuses
             }
             else
             {
-                if (!Permanent)
-                    if (TimerGetRemaining(t) < Duration)
-                    {
-                        PauseTimer(t);
-                        TimeElapsed += TimerGetElapsed(t);
-                        TimerStart(t, Duration, false, Remove);
-                    }
+                if (TimerGetRemaining(t) < Duration)
+                {
+                    PauseTimer(t);
+                    TimeElapsed += TimerGetElapsed(t);
+                    TimerStart(t, Duration, false, Remove);
+                }
                 if (Stacking) Reset(bonusStacks, Level + bonusLevel); // reset if stack
                 else if (Level + bonusLevel > Level) Reset(0, bonusLevel); // reset to new level
             }
@@ -195,12 +206,9 @@ namespace NoxRaven.Statuses
         /// </summary>
         public void Remove()
         {
-            if (!Permanent)
-            {
-                PauseTimer(t);
-                TimeElapsed += TimerGetElapsed(t);
-                DestroyTimer(t);
-            }
+            PauseTimer(t);
+            TimeElapsed += TimerGetElapsed(t);
+            DestroyTimer(t);
             if (Type.Reset != null)
                 Type.Reset.Invoke(this);
             if (Type.OnRemove != null)

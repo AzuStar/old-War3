@@ -4,10 +4,11 @@ using System.Text;
 
 using static War3Api.Common;
 using static War3Api.Blizzard;
+using static NoxRaven.Statuses.TimedType;
 
 namespace NoxRaven.Statuses
 {
-    public class StackingStatusType : TimedStatusType
+    public class StackingStatusType : TimedStackingType
     {
         public readonly int StackLimit;
         public readonly int InitialStacks;
@@ -17,18 +18,18 @@ namespace NoxRaven.Statuses
             InitialStacks = initialStacks;
         }
 
-        public Status ApplyStatus(NoxUnit source, NoxUnit target, int level, float duration, int applyStacks = 1)
-        {
-            if (!target.ContainsStatus(Id))
-                // create new status and add it to unit
-                return target.AddStatus(Id, new Status(Id, this, source, target, level, InitialStacks, StackLimit, duration, 0, true, false, false));
-            return target.GetStatus(Id).Reapply(0, 0, applyStacks);
-        }
+        //public Status ApplyStatus(NoxUnit source, NoxUnit target, int level, float duration, int applyStacks = 1)
+        //{
+        //    if (!target.ContainsStatus(Id))
+        //        // create new status and add it to unit
+        //        return target.AddStatus(Id, new Status(Id, this, source, target, level, InitialStacks, StackLimit, duration, 0, true, false, false));
+        //    return target.GetStatus(Id).Reapply(0, 0, applyStacks);
+        //}
 
-        private new Status ApplyStatus(NoxUnit source, NoxUnit target, int level, float duration)
-        {
-            return null;
-        }
+        //private new Status ApplyStatus(NoxUnit source, NoxUnit target, int level, float duration)
+        //{
+        //    return null;
+        //}
 
     }
 }
