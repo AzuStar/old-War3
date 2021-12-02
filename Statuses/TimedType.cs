@@ -7,12 +7,21 @@ namespace NoxRaven.Statuses
 {
     public class TimedType
     {
+        public static TimedType Pause = new TimedType((status) =>
+        {
+            PauseUnit(status.Target, true);
+        }, (status) =>
+        {
+            if (!status.Target.ContainsStatus(Stun.Id))
+                PauseUnit(status.Target, false);
+        }, null, null, null);
         public static TimedType Stun = new TimedType((status) =>
         {
             PauseUnit(status.Target, true);
         }, (status) =>
         {
-            PauseUnit(status.Target, false);
+            if (!status.Target.ContainsStatus(Pause.Id))
+                PauseUnit(status.Target, false);
         }, null, @"Abilities\Spells\Human\Thunderclap\ThunderclapTarget.mdl", @"overhead");
 
         public static TimedType Slow = new TimedType((status) =>
@@ -47,7 +56,7 @@ namespace NoxRaven.Statuses
         /// <param name="reset"></param>
         /// <param name="specialEffectPath"></param>
         /// <param name="specialEffectAttachmentPoint"></param>
-        internal TimedType(StatusFunction apply, StatusFunction reset, StatusFunction onRemove, String specialEffectPath, String specialEffectAttachmentPoint)
+        public TimedType(StatusFunction apply, StatusFunction reset, StatusFunction onRemove, String specialEffectPath, String specialEffectAttachmentPoint)
         {
             Id = ++Count;
             Apply = apply;
@@ -65,6 +74,12 @@ namespace NoxRaven.Statuses
                 // create new status and add it to unit
                 return target.AddStatus(Id, new Status(Id, this, source, target, level, duration));
             return target.GetStatus(Id).Reapply(bonusDuration, bonusLevel, 0);
+        }
+
+        public virtual void DispelStatus(NoxUnit unit)
+        {
+            if (unit.ContainsStatus(Id))
+                unit.GetStatus(Id).Remove();
         }
     }
 }

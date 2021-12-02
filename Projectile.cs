@@ -16,13 +16,14 @@ namespace NoxRaven
         public static readonly player OWNER_ID = Player(PLAYER_NEUTRAL_PASSIVE);
         //public static Dictionary<>
 
-        public unit Owner;
+        public NoxUnit Owner;
         //? nullables
-        public unit TargetUnit;
-        public location TargetLocation;
+        public NoxUnit TargetUnit;
+        public System.Drawing.PointF TargetLocation;
 
-        public Projectile()
+        public Projectile(NoxUnit owner, )
         {
+
         }
     }
 }

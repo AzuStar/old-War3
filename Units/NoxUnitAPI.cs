@@ -46,7 +46,7 @@ public partial class NoxUnit
     /// <param name="triggerCrit">Can it crit?</param>
     public void DealPhysicalDamage(NoxUnit target, float damage, bool triggerOnHit, bool triggerCrit, bool isSpell, bool isRanged)
     {
-        if (damage < 0) return;
+        if (damage <= 0) return;
         location loc = Location(GetUnitX(target) + GetRandomReal(0, 5), GetUnitY(target) + GetRandomReal(0, 5));
         float pars = damage;
         float critC = CritChance;
