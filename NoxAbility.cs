@@ -12,32 +12,50 @@ namespace NoxRaven
     {
         public static trigger tr;
 
-        public static Dictionary<int, NoxAbility> Indexer = new Dictionary<int, NoxAbility>();
+        protected static Dictionary<int, NoxAbility> Indexer = new Dictionary<int, NoxAbility>();
+        private static Dictionary<int, Type> CustomTypes = new Dictionary<int, Type>();
         public int AbilityID;
-        public Action Callback;
+        public ability AbilityStruct;
 
-        public static void InitAbilityLogic()
-        {
-            tr = CreateTrigger();
-            TriggerRegisterAnyUnitEventBJ(tr, EVENT_PLAYER_UNIT_SPELL_CAST);
-            TriggerAddAction(tr, () =>
-            {
-                if (Indexer.ContainsKey(GetSpellAbilityId()))
-                    Indexer[GetSpellAbilityId()].Callback();
-            });
-        }
-        private NoxAbility(int spellId, Action onSpellCast)
+        //public static void InitAbilityLogic()
+        //{
+        //    tr = CreateTrigger();
+        //    TriggerRegisterAnyUnitEventBJ(tr, EVENT_PLAYER_UNIT_SPELL_CAST);
+        //    TriggerAddAction(tr, () =>
+        //    {
+        //        if (Indexer.ContainsKey(GetSpellAbilityId()))
+        //            Indexer[GetSpellAbilityId()].Callback();
+        //    });
+        //}
+        protected NoxAbility(int spellId, ability abill)
         {
             AbilityID = spellId;
-            Callback = onSpellCast;
+            AbilityStruct = abill;
         }
-        public static void RegisterAbility(int spellId, Action onSpellCast)
+        /// <summary>
+        /// Put a custom type that will be attached to an ability when indexing.
+        /// Custom type has to extend this class and invoke base(spell) in the constructor.
+        /// </summary>
+        /// <param name="unitId"></param>
+        /// <param name="t">hit type</param>
+        public static void AddCustomType(int spellId, Type t)
         {
-            Indexer.Add(spellId, new NoxAbility(spellId, onSpellCast));
+            if (typeof(NoxAbility).IsAssignableFrom(t))
+            {
+                Utils.Error("You have tried to parse type that does not inherit this class!", typeof(NoxAbility));
+                return;
+            }
+            CustomTypes[spellId] = t;
         }
-        public static void RegisterAbility(string spellStringId, Action onSpellCast)
+        /// <summary>
+        /// Put a custom type that will be attached to a unit when indexing.
+        /// Custom type has to extend this class and invoke base(u) in the constructor.
+        /// </summary>
+        /// <param name="unitId"></param>
+        /// <param name="t"></param>
+        public static void AddCustomType(string spellString, Type t)
         {
-            RegisterAbility(FourCC(spellStringId), onSpellCast);
+            AddCustomType(FourCC(spellString), t);
         }
 
         //public void AddSpellToUnit(NoxUnit target)

@@ -1,3 +1,5 @@
+using NoxRaven.Units;
+
 namespace NoxRaven.Events.Metas
 {
     public class KillMeta : EventMeta

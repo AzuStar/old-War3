@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using static War3Api.Common;
 using static War3Api.Blizzard;
+using NoxRaven.Units;
 
 namespace NoxRaven.Statuses
 {

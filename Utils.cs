@@ -6,6 +6,7 @@ using static War3Api.Common;
 using static War3Api.Blizzard;
 using System.Numerics;
 using System.Linq;
+using NoxRaven.Units;
 
 namespace NoxRaven
 {

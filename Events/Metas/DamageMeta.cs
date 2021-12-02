@@ -1,3 +1,5 @@
+using NoxRaven.Units;
+
 namespace NoxRaven.Events.Metas
 {
     public class DamageMeta : EventMeta
@@ -9,6 +11,11 @@ namespace NoxRaven.Events.Metas
         public bool TriggerCrit;
         public bool IsSpell;
         public bool IsRanged;
+        /// <summary>
+        /// Exclusive flag for basic attack
+        /// </summary>
+        public bool IsBasicAttack; // reserved uncallable flag
+        public bool StopRecursion; // extra flag to prevent recursion calls
         public EventLayer Layer = EventLayer.Simple;
  
     }

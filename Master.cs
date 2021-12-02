@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Text;
 using static War3Api.Common;
 using static War3Api.Blizzard;
+using NoxRaven.Units;
+
 namespace NoxRaven
 {
     public static class Master
@@ -12,6 +14,10 @@ namespace NoxRaven
         public const int Version = 1;
         public static bool BadLoad = false;
         public static int ErrorCount = 0;
+
+        private static timer Tim = CreateTimer();
+        private static bool Sane = false;
+        public static bool NumbersOn = true;
         /// <summary>
         /// Run when all static data is initialized.<br />
         /// Types taht need to be initialized before running: UnitEntity Custom Classes, Players, Items
@@ -62,7 +68,12 @@ namespace NoxRaven
             }
             NoxUnit.InitUnitLogic();
             NoxItem.InitItemLogic();
-            NoxAbility.InitAbilityLogic();
+            TimerStart(Tim, 5, false, () =>
+            {
+                if (!Sane)
+                    Utils.DisplayMessageToEveryone("Failed sanity check (or it has not been called).", 999f);
+                DestroyTimer(Tim);
+            });
             TimerStart(CreateTimer(), 1800, true, GCRoutine);
         }
         /// <summary>
@@ -73,10 +84,11 @@ namespace NoxRaven
             if (BadLoad)
             {
                 Utils.DisplayMessageToEveryone("Something went wrong OwO\n" +
-                    "Errors encountered: "+I2S(ErrorCount), 999f);
+                    "Errors encountered: " + I2S(ErrorCount), 999f);
                 return;
             }
             Utils.DisplayMessageToEveryone("|cffacf2f0Map loaded correctly!|r", 2f);// Do not remove this, I promise this will hurt
+            Sane = true;
         }
         /// <summary>
         /// TODO: Dynamically adjust this
