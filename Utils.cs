@@ -1,4 +1,4 @@
-﻿using System;
+﻿ using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -21,6 +21,11 @@ namespace NoxRaven
         {
             WalkableItem = CreateItem(FourCC("afac"), 0, 0);
             SetItemVisible(WalkableItem, false);
+        }
+
+        public static void Debug(string str)
+        {
+            DisplayMessageToEveryone(str, 1000);
         }
 
         /// <summary>

@@ -13,6 +13,12 @@ namespace NoxRaven
         public static trigger tr;
 
         protected static Dictionary<int, NoxAbility> Indexer = new Dictionary<int, NoxAbility>();
+
+        public static void RegisterAbility(string v, Action p)
+        {
+            throw new NotImplementedException();
+        }
+
         private static Dictionary<int, Type> CustomTypes = new Dictionary<int, Type>();
         public int AbilityID;
         public ability AbilityStruct;

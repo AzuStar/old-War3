@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-
+using NoxRaven.Units;
 using static War3Api.Common;
 
 namespace NoxRaven
@@ -21,9 +21,9 @@ namespace NoxRaven
         public NoxUnit TargetUnit;
         public System.Drawing.PointF TargetLocation;
 
-        public Projectile(NoxUnit owner, )
-        {
+        // public Projectile(NoxUnit owner, )
+        // {
 
-        }
+        // }
     }
 }

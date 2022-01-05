@@ -22,6 +22,7 @@ namespace NoxRaven
         private ItemAction PickUp;
         private ItemAction Drop;
         private ItemAction Use;
+        public readonly bool ShopPurchasable;
 
         internal static void InitItemLogic()
         {
@@ -56,11 +57,12 @@ namespace NoxRaven
                     check.Use.Invoke(GetManipulatingUnit());
             });
         }
-        private NoxItem(ItemAction pickUp, ItemAction drop, ItemAction use)
+        private NoxItem(ItemAction pickUp, ItemAction drop, ItemAction use, bool purchasable)
         {
             PickUp = pickUp;
             Drop = drop;
             Use = use;
+            ShopPurchasable = purchasable;
         }
         /// <summary>
         /// FourcCC 4 characters
@@ -68,9 +70,9 @@ namespace NoxRaven
         /// <param name="itemTypeId"></param>
         /// <param name="pickUp"></param>
         /// <param name="drop"></param>
-        public static void RegisterItem(int itemTypeId, ItemAction pickUp, ItemAction drop, ItemAction use)
+        public static void RegisterItem(int itemTypeId, ItemAction pickUp, ItemAction drop, ItemAction use, bool purchasable)
         {
-            Indexer.Add(itemTypeId, new NoxItem(pickUp, drop, use));
+            Indexer.Add(itemTypeId, new NoxItem(pickUp, drop, use, purchasable));
         }
     }
 }
