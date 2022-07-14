@@ -25,17 +25,17 @@ namespace NoxRaven.Statuses
                 PauseUnit(status.Target, false);
         }, null, @"Abilities\Spells\Human\Thunderclap\ThunderclapTarget.mdl", @"overhead");
 
-        public static TimedType Slow = new TimedType((status) =>
-        {
-            // -1% ms per level
-            status.Target.AddPercentMovementSpeed(-(float)status.Level / 100);
-            //SetUnitVertexColor(status.Target, 55 + R2I(RMaxBJ(100 - status.Level * 2, 0)), 55 + R2I(RMaxBJ(100 - status.Level * 2, 0)), 255, 255);
-        }, (status) =>
-        {
-            // +1% ms per level
-            status.Target.AddPercentMovementSpeed((float)status.Level / 100);
-            //SetUnitVertexColor(status.Target, 255, 255, 255, 255);
-        }, null, null, null);
+        // public static TimedType Slow = new TimedType((status) =>
+        // {
+        //     // -1% ms per level
+        //     status.Target.AddPercentMovementSpeed(-(float)status.Level / 100);
+        //     //SetUnitVertexColor(status.Target, 55 + R2I(RMaxBJ(100 - status.Level * 2, 0)), 55 + R2I(RMaxBJ(100 - status.Level * 2, 0)), 255, 255);
+        // }, (status) =>
+        // {
+        //     // +1% ms per level
+        //     status.Target.AddPercentMovementSpeed((float)status.Level / 100);
+        //     //SetUnitVertexColor(status.Target, 255, 255, 255, 255);
+        // }, null, null, null);
 
         public delegate void StatusFunction(Status status);
         public readonly int Id;

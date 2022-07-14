@@ -4,6 +4,8 @@ using System.Text;
 using static War3Api.Common;
 using static War3Api.Blizzard;
 using NoxRaven.Units;
+using NoxRaven.UnitAgents;
+using NoxRaven.Events;
 
 namespace NoxRaven
 {
@@ -14,15 +16,17 @@ namespace NoxRaven
     public class NoxItem
     {
         public delegate void ItemAction(NoxUnit manipulator);
-        public static Dictionary<int, NoxItem> Indexer = new Dictionary<int, NoxItem>();
+        public static Dictionary<int, NoxItem> s_index = new Dictionary<int, NoxItem>();
         /// <summary>
         /// All charged items will be stacking.
         /// </summary>
-        public static bool ChargedStacking = true;
-        private ItemAction PickUp;
-        private ItemAction Drop;
-        private ItemAction Use;
-        public readonly bool ShopPurchasable;
+        public static bool s_chargedStack = true;
+        private ItemAction _pickUp = null;
+        private ItemAction _drop = null;
+        private ItemAction _use = null;
+
+        private Modifier mod = null;
+        private List<IPriorityBehaviour> _behaviours = null;
 
         internal static void InitItemLogic()
         {
@@ -38,41 +42,30 @@ namespace NoxRaven
             TriggerAddAction(itemPick, () =>
             {
                 int type = GetItemTypeId(GetManipulatedItem());
-                NoxItem check = Indexer[type];
+                NoxItem check = s_index[type];
                 if (check != null)
-                    check.PickUp.Invoke(GetManipulatingUnit());
+                    check._pickUp.Invoke(GetManipulatingUnit());
             });
             TriggerAddAction(itemDrop, () =>
             {
                 int type = GetItemTypeId(GetManipulatedItem());
-                NoxItem check = Indexer[type];
+                NoxItem check = s_index[type];
                 if (check != null)
-                    check.Drop.Invoke(GetManipulatingUnit());
+                    check._drop.Invoke(GetManipulatingUnit());
             });
             TriggerAddAction(itemUse, () =>
             {
                 int type = GetItemTypeId(GetManipulatedItem());
-                NoxItem check = Indexer[type];
+                NoxItem check = s_index[type];
                 if (check != null)
-                    check.Use.Invoke(GetManipulatingUnit());
+                    check._use.Invoke(GetManipulatingUnit());
             });
         }
-        private NoxItem(ItemAction pickUp, ItemAction drop, ItemAction use, bool purchasable)
+        private NoxItem(ItemAction pickUp, ItemAction drop, ItemAction use)
         {
-            PickUp = pickUp;
-            Drop = drop;
-            Use = use;
-            ShopPurchasable = purchasable;
-        }
-        /// <summary>
-        /// FourcCC 4 characters
-        /// </summary>
-        /// <param name="itemTypeId"></param>
-        /// <param name="pickUp"></param>
-        /// <param name="drop"></param>
-        public static void RegisterItem(int itemTypeId, ItemAction pickUp, ItemAction drop, ItemAction use, bool purchasable)
-        {
-            Indexer.Add(itemTypeId, new NoxItem(pickUp, drop, use, purchasable));
+            _pickUp = pickUp;
+            _drop = drop;
+            _use = use;
         }
     }
 }

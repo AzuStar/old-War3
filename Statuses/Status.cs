@@ -101,7 +101,7 @@ namespace NoxRaven.Statuses
             if (Type.Apply != null)
                 Type.Apply.Invoke(this);
             if (Type.Effectpath != null && Type.Attachment != null)
-                SpecialEffect = AddSpecialEffectTarget(Type.Effectpath, target._Self, Type.Attachment);
+                SpecialEffect = AddSpecialEffectTarget(Type.Effectpath, target._self_, Type.Attachment);
         }
 
         ///// <summary>

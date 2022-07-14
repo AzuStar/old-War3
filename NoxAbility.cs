@@ -4,7 +4,6 @@ using System.Text;
 using NoxRaven;
 using static War3Api.Common;
 using static War3Api.Blizzard;
-using NoxRaven.Events.EventTypes;
 
 namespace NoxRaven
 {
@@ -12,15 +11,14 @@ namespace NoxRaven
     {
         public static trigger tr;
 
-        protected static Dictionary<int, NoxAbility> Indexer = new Dictionary<int, NoxAbility>();
+        protected static Dictionary<int, NoxAbility> s_index = new Dictionary<int, NoxAbility>();
 
         public static void RegisterAbility(string v, Action p)
         {
             throw new NotImplementedException();
         }
 
-        private static Dictionary<int, Type> CustomTypes = new Dictionary<int, Type>();
-        public int AbilityID;
+        public int id;
         public ability AbilityStruct;
 
         //public static void InitAbilityLogic()
@@ -35,33 +33,8 @@ namespace NoxRaven
         //}
         protected NoxAbility(int spellId, ability abill)
         {
-            AbilityID = spellId;
+            id = spellId;
             AbilityStruct = abill;
-        }
-        /// <summary>
-        /// Put a custom type that will be attached to an ability when indexing.
-        /// Custom type has to extend this class and invoke base(spell) in the constructor.
-        /// </summary>
-        /// <param name="unitId"></param>
-        /// <param name="t">hit type</param>
-        public static void AddCustomType(int spellId, Type t)
-        {
-            if (typeof(NoxAbility).IsAssignableFrom(t))
-            {
-                Utils.Error("You have tried to parse type that does not inherit this class!", typeof(NoxAbility));
-                return;
-            }
-            CustomTypes[spellId] = t;
-        }
-        /// <summary>
-        /// Put a custom type that will be attached to a unit when indexing.
-        /// Custom type has to extend this class and invoke base(u) in the constructor.
-        /// </summary>
-        /// <param name="unitId"></param>
-        /// <param name="t"></param>
-        public static void AddCustomType(string spellString, Type t)
-        {
-            AddCustomType(FourCC(spellString), t);
         }
 
         //public void AddSpellToUnit(NoxUnit target)

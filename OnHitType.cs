@@ -10,47 +10,47 @@ namespace NoxRaven
     {
         //public static Dictionary<int, OnHitType> Indexer = new Dictionary<int, OnHitType>();
         // index it yourself, sorry :(
-        public static int Count = 0;
+        public static int s_count = 0;
 
-        public int Id;
+        public int id;
         public delegate void OnHitCallback(NoxUnit source, NoxUnit target, float damage, float processedDamage, OnHit data);
-        public readonly bool Epic; // only single instance of onhit per unit allowed
-        public readonly OnHitCallback Callback;
-        public readonly float Chance = 0;
+        public readonly bool epic; // only single instance of onhit per unit allowed
+        public readonly OnHitCallback callback;
+        public readonly float chance = 0;
 
         public OnHitType(bool epic, float chance, OnHitCallback callback)
         {
-            Id = Count++;
-            Chance = chance;
-            Callback = callback;
-            Epic = epic;
+            id = s_count++;
+            this.chance = chance;
+            this.callback = callback;
+            this.epic = epic;
         }
 
         public void RegisterOnHit(NoxUnit whatUnit)
         {
-            if (whatUnit.ContainsOnHit(Id))
-                whatUnit.GetOnHit(Id).Count++;
+            if (whatUnit.ContainsOnHit(id))
+                whatUnit.GetOnHit(id).count++;
             else
-                whatUnit.AddOnHit(Id, new OnHit(this));
+                whatUnit.AddOnHit(id, new OnHit(this));
         }
 
         public bool ContainsOnHit(NoxUnit whatUnit)
         {
-            return whatUnit.ContainsOnHit(Id);
+            return whatUnit.ContainsOnHit(id);
         }
 
         public OnHit GetOnHit(NoxUnit whatUnit)
         {
-            return whatUnit.GetOnHit(Id);
+            return whatUnit.GetOnHit(id);
         }
 
         public void UnregisterOnHit(NoxUnit whatUnit)
         {
-            if (whatUnit.ContainsOnHit(Id))
+            if (whatUnit.ContainsOnHit(id))
             {
-                OnHit hit = whatUnit.GetOnHit(Id);
-                hit.Count--;
-                if (hit.Count == 0) whatUnit.RemoveOnHit(Id);
+                OnHit hit = whatUnit.GetOnHit(id);
+                hit.count--;
+                if (hit.count == 0) whatUnit.RemoveOnHit(id);
             }
         }
     }

@@ -8,13 +8,13 @@ namespace NoxRaven
 {
     public sealed class OnHit
     {
-        public dynamic Data;
-        private OnHitType Type;
-        public int Count = 0;
+        public dynamic data;
+        private OnHitType type;
+        public int count = 0;
 
         internal OnHit(OnHitType type)
         {
-            Type = type;
+            this.type = type;
         }
         /// <summary>
         /// Reverse the source and target to make it AmHit.
@@ -23,11 +23,11 @@ namespace NoxRaven
         /// <param name="target"></param>
         public void ApplyOnHit(NoxUnit source, NoxUnit target, float damage, float processedDamage)
         {
-            if (GetRandomReal(0, 1) < source.TriggerChance * Type.Chance)
-                if (!Type.Epic)
-                    for (int i = 0; i < Count; i++)
-                        Type.Callback.Invoke(source, target, damage, processedDamage, this);
-                else Type.Callback.Invoke(source, target, damage, processedDamage, this);
+            if (GetRandomReal(0, 1) < source.lookuptriggerChance * type.chance)
+                if (!type.epic)
+                    for (int i = 0; i < count; i++)
+                        type.callback.Invoke(source, target, damage, processedDamage, this);
+                else type.callback.Invoke(source, target, damage, processedDamage, this);
         }
     }
 }

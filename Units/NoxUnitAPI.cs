@@ -1,15 +1,58 @@
 using static War3Api.Common;
 using static War3Api.Blizzard;
 using NoxRaven;
-using NoxRaven.Events.EventTypes;
-using NoxRaven.Events.Metas;
+using NoxRaven.Events;
 using System.Collections.Generic;
 using System;
 using NoxRaven.Statuses;
+using NoxRaven.UnitAgents;
+
 namespace NoxRaven.Units
 {
     public partial class NoxUnit
     {
+        public float lookupbaseDMG => _stats.baseDMG;
+        public float lookupbaseDMGPercent => _stats.baseDMGPercent;
+        public float lookupbonusDMG => _stats.bonusDMG;
+        public float lookupbaseDMGPercentBonus => _stats.baseDMGPercentBonus;
+        public float lookuparmorPenetration => _stats.armorPenetration;
+        public float lookupattackSpeed => _stats.attackSpeed;
+        public float lookupbaseAttackCooldown => _stats.baseAttackCooldown;
+        public float lookupbaseAP => _stats.baseAP;
+        public float lookupbaseAPPercent => _stats.baseAPPercent;
+        public float lookupbonusAP => _stats.bonusAP;
+        public float lookupbaseAPPercentBonus => _stats.baseAPPercentBonus;
+        public float lookupbaseHP => _stats.baseHP;
+        public float lookupbaseHPPercent => _stats.baseHPPercent;
+        public float lookupbonusHP => _stats.bonusHP;
+        public float lookupbaseHPPercentBonus => _stats.baseHPPercentBonus;
+        public float lookupregenHP => _stats.regenHP;
+        public float lookupregenHPPercent => _stats.regenHPPercent;
+        public float lookupbaseMP => _stats.baseMP;
+        public float lookupbaseMPPercent => _stats.baseMPPercent;
+        public float lookupbonusMP => _stats.bonusMP;
+        public float lookupbaseMPPercentBonus => _stats.baseMPPercentBonus;
+        public float lookupregenMP => _stats.regenMP;
+        public float lookupregenMPPercent => _stats.regenMPPercent;
+        public float lookupbaseARM => _stats.baseARM;
+        public float lookupbaseARMPercent => _stats.baseARMPercent;
+        public float lookupbonusARM => _stats.bonusARM;
+        public float lookupbaseARMPercentBonus => _stats.baseARMPercentBonus;
+        public float lookupbaseMR => _stats.baseMR;
+        public float lookupbaseMRPercent => _stats.baseMRPercent;
+        public float lookupbonusMR => _stats.bonusMR;
+        public float lookupbaseMRPercentBonus => _stats.baseMRPercentBonus;
+        public float lookupcritChace => _stats.critChace;
+        public float lookupcritDamage => _stats.critDamage;
+        public float lookuplifeSteal => _stats.lifeSteal;
+        public float lookupspellVamp => _stats.spellVamp;
+        public float lookupincomingHealing => _stats.incomingHealing;
+        public float lookupincomingMana => _stats.incomingMana;
+        public float lookupdamageReduction => _stats.damageReduction;
+        public float lookuptriggerChance => _stats.triggerChance;
+        public float lookupbaseMSPercent => _stats.baseMSPercent;
+        public float lookupbaseMS => _stats.baseMS;
+
         /// <summary>
         /// Call this to remove unit instantly.
         /// Not calling will leak.
@@ -19,25 +62,25 @@ namespace NoxRaven.Units
             Remove();
         }
 
-        public void Kill(NoxUnit whoToKill)
-        {
-            Kill(whoToKill);
-            AwaitRemoval(this, whoToKill);
-        }
+        // public void Kill(NoxUnit whoToKill)
+        // {
+        //     Kill(whoToKill);
+        //     AwaitRemoval(this, whoToKill);
+        // }
 
-        public int GetId() => War3Api.Common.GetHandleId(_Self);
+        public int GetId() => War3Api.Common.GetHandleId(_self_);
 
         /// <summary>
         /// Ensure all damage goes through this.
         /// </summary>
         /// <param name="target"></param>
         /// <param name="damage"></param>
-        public void Damage(NoxUnit target, float damage)
+        public void RawDamage(NoxUnit target, float damage)
         {
             DamageEngineIgnore = true;
             UnitDamageTarget(this, target, damage, true, false, ATTACK_TYPE_CHAOS, DAMAGE_TYPE_UNIVERSAL, null);
             DamageEngineIgnore = false;
-            if (GetWidgetLife(target) <= 0.305) AwaitRemoval(target, this);// weird bug BECAUSE WC3REFUNDED SHIT HI-HI
+            if (GetWidgetLife(target) <= 0.305) AwaitRemoval(target, this);// weird bug BECAUSE WC3REFUNDED SHIT HEHE
         }
 
         /// <summary>
@@ -47,214 +90,27 @@ namespace NoxRaven.Units
         /// <param name="damage"></param>
         /// <param name="triggerOnHit">Does it apply on-hit effects?</param>
         /// <param name="triggerCrit">Can it crit?</param>
-        public void DealPhysicalDamage(NoxUnit target, float damage, bool triggerOnHit, bool triggerCrit, bool isSpell, bool isRanged, bool stopRecursion = false)
+        public void DealDamage(NoxUnit target, float damage, bool triggerOnHit, bool triggerCrit, DamageSource dmgSource, DamageType dmgType, bool stopRecursion = false)
         {
-            DealPhysicalDamage(target, damage, triggerOnHit, triggerCrit, isSpell, isRanged, false, stopRecursion);
+            _DealDamage(target, damage, triggerOnHit, triggerCrit, dmgSource, dmgType, stopRecursion);
         }
-        /// <summary>
-        /// Damage parsers that takes care of all calculations. Damage parser calculates outgoing damage from the unit.
-        /// </summary>
-        /// <param name="target">Whos is the target</param>
-        /// <param name="damage"></param>
-        /// <param name="triggerOnHit">Does it apply on-hit effects?</param>
-        /// <param name="triggerCrit">Can it crit?</param>
-        private void DealMagicalDamage(NoxUnit target, float damage, bool triggerOnHit, bool triggerCrit, bool isSpell, bool isRanged)
+
+        public void AddModifier(Modifier mod)
         {
-            location loc = Location(GetUnitX(target) + GetRandomReal(0, 5), GetUnitY(target) + GetRandomReal(0, 5));
-            float pars = damage;
-            float critC = CritChance;
-            float critD = CritDamage;
-            // maths
-            pars *= (1 - Math.Min(target.DamageReduction, 1));
-            // float armor = BlzGetUnitArmor(target);
-            // if (armor < 0)
-            //     pars *= (1.71f - Pow(1f - ARMOR_CONST, -armor)); // war3 real armor reduction is 1.71-pow(xxx) - why? - no idea
-            // else pars *= 1 / (1 + armor * ARMOR_CONST * (1 - ArmorPenetration)); // Inverse armor reduction function, got by solving: Armor * CONST / (1 + ARMOR * CONST)
-
-            //Event Pars
-            DamageEvent parsThroughUnit = new DamageEvent()
+            if (mod != null)
             {
-                EventInfo = new DamageMeta()
-                {
-                    Source = this,
-                    Target = target,
-                    Damage = damage,
-                    TriggerOnHit = triggerOnHit,
-                    TriggerCrit = triggerCrit,
-                    IsSpell = isSpell,
-                    IsRanged = isRanged
-                },
-
-                ProcessedDamage = pars,
-                CritChance = critC,
-                CritDamage = critD
-            };
-            target.OnRecievePhysicalDamage.Invoke(parsThroughUnit);
-            pars = parsThroughUnit.ProcessedDamage;
-            critC = parsThroughUnit.CritChance;
-            critD = parsThroughUnit.CritDamage;
-            // The logic
-
-            if (triggerCrit && GetRandomReal(0, 1) < critC)
-            {
-                pars *= critD;
-
-                Utils.TextDirectionRandom(Utils.NotateNumber(R2I(pars)), loc, 8.5f, 128, 128, 255, 0, 1.3f, GetOwningPlayer(this));
-                Utils.TextDirectionRandom(Utils.NotateNumber(R2I(pars)), loc, 8.5f, 128, 128, 255, 0, 1.3f, GetOwningPlayer(target));
-            }
-            else
-            {
-                Utils.TextDirectionRandom(Utils.NotateNumber(R2I(pars)), loc, 6.9f, 128, 128, 255, 0, 0.8f, GetOwningPlayer(this));
-                Utils.TextDirectionRandom(Utils.NotateNumber(R2I(pars)), loc, 6.9f, 128, 128, 255, 0, 0.8f, GetOwningPlayer(target));
+                _stats = mod.ApplyModifier(_stats);
+                _RecalculateStats();
             }
 
-            Damage(target, pars);
-
-            if (isSpell) Heal(pars * SpellVamp);
-            else Heal(pars * Lifesteal);
-            // Now that's done
-            // Onhits
-            if (triggerOnHit)
+        }
+        public void RemoveModifier(Modifier mod)
+        {
+            if (mod != null)
             {
-                List<OnHit> onhits = new List<OnHit>(OnHits.Values);
-                foreach (OnHit onhit in onhits)
-                    onhit.ApplyOnHit(this, target, damage, pars);
-                //ApplyAmHits(source);
+                _stats = mod.UnapplyModifier(_stats);
+                _RecalculateStats();
             }
-
-            // cleanup
-            RemoveLocation(loc);
-            loc = null;
-        }
-
-        #region Mana
-        public float GetBaseMana() => BaseMana;
-        public void SetBaseMana(float val)
-        {
-            BaseMana = val;
-            CalculateTotalMana();
-        }
-        public void AddBaseMana(float val)
-        {
-            BaseMana += val;
-            CalculateTotalMana();
-        }
-        public float GetBonusManaPercent() => TotalManaPercent;
-        public void SetBonusManaPercent(float percent)
-        {
-            TotalHPPercent = percent;
-            CalculateTotalMana();
-        }
-        #endregion
-        #region Health
-        public float GetBaseHP() => BaseHP;
-        public void SetBaseHP(float val)
-        {
-            BaseHP = val;
-            CalculateTotalHP();
-        }
-        public void AddBaseHP(float val)
-        {
-            BaseHP += val;
-            CalculateTotalHP();
-        }
-        public float GetBonusHPPercent() => TotalHPPercent;
-        public void SetBonusHPPercent(float percent)
-        {
-            TotalHPPercent = percent;
-            CalculateTotalHP();
-        }
-        #endregion
-
-        public float GetAttackReload() => BlzGetUnitAttackCooldown(_Self, 0);
-        public float GetAttackCooldown() => BaseAttackCooldown;
-        /// <summary>
-        /// Multiply base attack cooldown <br />
-        /// 0.2 -> *1.2 <br />
-        /// -0.2 -> /1.2
-        /// </summary>
-        /// <param name="val"></param>
-        public void MultAttackCooldown(float val)
-        {
-
-            if (val < 0)
-            {
-                BaseAttackCooldown /= (1 - val);
-            }
-            else
-            {
-                BaseAttackCooldown *= (1 + val);
-            }
-            BlzSetUnitAttackCooldown(_Self, BaseAttackCooldown / AttackSpeed, 0);
-        }
-        public float GetAttackSpeed() => AttackSpeed;
-        /// <summary>
-        /// 5% = 0.05f
-        /// </summary>
-        /// <param name="attackSpeed"></param>
-        public void AddAttackSpeed(float attackSpeed)
-        {
-            AttackSpeed += attackSpeed;
-            BlzSetUnitAttackCooldown(_Self, BaseAttackCooldown / AttackSpeed, 0);
-        }
-
-        public int GetBaseDamage() => BaseDamage;
-        public int GetBonusDamage() => BonusDamage;
-        public void AddBaseDamageFlat(int val)
-        {
-            BaseDamage += val;
-            BlzSetUnitBaseDamage(_Self, R2I(BaseDamage * BaseDamagePercent + Utils.ROUND_DOWN_CONST_OVERHEAD), 0);
-            SetGreenDamage(R2I(BonusDamage + BlzGetUnitBaseDamage(_Self, 0) * BonusDamagePercent + Utils.ROUND_DOWN_CONST_OVERHEAD));
-        }
-        public void AddBaseDamagePercent(float val)
-        {
-            BaseDamagePercent += val;
-            BlzSetUnitBaseDamage(_Self, R2I(BaseDamage * BaseDamagePercent + Utils.ROUND_DOWN_CONST_OVERHEAD), 0);
-            SetGreenDamage(R2I(BonusDamage + BlzGetUnitBaseDamage(_Self, 0) * BonusDamagePercent + Utils.ROUND_DOWN_CONST_OVERHEAD));
-        }
-
-        public float GetBonusDamageMultiplier() => BonusDamagePercent;
-        public float GetBaseDamageMultiplier() => BaseDamagePercent;
-        public void AddBonusDamagePercent(float val)
-        {
-            BonusDamagePercent += val;
-            SetGreenDamage(R2I(BonusDamage + BlzGetUnitBaseDamage(_Self, 0) * BonusDamagePercent + Utils.ROUND_DOWN_CONST_OVERHEAD));
-        }
-        public void AddBonusDamageFlat(int val)
-        {
-            BonusDamage += val;
-            SetGreenDamage(R2I(BonusDamage + BlzGetUnitBaseDamage(_Self, 0) * BonusDamagePercent + Utils.ROUND_DOWN_CONST_OVERHEAD));
-        }
-        /// <summary>
-        /// Get the +xxx on unit.
-        /// </summary>
-        /// <returns></returns>
-        public int GetGreenDamage() => GreenDamage;
-        public float GetGreyArmor() => GreyArmor;
-        public void AddGreyArmor(float val)
-        {
-            FloatEvent parsEvent = new FloatEvent()
-            {
-                Value = val
-            };
-            OnAddGreyArmor(parsEvent);
-            GreyArmor += parsEvent.Value;
-            BlzSetUnitArmor(_Self, val + GreenArmor);
-        }
-        /// <summary>
-        /// Get units's -xxx armor.
-        /// </summary>
-        /// <returns></returns>
-        public float GetGreenArmor() => GreenArmor;
-        public void AddGreenArmor(float val)
-        {
-            FloatEvent parseEvent = new FloatEvent()
-            {
-                Value = val
-            };
-            OnAddGreenArmor(parseEvent);
-            GreenArmor += parseEvent.Value;
-            SetGreenArmor(val);
         }
 
         public void RemoveStatus(int id)
@@ -269,32 +125,27 @@ namespace NoxRaven.Units
         /// Heal unit by % missing hp. Unit with 50% HP and 10% Missing Healing will receive effective 5% heal.
         /// </summary>
         /// <param name="percentHealed"></param>
-        public void HealPercentMissing(float percentHealed, bool show = false)
+        public void HealHPPercentMissing(float percentHealed, bool show = false)
         {
-            Heal(percentHealed * (BlzGetUnitMaxHP(this) - GetWidgetLife(this)), show);
+            HealHP(percentHealed * (BlzGetUnitMaxHP(this) - GetWidgetLife(this)), show);
         }
         /// <summary>
         /// Simple function that heals a unit by percentHealed (%) of Max HP.<para />
         /// Range of percentHealed: 0.00 - 1.00
         /// </summary>
         /// <param name="percentHealed"></param>
-        public void HealPercentMax(float percentHealed, bool show = false)
+        public void HealHPPercentMax(float percentHealed, bool show = false)
         {
-            Heal(percentHealed * BlzGetUnitMaxHP(this), show);
+            HealHP(percentHealed * BlzGetUnitMaxHP(this), show);
         }
         /// <summary>
         /// Simple function that heals a unit by howMuch amount (flat).
         /// </summary>
         /// <param name="howMuch"></param>
-        public virtual void Heal(float howMuch, bool show = false)
+        public virtual void HealHP(float howMuch, bool show = false)
         {
-            float pars = howMuch * HealingFromAllSources;
-            RegenerationEvent ev = new RegenerationEvent()
-            {
-                PredictedRegeneration = pars
-            };
-            OnHeal(ev);
-            pars = ev.PredictedRegeneration;
+            float pars = howMuch * _stats.incomingHealing;
+            // TODO onHealHP event
             SetWidgetLife(this, GetWidgetLife(this) + pars);
             if (show)
             {
@@ -304,31 +155,54 @@ namespace NoxRaven.Units
                 loc = null;
             }
         }
-        public virtual void AddBaseMovementSpeed(float howMuch)
+        public virtual void HealMP(float howMuch, bool show = false)
         {
-            BaseMovementSpeed += howMuch;
-            SetUnitMoveSpeed(_Self, BaseMovementSpeed * MovementSpeedPercent);
-        }
-        public virtual void AddPercentMovementSpeed(float howMuch)
-        {
-            MovementSpeedPercent += howMuch;
-            SetUnitMoveSpeed(_Self, BaseMovementSpeed * MovementSpeedPercent);
-        }
-        public virtual void ReplenishMana(float howMuch, bool show = false)
-        {
-            RegenerationEvent ev = new RegenerationEvent()
-            {
-                PredictedRegeneration = howMuch
-            };
-            OnReplenish(ev);
-            howMuch = ev.PredictedRegeneration;
-            SetUnitManaBJ(this, GetUnitState(this, UNIT_STATE_MANA) + howMuch * ManaFromAllSources);
+            // TODO onHealMana event
+            SetUnitManaBJ(this, GetUnitState(this, UNIT_STATE_MANA) + howMuch * _stats.incomingMana);
             if (show)
             {
                 location loc = Location(GetUnitX(this) + GetRandomReal(0, 10), GetUnitY(this) + GetRandomReal(0, 5));
                 Utils.TextDirectionRandom("+" + Utils.NotateNumber(R2I(howMuch)), loc, 5.7f, 128, 128, 255, 0, 0.7f, GetOwningPlayer(this));
                 RemoveLocation(loc);
                 loc = null;
+            }
+        }
+
+        /// <summary>
+        /// Subscribes to a certain event type
+        /// </summary>
+        /// <param name="behaviour"></param>
+        /// <typeparam name="T"></typeparam>
+        public void SubscribeToEvent<T>(Behaviour<T> behaviour) where T : Events.EventArgs
+        {
+            if (_events.ContainsKey(typeof(T).FullName))
+            {
+                _events[typeof(T).FullName].Add(behaviour);
+            }
+        }
+        /// <summary>
+        /// Unscubscribes from a certain event type
+        /// </summary>
+        /// <param name="behaviour"></param>
+        /// <typeparam name="T"></typeparam>
+        public void UnsubscribeFromEvent<T>(Behaviour<T> behaviour) where T : Events.EventArgs
+        {
+            if (_events.ContainsKey(typeof(T).FullName))
+            {
+                _events[typeof(T).FullName].Remove(behaviour);
+            }
+        }
+        /// <summary>
+        /// Trigger a certain event type
+        /// </summary>
+        /// <param name="eventMeta"></param>
+        /// <typeparam name="T"></typeparam>
+        public void TriggerEvent<T>(T eventMeta) where T : Events.EventArgs
+        {
+            if (_events.ContainsKey(typeof(T).FullName))
+            {
+                _events[typeof(T).FullName].InvokeBehaviours(eventMeta);
+                _globalEvents[typeof(T).FullName].InvokeBehaviours(eventMeta);
             }
         }
     }

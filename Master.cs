@@ -11,13 +11,13 @@ namespace NoxRaven
     {
         public const float FPS = 64;
         public const float FPS_TIME = 1 / FPS;
-        public const int Version = 1;
-        public static bool BadLoad = false;
-        public static int ErrorCount = 0;
+        public const int s_version = 1;
+        public static bool s_badLoad = false;
+        public static int s_errCount = 0;
 
-        private static timer Tim = CreateTimer();
-        private static bool Sane = false;
-        public static bool NumbersOn = true;
+        private static timer s_sanityTimer = CreateTimer();
+        private static bool s_isSane = false;
+        public static bool s_numbersOn = true;
         /// <summary>
         /// Run when all static data is initialized.<br />
         /// Types taht need to be initialized before running: UnitEntity Custom Classes, Players, Items
@@ -46,33 +46,33 @@ namespace NoxRaven
                 abilid++;
             }
             abilid = FourCC("ST00");
-            for (int i = 0; i < NoxHero.Abilities_Strength.Length; i++)
+            for (int i = 0; i < NoxHero.ABIL_STR.Length; i++)
             {
-                NoxHero.Abilities_Strength[i] = abilid;
+                NoxHero.ABIL_STR[i] = abilid;
                 if ((i + 1) % 10 == 0) abilid += 246;
                 abilid++;
             }
             abilid = FourCC("AG00");
-            for (int i = 0; i < NoxHero.Abilities_Agility.Length; i++)
+            for (int i = 0; i < NoxHero.ABIL_AGI.Length; i++)
             {
-                NoxHero.Abilities_Agility[i] = abilid;
+                NoxHero.ABIL_AGI[i] = abilid;
                 if ((i + 1) % 10 == 0) abilid += 246;
                 abilid++;
             }
             abilid = FourCC("IN00");
-            for (int i = 0; i < NoxHero.Abilities_Intelligence.Length; i++)
+            for (int i = 0; i < NoxHero.ABIL_INT.Length; i++)
             {
-                NoxHero.Abilities_Intelligence[i] = abilid;
+                NoxHero.ABIL_INT[i] = abilid;
                 if ((i + 1) % 10 == 0) abilid += 246;
                 abilid++;
             }
             NoxUnit.InitUnitLogic();
             NoxItem.InitItemLogic();
-            TimerStart(Tim, 5, false, () =>
+            TimerStart(s_sanityTimer, 5, false, () =>
             {
-                if (!Sane)
+                if (!s_isSane)
                     Utils.DisplayMessageToEveryone("Failed sanity check (or it has not been called).", 999f);
-                DestroyTimer(Tim);
+                DestroyTimer(s_sanityTimer);
             });
             TimerStart(CreateTimer(), 1800, true, GCRoutine);
         }
@@ -81,14 +81,14 @@ namespace NoxRaven
         /// </summary>
         public static void RunAtEndOfMain()
         {
-            if (BadLoad)
+            if (s_badLoad)
             {
                 Utils.DisplayMessageToEveryone("Something went wrong OwO\n" +
-                    "Errors encountered: " + I2S(ErrorCount), 999f);
+                    "Errors encountered: " + I2S(s_errCount), 999f);
                 return;
             }
-            Utils.DisplayMessageToEveryone("|cffacf2f0Map loaded correctly!|r", 2f);// Do not remove this, I promise this will hurt
-            Sane = true;
+            Utils.DisplayMessageToEveryone("|cffacf2f0Correct load!|r", 2f);// Do not remove this, I promise this will hurt
+            s_isSane = true;
         }
         /// <summary>
         /// TODO: Dynamically adjust this

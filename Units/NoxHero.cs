@@ -1,113 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using NoxRaven.Events.EventTypes;
-using NoxRaven.Events.Metas;
+using NoxRaven.Events;
 using War3Api;
 using static War3Api.Common;
 namespace NoxRaven.Units
 {
     public class NoxHero : NoxUnit
     {
-        internal static int[] Abilities_Intelligence = new int[18];
-        internal static int[] Abilities_Strength = new int[18];
-        internal static int[] Abilities_Agility = new int[18];
-        // +xx stat
-        protected int BonusStr;
-        protected int BonusAgi;
-        protected int BonusInt;
+        internal static int[] ABIL_INT = new int[18];
+        internal static int[] ABIL_STR = new int[18];
+        internal static int[] ABIL_AGI = new int[18];
 
-        protected float CacheStr;
-        protected float CacheAgi;
-        protected float CacheInt;
-
-        protected float PerLevelStr;
-        protected float PerLevelAgi;
-        protected float PerLevelInt;
+        protected float cachedStr;
+        protected float cachedAgi;
+        protected float cachedInt;
 
         protected float MultiplierExp = 1;
         protected float CacheExp;
 
-        // Access functions
-        public int GetBonusStr() => BonusStr;
-        public int GetBonusAgi() => BonusAgi;
-        public int GetBonusInt() => BonusInt;
-
-        public Action<LevelUpEvent> OnLevelUp = (e) => { };
+        public Action<OnLevelUp> OnLevelUp = (e) => { };
 
         public static Action<RegenerationTickEvent> HeroRegeneration = (e) =>
         {
-            e.HealthValue += GetHeroStr(e.EventInfo.Target, true) * 0.04f;
-            e.ManaValue += GetHeroInt(e.EventInfo.Target, true) * 0.03f;
+            // e.HealthValue += GetHeroStr(e.EventInfo.Target, true) * 0.04f;
+            // e.ManaValue += GetHeroInt(e.EventInfo.Target, true) * 0.03f;
         };
 
-        public void SetBonusStr(int val)
-        {
-            BonusStr = val;
-            for (int i = Abilities_Strength.Length - 1; i >= 0; i--)
-            {
-                UnitRemoveAbility(_Self, Abilities_Strength[i]);
-                int comparator = R2I(Pow(2, i));
-                if (comparator <= val)
-                {
-                    UnitAddAbility(_Self, Abilities_Strength[i]);
-                    val -= comparator;
-                }
-            }
-        }
-        public void SetBonusAgi(int val)
-        {
-            BonusAgi = val;
-            for (int i = Abilities_Agility.Length - 1; i >= 0; i--)
-            {
-                UnitRemoveAbility(_Self, Abilities_Agility[i]);
-                int comparator = R2I(Pow(2, i));
-                if (comparator <= val)
-                {
-                    UnitAddAbility(_Self, Abilities_Agility[i]);
-                    val -= comparator;
-                }
-            }
-        }
-        public void SetBonusInt(int val)
-        {
-            BonusInt = val;
-            for (int i = Abilities_Intelligence.Length - 1; i >= 0; i--)
-            {
-                UnitRemoveAbility(_Self, Abilities_Intelligence[i]);
-                int comparator = R2I(Pow(2, i));
-                if (comparator <= val)
-                {
-                    UnitAddAbility(_Self, Abilities_Intelligence[i]);
-                    val -= comparator;
-                }
-            }
-        }
         // Compatibility functions
-        public virtual void AddBonusStr(int val)
-        {
-            SetBonusStr(BonusStr + val);
-        }
-        public virtual void AddBonusAgi(int val)
-        {
-            SetBonusAgi(BonusAgi + val);
-        }
-        public virtual void AddBonusInt(int val)
-        {
-            SetBonusInt(BonusInt + val);
-        }
-        public virtual void AddBaseStr(int val)
-        {
-            SetHeroStr(_Self, GetHeroStr(_Self, false) + val, true);
-        }
-        public virtual void AddBaseAgi(int val)
-        {
-            SetHeroAgi(_Self, GetHeroAgi(_Self, false) + val, true);
-        }
-        public virtual void AddBaseInt(int val)
-        {
-            SetHeroInt(_Self, GetHeroInt(_Self, false) + val, true);
-        }
         /// <summary>
         /// Add experience to the character. Float.
         /// </summary>
@@ -115,13 +35,13 @@ namespace NoxRaven.Units
         public virtual void AddExperience(float exp)
         {
             // For now just use war3 built-in experience manipulator
-            int lvl = GetHeroLevel(_Self);
+            int lvl = GetHeroLevel(_self_);
             CacheExp += exp * MultiplierExp;
-            AddHeroXP(_Self, R2I(CacheExp), true);
+            AddHeroXP(_self_, R2I(CacheExp), true);
             CacheExp -= R2I(CacheExp);
-            int difference = GetHeroLevel(_Self) - lvl;
+            int difference = GetHeroLevel(_self_) - lvl;
             // if (difference > 0) 
-            LevelUp(difference, GetHeroLevel(_Self));
+            LevelUp(difference, GetHeroLevel(_self_));
         }
         /// <summary>
         /// Returns how much experience is retured forLevel;
@@ -141,33 +61,18 @@ namespace NoxRaven.Units
         /// <param name="previouslvl"></param>
         public void LevelUp(int times, int previouslvl)
         {
-            LevelUpEvent parsEvent = new LevelUpEvent()
+            OnLevelUp parsEvent = new OnLevelUp()
             {
-                EventInfo = new LevelUpMeta()
-                {
-                    Hero = _Self,
-                    PreviousLevel = previouslvl,
-                    NewLevel = previouslvl + times
-                }
+                caller = _self_,
+                previousLevel = previouslvl,
+                newLevel = previouslvl + times
             };
             OnLevelUp(parsEvent);
-            CacheStr += PerLevelStr * times;
-            CacheAgi += PerLevelAgi * times;
-            CacheInt += PerLevelInt * times;
-            int complete = R2I(CacheStr);
-            CacheStr -= complete;
-            AddBaseStr(complete);
-            complete = R2I(CacheAgi);
-            CacheAgi -= complete;
-            AddBaseAgi(complete);
-            complete = R2I(CacheInt);
-            CacheInt -= complete;
-            AddBaseInt(complete);
         }
 
         public NoxHero(Common.unit u) : base(u)
         {
-            OnRegenerationTick += HeroRegeneration;
+            // OnRegenerationTick += HeroRegeneration;
         }
 
         public new static NoxHero Cast(unit u)

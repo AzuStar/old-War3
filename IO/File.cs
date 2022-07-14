@@ -27,7 +27,7 @@ namespace NoxRaven.IO
         {
             int len = payload.Length;
             int level = 0;
-            if (GetLocalPlayer() == TargetPlayer._Self)
+            if (GetLocalPlayer() == TargetPlayer._self_)
             {
                 PreloadGenClear();
                 PreloadGenStart();
@@ -52,10 +52,10 @@ namespace NoxRaven.IO
             PromisedString ret = new PromisedString();
             trigger SyncThread = CreateTrigger();
             for (int i = 0; i < 100; i++)
-                foreach (NoxPlayer pl in NoxPlayer.AllPlayers.Values)
-                    BlzTriggerRegisterPlayerSyncEvent(SyncThread, pl._Self, I2S(i) + "sync" + I2S(ReadCount), false);
-            foreach (NoxPlayer pl in NoxPlayer.AllPlayers.Values)
-                BlzTriggerRegisterPlayerSyncEvent(SyncThread, pl._Self, "async" + I2S(ReadCount), false); // util
+                foreach (NoxPlayer pl in NoxPlayer.players.Values)
+                    BlzTriggerRegisterPlayerSyncEvent(SyncThread, pl._self_, I2S(i) + "sync" + I2S(ReadCount), false);
+            foreach (NoxPlayer pl in NoxPlayer.players.Values)
+                BlzTriggerRegisterPlayerSyncEvent(SyncThread, pl._self_, "async" + I2S(ReadCount), false); // util
             TriggerAddAction(SyncThread, () =>
             {
                 string prefix = BlzGetTriggerSyncPrefix().Split("sync")[0];
@@ -67,7 +67,7 @@ namespace NoxRaven.IO
 
             });
 
-            if (GetLocalPlayer() == TargetPlayer._Self)
+            if (GetLocalPlayer() == TargetPlayer._self_)
             {
                 Preloader(Path);
                 int i = 0;

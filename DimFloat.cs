@@ -14,48 +14,48 @@ namespace NoxRaven
         /// Also creates upper boundary Lim(f) -> 1/<see cref="DIMINISH_CONST"/>
         /// </summary>
         public const float DIMINISH_CONST = 0.06f;
-        public readonly float BeginDiminish;
-        public float _Actual { get; private set; }
-        public float _Diminished { get; private set; }
+        public readonly float beginDiminish;
+        public float _actual { get; private set; }
+        public float _diminished { get; private set; }
 
         public DimFloat(float beginDiminish = 175)
         {
-            BeginDiminish = beginDiminish;
+            this.beginDiminish = beginDiminish;
         }
 
         public static DimFloat operator +(DimFloat dim, float f)
         {
-            dim._Actual += f;
+            dim._actual += f;
             dim.Diminish();
             return dim;
         }
         public static DimFloat operator -(DimFloat dim, float f)
         {
-            dim._Actual -= f;
+            dim._actual -= f;
             dim.Diminish();
             return dim;
         }
         public static DimFloat operator /(DimFloat dim, float f)
         {
-            dim._Actual *= f;
+            dim._actual *= f;
             dim.Diminish();
             return dim;
         }
         public static DimFloat operator *(DimFloat dim, float f)
         {
-            dim._Actual /= f;
+            dim._actual /= f;
             dim.Diminish();
             return dim;
         }
 
         private void Diminish()
         {
-            if (_Actual < BeginDiminish)
-                _Diminished = _Actual;
+            if (_actual < beginDiminish)
+                _diminished = _actual;
             else
             {
-                float tmp = _Actual - BeginDiminish;
-                _Diminished = tmp / (1 + SquareRoot(tmp) * DIMINISH_CONST) + BeginDiminish;
+                float tmp = _actual - beginDiminish;
+                _diminished = tmp / (1 + SquareRoot(tmp) * DIMINISH_CONST) + beginDiminish;
             }
         }
     }

@@ -14,13 +14,13 @@ namespace NoxRaven
     {
         public delegate bool UnitFilter(NoxUnit nu);
         public const float ROUND_DOWN_CONST_OVERHEAD = 0.19f;
-        public static item WalkableItem;
-        public static float WalkableOverhead = 10;
+        public static item s_walkableItem;
+        public static float s_walkableOverhead = 10;
 
         static Utils()
         {
-            WalkableItem = CreateItem(FourCC("afac"), 0, 0);
-            SetItemVisible(WalkableItem, false);
+            s_walkableItem = CreateItem(FourCC("afac"), 0, 0);
+            SetItemVisible(s_walkableItem, false);
         }
 
         public static void Debug(string str)
@@ -35,15 +35,15 @@ namespace NoxRaven
         /// <param name="timespan"></param>
         public static void DisplayMessageToEveryone(string msg, float timespan)
         {
-            foreach (NoxPlayer p in NoxPlayer.AllPlayers.Values)
-                DisplayTimedTextToPlayer(p._Self, 0, 0, timespan, msg);
+            foreach (NoxPlayer p in NoxPlayer.players.Values)
+                DisplayTimedTextToPlayer(p._self_, 0, 0, timespan, msg);
         }
         internal static void Error(string message, Type t)
         {
-            Master.BadLoad = true;
-            Master.ErrorCount++;
-            foreach (NoxPlayer p in NoxPlayer.AllPlayers.Values)
-                DisplayTimedTextToPlayer(p._Self, 0, 0, 900f, "|cffFF0000ERROR IN: " + t.FullName + "|r\nMessage:" + message);
+            Master.s_badLoad = true;
+            Master.s_errCount++;
+            foreach (NoxPlayer p in NoxPlayer.players.Values)
+                DisplayTimedTextToPlayer(p._self_, 0, 0, 900f, "|cffFF0000ERROR IN: " + t.FullName + "|r\nMessage:" + message);
         }
         /// <summary>
         /// Use this function to invoke something (anything) with a delay.
@@ -89,13 +89,13 @@ namespace NoxRaven
         {
             bool flag = false;
             if (IsTerrainPathable(x, y, PATHING_TYPE_WALKABILITY)) return flag;
-            SetItemPosition(WalkableItem, x, y);
-            float itemx = GetItemX(WalkableItem) - x;
+            SetItemPosition(s_walkableItem, x, y);
+            float itemx = GetItemX(s_walkableItem) - x;
             itemx *= itemx;
-            float itemy = GetItemY(WalkableItem) - y;
+            float itemy = GetItemY(s_walkableItem) - y;
             itemy *= itemy;
-            flag = itemx + itemy <= WalkableOverhead;
-            SetItemVisible(WalkableItem, false);
+            flag = itemx + itemy <= s_walkableOverhead;
+            SetItemVisible(s_walkableItem, false);
             return flag;
         }
 

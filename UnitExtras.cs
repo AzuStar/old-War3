@@ -12,18 +12,18 @@ namespace NoxRaven
     /// </summary>
     public static class UnitExperimentals
     {
-        static timer Knockback;
-        static List<PushedUnit> Pushed = new List<PushedUnit>();
+        static timer s_knockbackTimer;
+        static List<PushedUnit> s_pushed = new List<PushedUnit>();
         static UnitExperimentals()
         {
-            Knockback = CreateTimer();
+            s_knockbackTimer = CreateTimer();
             // Max possible smoothness @ 64 fps
-            TimerStart(Knockback, Master.FPS_TIME, true, () =>
+            TimerStart(s_knockbackTimer, Master.FPS_TIME, true, () =>
             {
-                if (Pushed.Count > 0)
-                    foreach (PushedUnit pu in Pushed)
+                if (s_pushed.Count > 0)
+                    foreach (PushedUnit pu in s_pushed)
                         if (pu.Move())
-                            Pushed.Remove(pu);
+                            s_pushed.Remove(pu);
             });
         }
         /// <summary>
@@ -40,7 +40,7 @@ namespace NoxRaven
 
         public static void PushTarget(unit target, float duration, float angle, float range, bool actionBlocked)
         {
-            Pushed.Add(new PushedUnit(target, duration, angle, range, actionBlocked));
+            s_pushed.Add(new PushedUnit(target, duration, angle, range, actionBlocked));
         }
 
     }

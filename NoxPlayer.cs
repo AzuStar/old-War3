@@ -11,29 +11,29 @@ namespace NoxRaven
     /// </summary>
     public class NoxPlayer
     {
-        public static Dictionary<int, NoxPlayer> AllPlayers = new Dictionary<int, NoxPlayer>();
+        public static Dictionary<int, NoxPlayer> players = new Dictionary<int, NoxPlayer>();
         /// <summary>
-        /// Throw-away value for <see cref="_Self"/>.
+        /// Throw-away value for <see cref="_self_"/>.
         /// </summary>
-        public int Id;
+        public int id;
         /// <summary>
         /// Real reference to player.
         /// </summary>
-        public player _Self;
+        public player _self_;
 
         public NoxPlayer(int id)
         {
-            Id = id;
-            _Self = Player(id);
-            AllPlayers.Add(id, this);
+            this.id = id;
+            _self_ = Player(id);
+            players.Add(id, this);
         }
 
-        public static NoxPlayer GetFromId(int id) => AllPlayers[id];
+        public static NoxPlayer FromId(int id) => players[id];
 
         public void SendMessage(string msg, float timeout, RecipientType whoGets)
         {
             timer msgt = CreateTimer();
-            TimerStart(msgt, timeout, false, () => { BlzDisplayChatMessage(_Self, (int)whoGets, msg); DestroyTimer(msgt); });
+            TimerStart(msgt, timeout, false, () => { BlzDisplayChatMessage(_self_, (int)whoGets, msg); DestroyTimer(msgt); });
         }
     }
 }
