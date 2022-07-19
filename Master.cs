@@ -50,7 +50,7 @@ namespace NoxRaven
         /// </summary>
         public static void RunAfterExtensionsReady()
         {
-            BlzLoadTOCFile("noxraven\\NoxUnitFrames.toc");
+            BlzLoadTOCFile("assetsnoxraven\\NoxUnitFrames.toc");
             TimerStart(CreateTimer(), TICK_DELTA, true, () =>
             {
                 foreach (var action in s_globalTick)

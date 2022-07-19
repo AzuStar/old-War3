@@ -1,0 +1,59 @@
+IncludeFile "UI\FrameDef\UI\SimpleInfoPanel.fdf",
+IncludeFile "UI\FrameDef\UI\EscMenuTemplates.fdf",
+
+// *******************
+// NoxUnit - NU_
+// Tooltip - TT_
+// TooltipElemtn - TTE_
+// Template - _TP
+// NoxUnitTooltipCommandTemplate - NU_TT_Command_TP
+// *******************
+
+Frame "BACKDROP" "NU_TT_Command_TextBox_TP" {
+    DecorateFileNames,
+    BackdropTileBackground,
+    BackdropBackground  "ToolTipBackground", // Extracted from game constants
+    BackdropCornerFlags "UL|UR|BL|BR|T|L|B|R",
+    BackdropCornerSize  0.008, //higher numbers make the corners bigger.
+    BackdropBackgroundInsets 0.0022 0.0022 0.0022 0.0022, //makes the background smaller, from the outside.
+    BackdropEdgeFile  "ToolTipBorder", // Extracted from game constants
+    BackdropBlendAll,
+}
+
+Frame "BACKDROP" "NU_TT_Command_TextBox" INHERITS "NU_TT_Command_TextBox_TP" {
+    UseActiveContext,
+}
+
+    // Frame "BACKDROP" "NU_TTE_Command_HorizontalSeparator" {
+    //     UseActiveContext,
+    //     DecorateFileNames,
+    //     BackdropBackground  "ToolTipHorizontalSeparator",
+    //     BackdropCornerFlags "UL|UR|BL|BR|T|L|B|R",
+    //     BackdropCornerSize  0.008,
+    // }
+
+Frame "TEXT" "NU_TTE_Command_TextTitle" {
+    DecorateFileNames,
+    // SetPoint TOPLEFT, "NU_TT_Command_TextBox", TOPLEFT, 0.005, -0.005, 
+    // SetPoint TOPRIGHT, "NU_TT_Command_TextBox", TOPRIGHT, -0.005, -0.005,
+    Width 0.275,
+    FrameFont "MasterFont", 0.011, "",
+    FontColor 1.0 1.0 1.0 1.0, //Red Green Blue Alpha 0.0 to 1.0
+    FontShadowColor 0.0 0.0 0.0 0.9,
+    FontShadowOffset 0.001 -0.001,
+    Text "-1",
+    LayerStyle "IGNORETRACKEVENTS",
+}
+
+Frame "TEXT" "NU_TTE_Command_TextDescription" {
+    DecorateFileNames,
+    // SetPoint TOPLEFT, "NU_TT_Command_TextBox", TOPLEFT, 0.005, -0.02,
+    // SetPoint BOTTOMRIGHT,  "NU_TT_Command_TextBox", BOTTOMRIGHT, -0.005, 0.005,
+    Width 0.275,
+    FrameFont "MasterFont", 0.011, "",
+    FontColor 1.0 1.0 1.0 1.0,
+    FontShadowColor 0.0 0.0 0.0 0.9,
+    FontShadowOffset 0.001 -0.001,
+    Text "-1",
+    LayerStyle "IGNORETRACKEVENTS",
+}

@@ -1,0 +1,163 @@
+IncludeFile "UI\FrameDef\UI\SimpleInfoPanel.fdf",
+IncludeFile "UI\FrameDef\UI\EscMenuTemplates.fdf",
+
+// *******************
+// NoxUnit - NU_
+// InfoPanel - IP_
+// InfoPanelElement - IPE_
+// Template - _TP
+// NoxUnitInoPanelBigButtonTemplate - NU_IP_BigButton_TP
+// *******************
+
+Frame "SIMPLEBUTTON" "EmptySimpleButton" {}
+
+//#region big buttons
+Texture "NU_IPE_BigButtonHighlight" {
+    File "UpperMenuButtonTexture",
+    TexCoord 0.0, 0.6640625, 0.75, 0.921875,
+    AlphaMode "ADD",
+}
+
+Texture "NU_IPE_BigButtonIcon_TP" {
+    File "HeroStrengthIcon",
+    Width 0.017,
+    Height 0.017,
+    Anchor LEFT, 0, 0,
+}
+String "NU_IPE_BigButtonText_TP" INHERITS "SimpleInfoPanelValueTextTemplate" {
+    Font "InfoPanelTextFont", 0.009,
+    Width 0.035,
+    Height 0.017,
+    Anchor RIGHT, 0.002, 0,
+    Text "-1",
+    FontJustificationV JUSTIFYMIDDLE,
+}
+Frame "SIMPLEBUTTON" "NU_IPE_BigButton_TP" {
+    UseHighlight "NU_IPE_BigButtonHighlight",
+    Width 0.052,
+    Height 0.017,
+}
+//#endregion
+
+//#region small buttons
+Texture "NU_IPE_SmallButtonHighlight" {
+    File "UpperMenuButtonTexture",
+    TexCoord 0.0, 0.6640625, 0.75, 0.921875,
+    AlphaMode "ADD",
+}
+
+Texture "NU_IPE_SmallButtonIcon_TP" {
+    File "HeroStrengthIcon",
+    Width 0.013,
+    Height 0.013,
+    Anchor LEFT, 0, 0,
+}
+String "NU_IPE_SmallButtonText_TP" INHERITS "SimpleInfoPanelValueTextTemplate" {
+    Font "InfoPanelTextFont", 0.007,
+    Width 0.015,
+    Height 0.013,
+    Anchor RIGHT, 0.0015, 0,
+    Text "-1",
+    FontJustificationV JUSTIFYMIDDLE,
+}
+Frame "SIMPLEBUTTON" "NU_IPE_SmallButton_TP" {
+    UseHighlight "NU_IPE_SmallButtonHighlight",
+    Width 0.028,
+    Height 0.013,
+}
+//#endregion
+
+
+// actual stat frame
+Frame "SIMPLEFRAME" "NU_IP_Stats" {
+    SetPoint TOP, "SimpleHeroLevelBar", BOTTOM, 0, -0.003,
+    Width 0.18,
+    Height 0.062,
+    
+    Frame "SIMPLEBUTTON" "NU_IPE_BigButton0" INHERITS "NU_IPE_BigButton_TP" {
+        UseActiveContext,
+        SetPoint TOPLEFT, "NU_IP_Stats", TOPLEFT, 0, 0,
+        DecorateFileNames,
+        Texture "NU_IPE_BigButtonIcon0" INHERITS "NU_IPE_BigButtonIcon_TP" {}
+        String "NU_IPE_BigButtonText0" INHERITS "NU_IPE_BigButtonText_TP" {}
+    }
+
+    // big buttons
+    Frame "SIMPLEBUTTON" "NU_IPE_BigButton1" INHERITS "NU_IPE_BigButton_TP" {
+        UseActiveContext,
+        SetPoint TOPLEFT, "NU_IPE_BigButton0", BOTTOMLEFT, 0, -0.005,
+        DecorateFileNames,
+        Texture "NU_IPE_BigButtonIcon1" INHERITS "NU_IPE_BigButtonIcon_TP" {}
+        String "NU_IPE_BigButtonText1" INHERITS "NU_IPE_BigButtonText_TP" {}
+    }
+    Frame "SIMPLEBUTTON" "NU_IPE_BigButton2" INHERITS "NU_IPE_BigButton_TP" {
+        UseActiveContext,
+        SetPoint TOPLEFT, "NU_IPE_BigButton1", BOTTOMLEFT, 0, -0.005,
+        DecorateFileNames,
+        Texture "NU_IPE_BigButtonIcon2" INHERITS "NU_IPE_BigButtonIcon_TP" {}
+        String "NU_IPE_BigButtonText2" INHERITS "NU_IPE_BigButtonText_TP" {}
+    }
+    Frame "SIMPLEBUTTON" "NU_IPE_BigButton3" INHERITS "NU_IPE_BigButton_TP" {
+        UseActiveContext,
+        SetPoint TOPLEFT, "NU_IPE_BigButton0", TOPRIGHT, 0.005, 0,
+        DecorateFileNames,
+        Texture "NU_IPE_BigButtonIcon3" INHERITS "NU_IPE_BigButtonIcon_TP" {}
+        String "NU_IPE_BigButtonText3" INHERITS "NU_IPE_BigButtonText_TP" {}
+    }
+    Frame "SIMPLEBUTTON" "NU_IPE_BigButton4" INHERITS "NU_IPE_BigButton_TP" {
+        UseActiveContext,
+        SetPoint TOPLEFT, "NU_IPE_BigButton3", BOTTOMLEFT, 0, -0.005,
+        DecorateFileNames,
+        Texture "NU_IPE_BigButtonIcon4" INHERITS "NU_IPE_BigButtonIcon_TP" {}
+        String "NU_IPE_BigButtonText4" INHERITS "NU_IPE_BigButtonText_TP" {}
+    }
+    Frame "SIMPLEBUTTON" "NU_IPE_BigButton5" INHERITS "NU_IPE_BigButton_TP" {
+        UseActiveContext,
+        SetPoint TOPLEFT, "NU_IPE_BigButton4", BOTTOMLEFT, 0, -0.005,
+        DecorateFileNames,
+        Texture "NU_IPE_BigButtonIcon5" INHERITS "NU_IPE_BigButtonIcon_TP" {}
+        String "NU_IPE_BigButtonText5" INHERITS "NU_IPE_BigButtonText_TP" {}
+    }
+
+    // small buttons
+    Frame "SIMPLEBUTTON" "NU_IPE_SmallButton0" INHERITS "NU_IPE_SmallButton_TP" {
+        UseActiveContext,
+        SetPoint TOPLEFT, "NU_IPE_BigButton3", TOPRIGHT, 0.01, 0,
+        DecorateFileNames,
+        Texture "NU_IPE_SmallButtonIcon0" INHERITS "NU_IPE_SmallButtonIcon_TP" {}
+        String "NU_IPE_SmallButtonText0" INHERITS "NU_IPE_SmallButtonText_TP" {}
+    }
+        Frame "SIMPLEBUTTON" "NU_IPE_SmallButton1" INHERITS "NU_IPE_SmallButton_TP" {
+        UseActiveContext,
+        SetPoint TOPLEFT, "NU_IPE_SmallButton0", BOTTOMLEFT, 0, -0.003,
+        DecorateFileNames,
+        Texture "NU_IPE_SmallButtonIcon1" INHERITS "NU_IPE_SmallButtonIcon_TP" {}
+        String "NU_IPE_SmallButtonText1" INHERITS "NU_IPE_SmallButtonText_TP" {}
+    }
+        Frame "SIMPLEBUTTON" "NU_IPE_SmallButton2" INHERITS "NU_IPE_SmallButton_TP" {
+        UseActiveContext,
+        SetPoint TOPLEFT, "NU_IPE_SmallButton1", BOTTOMLEFT, 0, -0.003,
+        DecorateFileNames,
+        Texture "NU_IPE_SmallButtonIcon2" INHERITS "NU_IPE_SmallButtonIcon_TP" {}
+        String "NU_IPE_SmallButtonText2" INHERITS "NU_IPE_SmallButtonText_TP" {}
+    }
+        Frame "SIMPLEBUTTON" "NU_IPE_SmallButton3" INHERITS "NU_IPE_SmallButton_TP" {
+        UseActiveContext,
+        SetPoint TOPLEFT, "NU_IPE_SmallButton2", BOTTOMLEFT, 0, -0.003,
+        DecorateFileNames,
+        Texture "NU_IPE_SmallButtonIcon3" INHERITS "NU_IPE_SmallButtonIcon_TP" {}
+        String "NU_IPE_SmallButtonText3" INHERITS "NU_IPE_SmallButtonText_TP" {}
+    }
+    
+}
+
+// Frame "SIMPLEBUTTON" "UnitInfoSimpleButton_TP" {
+//     DecorateFileNames,
+//     UseHighlight "NU_IPE_BigButtonHighlight",
+//     Width 0.018,
+//     Height 0.018,
+// }
+// Frame "SIMPLEBUTTON" "UnitInfoSimpleIconButton" INHERITS "UnitInfoSimpleButton_TP" {
+//     DecorateFileNames,
+//     Texture "UnitInfoSimpleIconButtonIcon" {}
+// }
