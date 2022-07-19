@@ -18,7 +18,7 @@ namespace NoxRaven
         {
             s_knockbackTimer = CreateTimer();
             // Max possible smoothness @ 64 fps
-            TimerStart(s_knockbackTimer, Master.FPS_TIME, true, () =>
+            TimerStart(s_knockbackTimer, Master.TICK_DELTA, true, () =>
             {
                 if (s_pushed.Count > 0)
                     foreach (PushedUnit pu in s_pushed)
@@ -57,7 +57,7 @@ namespace NoxRaven
         {
             this.Unit = Unit;
             TimeLeft = duration;
-            float push = range / duration * Master.FPS_TIME;
+            float push = range / duration * Master.TICK_DELTA;
             Sin = push * Sin(angle * bj_DEGTORAD);
             Cos = push * Cos(angle * bj_DEGTORAD);
             ActionsBlocked = actionBlocked;
@@ -77,7 +77,7 @@ namespace NoxRaven
                     SetUnitX(Unit, xi);
                     SetUnitY(Unit, yi);
                 }
-            return (TimeLeft -= Master.FPS_TIME) <= 0;
+            return (TimeLeft -= Master.TICK_DELTA) <= 0;
         }
     }
 }
