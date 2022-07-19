@@ -1,92 +1,127 @@
+using System.Collections.Generic;
+using System.Linq;
+using NoxRaven.Frames;
+
 namespace NoxRaven.UnitAgents
 {
+    ///<summary>
+    /// Stats of the NoxUnit <br/>
+    /// Start custom stats at key (including) 47
+    ///</summary>
     public class Stats
     {
+        /*
+        // Gets all stats: 
+        ^(?:(?!public (?:\w+) (\w+)(?:.+)).)*$\n
+        //replace with empty
+        
+        // replace var names
+        ^ *public (?:\w+) (\w+)(?:.+)$
+        left.$1-=right.$1;
+        
+
+        // Stats to lookups:
+        (double|float|int) (\w)(\w+)(?: = .+|;)?
+        $1 lookup\U$2$3=>_stats.$2$3;
+        */
+
+        private Dictionary<int, float> _statCollection = new Dictionary<int, float>();
+        protected void SetStat(int key, float value)
+        {
+            if (_statCollection.ContainsKey(key))
+                _statCollection[key] = value;
+            else
+                _statCollection.Add(key, value);
+        }
+        protected float GetStat(int key)
+        {
+            if (_statCollection.ContainsKey(key))
+                return _statCollection[key];
+            return 0;
+        }
+
         // ****************
         // * Physical Dmg *
         // ****************
-        public float baseDMG = 0;
-        public float baseDMGPercent = 0;
-        public float bonusDMG = 0;
-        public float baseDMGPercentBonus = 0;
+        public float baseDMG { get => GetStat(0); set => SetStat(0, value); }
+        public float baseDMGPercent { get => GetStat(1); set => SetStat(1, value); }
+        public float bonusDMG { get => GetStat(2); set => SetStat(2, value); }
+        public float baseDMGPercentBonus { get => GetStat(3); set => SetStat(3, value); }
+        public float totalDMGPercent { get => GetStat(4); set => SetStat(4, value); }
 
-        public float armorPenetration = 0;
+        public float penetrationARM { get => GetStat(5); set => SetStat(5, value); }
+        public float penetrationMR { get => GetStat(6); set => SetStat(6, value); }
 
         /// <summary>
         /// Base attack speed / attackSpeed = New Attack Speed <br />
         /// 1/2 = 0.5 (2 attacks a second)<br />
         /// 2/1 = 2 (0.5 attacks a second)
         /// </summary>
-        public float attackSpeed = 0;
-        public float baseAttackCooldown;
+        public float attackSpeed { get => GetStat(7); set => SetStat(7, value); }
+        public float baseAttackCooldown { get => GetStat(8); set => SetStat(8, value); }
 
         // *****************
         // * Ability Power *
         // *****************
-        public float baseAP = 0;
-        public float baseAPPercent = 0;
-        public float bonusAP = 0;
-        public float baseAPPercentBonus = 0;
+        public float baseAP { get => GetStat(9); set => SetStat(9, value); }
+        public float baseAPPercent { get => GetStat(10); set => SetStat(10, value); }
+        public float bonusAP { get => GetStat(11); set => SetStat(11, value); }
+        public float baseAPPercentBonus { get => GetStat(12); set => SetStat(12, value); }
+        public float totalAPPercent { get => GetStat(13); set => SetStat(13, value); }
 
 
         // **********
         // * Vitals *
         // **********
-        public float baseHP;
-        public float baseHPPercent;
-        public float bonusHP;
-        public float baseHPPercentBonus;
-        public float regenHP;
-        public float regenHPPercent;
+        public float baseHP { get => GetStat(14); set => SetStat(14, value); }
+        public float baseHPPercent { get => GetStat(15); set => SetStat(15, value); }
+        public float bonusHP { get => GetStat(16); set => SetStat(16, value); }
+        public float baseHPPercentBonus { get => GetStat(17); set => SetStat(17, value); }
+        public float totalHPPercent { get => GetStat(18); set => SetStat(18, value); }
+        public float regenHP { get => GetStat(19); set => SetStat(19, value); }
+        public float regenHPPercent { get => GetStat(20); set => SetStat(20, value); }
 
-        public float baseMP;
-        public float baseMPPercent;
-        public float bonusMP;
-        public float baseMPPercentBonus;
-        public float regenMP;
-        public float regenMPPercent;
+        public float baseMP { get => GetStat(21); set => SetStat(21, value); }
+        public float baseMPPercent { get => GetStat(22); set => SetStat(22, value); }
+        public float bonusMP { get => GetStat(23); set => SetStat(23, value); }
+        public float baseMPPercentBonus { get => GetStat(24); set => SetStat(24, value); }
+        public float totalMPPercent { get => GetStat(25); set => SetStat(25, value); }
+        public float regenMP { get => GetStat(26); set => SetStat(26, value); }
+        public float regenMPPercent { get => GetStat(27); set => SetStat(27, value); }
 
-        public float baseARM;
-        public float baseARMPercent;
-        public float bonusARM;
-        public float baseARMPercentBonus;
+        public float baseARM { get => GetStat(28); set => SetStat(28, value); }
+        public float baseARMPercent { get => GetStat(29); set => SetStat(29, value); }
+        public float bonusARM { get => GetStat(30); set => SetStat(30, value); }
+        public float baseARMPercentBonus { get => GetStat(31); set => SetStat(31, value); }
+        public float totalARMPercent { get => GetStat(32); set => SetStat(32, value); }
 
-        public float baseMR;
-        public float baseMRPercent;
-        public float bonusMR;
-        public float baseMRPercentBonus;
+        public float baseMR { get => GetStat(33); set => SetStat(33, value); }
+        public float baseMRPercent { get => GetStat(34); set => SetStat(34, value); }
+        public float bonusMR { get => GetStat(35); set => SetStat(35, value); }
+        public float baseMRPercentBonus { get => GetStat(36); set => SetStat(36, value); }
+        public float totalMRPercent { get => GetStat(37); set => SetStat(37, value); }
 
 
-        public float critChace = 0;
-        public float critDamage = 0;
+        public float critChace { get => GetStat(38); set => SetStat(38, value); }
+        public float critDamage { get => GetStat(39); set => SetStat(39, value); }
         /// <summary>
         /// Life restored from amount of ALL PHYSICAL damage DEALT <br/>
         /// Damage flags affected by life steal: isBaseAttack, isCrit, isOnhit, isPhysical
         /// </summary>
-        public float lifeSteal = 0;
+        public float lifeSteal { get => GetStat(40); set => SetStat(40, value); }
         /// <summary>
         /// Life restored from amount of ALL spell damage DEALT <br/>
         /// Damage flags affected by spell vamp: isPhysical, isCrit, isMagical
         /// </summary>
-        public float spellVamp = 0;
+        public float spellVamp { get => GetStat(41); set => SetStat(41, value); }
         /// <summary>
         /// Healing from all sources will be multiplied by this.
         /// </summary>
-        public float incomingHealing;
+        public float incomingHealing { get => GetStat(42); set => SetStat(42, value); }
         /// <summary>
         /// When mana is added this is multiplier.
         /// </summary>
-        public float incomingMana;
-
-        // *********************
-        // * Toughness related *
-        // *********************
-        /// <summary>
-        /// By how much damage will be reduced. This applies to damage after all modifications (armor, armorpen etc).<para />
-        /// Range: 0.00-1.00, but can be negative
-        /// Applied to types: magical, physical
-        /// </summary>
-        public float damageReduction = 0;
+        public float incomingMana { get => GetStat(43); set => SetStat(43, value); }
 
         //*********
         // * Util *
@@ -95,99 +130,44 @@ namespace NoxRaven.UnitAgents
         /// This is a Chance diceroll event happens. 
         /// For example, passive ability with 25% activation chance to deal extra damage will have 50% chance if this value is 2.
         /// </summary>
-        public float triggerChance = 0;
-        public float baseMSPercent = 0;
-        public float baseMS = 0;
+        public float triggerChance { get => GetStat(44); set => SetStat(44, value); }
+        public float baseMSPercent { get => GetStat(45); set => SetStat(45, value); }
+        public float baseMS { get => GetStat(46); set => SetStat(46, value); }
 
         public static Stats operator +(Stats left, Stats right)
         {
-            left.baseDMG += right.baseDMG;
-            left.baseDMGPercent += right.baseDMGPercent;
-            left.bonusDMG += right.bonusDMG;
-            left.baseDMGPercentBonus += right.baseDMGPercentBonus;
-            left.armorPenetration += right.armorPenetration;
-            left.attackSpeed += right.attackSpeed;
-            left.baseAttackCooldown += right.baseAttackCooldown;
-            left.baseAP += right.baseAP;
-            left.baseAPPercent += right.baseAPPercent;
-            left.bonusAP += right.bonusAP;
-            left.baseAPPercentBonus += right.baseAPPercentBonus;
-            left.baseHP += right.baseHP;
-            left.baseHPPercent += right.baseHPPercent;
-            left.bonusHP += right.bonusHP;
-            left.baseHPPercentBonus += right.baseHPPercentBonus;
-            left.regenHP += right.regenHP;
-            left.regenHPPercent += right.regenHPPercent;
-            left.baseMP += right.baseMP;
-            left.baseMPPercent += right.baseMPPercent;
-            left.bonusMP += right.bonusMP;
-            left.baseMPPercentBonus += right.baseMPPercentBonus;
-            left.regenMP += right.regenMP;
-            left.regenMPPercent += right.regenMPPercent;
-            left.baseARM += right.baseARM;
-            left.baseARMPercent += right.baseARMPercent;
-            left.bonusARM += right.bonusARM;
-            left.baseARMPercentBonus += right.baseARMPercentBonus;
-            left.baseMR += right.baseMR;
-            left.baseMRPercent += right.baseMRPercent;
-            left.bonusMR += right.bonusMR;
-            left.baseMRPercentBonus += right.baseMRPercentBonus;
-            left.critChace += right.critChace;
-            left.critDamage += right.critDamage;
-            left.lifeSteal += right.lifeSteal;
-            left.spellVamp += right.spellVamp;
-            left.incomingHealing += right.incomingHealing;
-            left.incomingMana += right.incomingMana;
-            left.damageReduction += right.damageReduction;
-            left.triggerChance += right.triggerChance;
-            left.baseMSPercent += right.baseMSPercent;
-            left.baseMS += right.baseMS;
+            HashSet<int> keys = new HashSet<int>();
+            left._statCollection.Keys.Union(right._statCollection.Keys).ToList().ForEach(key => keys.Add(key));
+            foreach (int key in keys)
+            {
+                left.SetStat(key, left.GetStat(key) + right.GetStat(key));
+            }
             return left;
         }
-
         public static Stats operator -(Stats left, Stats right)
         {
-            left.baseDMG -= right.baseDMG;
-            left.baseDMGPercent -= right.baseDMGPercent;
-            left.bonusDMG -= right.bonusDMG;
-            left.baseDMGPercentBonus -= right.baseDMGPercentBonus;
-            left.armorPenetration -= right.armorPenetration;
-            left.attackSpeed -= right.attackSpeed;
-            left.baseAttackCooldown -= right.baseAttackCooldown;
-            left.baseAP -= right.baseAP;
-            left.baseAPPercent -= right.baseAPPercent;
-            left.bonusAP -= right.bonusAP;
-            left.baseAPPercentBonus -= right.baseAPPercentBonus;
-            left.baseHP -= right.baseHP;
-            left.baseHPPercent -= right.baseHPPercent;
-            left.bonusHP -= right.bonusHP;
-            left.baseHPPercentBonus -= right.baseHPPercentBonus;
-            left.regenHP -= right.regenHP;
-            left.regenHPPercent -= right.regenHPPercent;
-            left.baseMP -= right.baseMP;
-            left.baseMPPercent -= right.baseMPPercent;
-            left.bonusMP -= right.bonusMP;
-            left.baseMPPercentBonus -= right.baseMPPercentBonus;
-            left.regenMP -= right.regenMP;
-            left.regenMPPercent -= right.regenMPPercent;
-            left.baseARM -= right.baseARM;
-            left.baseARMPercent -= right.baseARMPercent;
-            left.bonusARM -= right.bonusARM;
-            left.baseARMPercentBonus -= right.baseARMPercentBonus;
-            left.baseMR -= right.baseMR;
-            left.baseMRPercent -= right.baseMRPercent;
-            left.bonusMR -= right.bonusMR;
-            left.baseMRPercentBonus -= right.baseMRPercentBonus;
-            left.critChace -= right.critChace;
-            left.critDamage -= right.critDamage;
-            left.lifeSteal -= right.lifeSteal;
-            left.spellVamp -= right.spellVamp;
-            left.incomingHealing -= right.incomingHealing;
-            left.incomingMana -= right.incomingMana;
-            left.damageReduction -= right.damageReduction;
-            left.triggerChance -= right.triggerChance;
-            left.baseMSPercent -= right.baseMSPercent;
-            left.baseMS -= right.baseMS;
+            HashSet<int> keys = new HashSet<int>();
+            left._statCollection.Keys.Union(right._statCollection.Keys).ToList().ForEach(key => keys.Add(key));
+            foreach (int key in keys)
+            {
+                left.SetStat(key, left.GetStat(key) - right.GetStat(key));
+            }
+            return left;
+        }
+        public static Stats operator *(Stats left, float right)
+        {
+            foreach (int key in left._statCollection.Keys)
+            {
+                left._statCollection[key] *= right;
+            }
+            return left;
+        }
+        public static Stats operator /(Stats left, float right)
+        {
+            foreach (int key in left._statCollection.Keys)
+            {
+                left._statCollection[key] /= right;
+            }
             return left;
         }
     }

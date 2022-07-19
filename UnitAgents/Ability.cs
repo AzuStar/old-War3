@@ -21,7 +21,7 @@ namespace NoxRaven.UnitAgents
         ///<summary>
         /// Modefier that will be attached with this ability
         ///</summary>
-        public Modifier mod = null;
+        public IModifier mod = null;
         // This list will be used to init all behaviours.
         public List<IPriorityBehaviour> GetLocalBehaviours() => localBehaviours;
         public List<IPriorityBehaviour> GetGlobalBehaviours() => globalBehaviours;

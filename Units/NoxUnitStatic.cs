@@ -8,36 +8,26 @@ namespace NoxRaven.Units
 {
     public partial class NoxUnit
     {
-        protected internal static Dictionary<int, NoxUnit> Indexer = new Dictionary<int, NoxUnit>();
+        protected internal static Dictionary<int, NoxUnit> s_indexer = new Dictionary<int, NoxUnit>();
         private static Dictionary<int, Type> CustomTypes = new Dictionary<int, Type>();
         private static float KeepCorpsesFor = 25;
         private static bool DamageEngineIgnore = false;
-        public const float RegenerationTimeout = 0.04f;
-        internal static int[] Abilities_BonusDamage = new int[19];
-        internal static int[] Abilities_Corruption = new int[13];
-        internal static int[] Abilities_BonusArmor = new int[14];
-        /// <summary>
-        /// Default game reduction constant.
-        /// </summary>
-        public const float ARMOR_MR_REDUCTION = 0.06f;
-
 
         private static Dictionary<string, BehaviourList<Events.EventArgs>> _globalEvents = new Dictionary<string, BehaviourList<Events.EventArgs>>();
 
         /// <summary>
         /// Put a custom type that will be attached to a unit when indexing.
-        /// Custom type has to extend this class and invoke base(u) in the constructor.
+        /// Custom type has to extend this class and invoke base(u) in the constructor.<br/><br/>
+        /// WHEN ASSIGNING HERO TYPE, MAKE SURE CONSTRUCTOR HAS SAME ARGUEMNTS AS <see cref="NoxHero"/>:<br/>
+        /// <code>
+        /// public MyHero(unit u, HeroStats statsPerLevel = null, HeroStats initialStats = null) : base(u, statsPerLevel, initialStats)
+        /// </code>
         /// </summary>
         /// <param name="unitId"></param>
         /// <param name="t">hit type</param>
-        public static void AddCustomType(int unitId, Type t)
+        public static void AddCustomType<T>(int unitId) where T : NoxUnit
         {
-            if (typeof(NoxUnit).IsAssignableFrom(t))
-            {
-                Utils.Error("You have tried to parse type that does not inherit this class!", typeof(NoxUnit));
-                return;
-            }
-            CustomTypes[unitId] = t;
+            CustomTypes[unitId] = typeof(T);
         }
         /// <summary>
         /// Put a custom type that will be attached to a unit when indexing.
@@ -45,9 +35,9 @@ namespace NoxRaven.Units
         /// </summary>
         /// <param name="unitId"></param>
         /// <param name="t"></param>
-        public static void AddCustomType(string unitId, Type t)
+        public static void AddCustomType<T>(string unitId) where T : NoxUnit
         {
-            AddCustomType(FourCC(unitId), t);
+            AddCustomType<T>(FourCC(unitId));
         }
         /// <summary>
         /// Put this initializer somewhere after all players have been initialized. Do this only after you have put all customtypes in the dictionary.
@@ -66,7 +56,7 @@ namespace NoxRaven.Units
             // Deattach when unit leaves the map
             TriggerRegisterLeaveRegion(CreateTrigger(), reg, Filter(() => { ((NoxUnit)GetLeavingUnit()).Remove(); return false; })); // catch unit removal, destroy everything attached
                                                                                                                                      // Utility functions
-            // TimerStart(CreateTimer(), RegenerationTimeout, true, () => { foreach (NoxUnit ue in Indexer.Values) ue.Regenerate(); });
+                                                                                                                                     // TimerStart(CreateTimer(), RegenerationTimeout, true, () => { foreach (NoxUnit ue in Indexer.Values) ue.Regenerate(); });
 
             // Recycle stuff
             DestroyGroup(g);
@@ -80,11 +70,11 @@ namespace NoxRaven.Units
             unit u = GetFilterUnit();
 
             if (GetUnitAbilityLevel(u, FourCC("Aloc")) > 0) return false;
-            if (Indexer.ContainsKey(War3Api.Common.GetHandleId(u))) return false;
+            if (s_indexer.ContainsKey(War3Api.Common.GetHandleId(u))) return false;
 
-            if (CustomTypes.ContainsKey(GetUnitTypeId(u))) Indexer[War3Api.Common.GetHandleId(u)] = (NoxUnit)Activator.CreateInstance(CustomTypes[GetUnitTypeId(u)], u);
-            else if (IsUnitType(u, UNIT_TYPE_HERO)) Indexer[War3Api.Common.GetHandleId(u)] = new NoxHero(u);
-            else Indexer[War3Api.Common.GetHandleId(u)] = new NoxUnit(u);
+            if (CustomTypes.ContainsKey(GetUnitTypeId(u))) s_indexer[War3Api.Common.GetHandleId(u)] = (NoxUnit)Activator.CreateInstance(CustomTypes[GetUnitTypeId(u)], u);
+            else if (IsUnitType(u, UNIT_TYPE_HERO)) s_indexer[War3Api.Common.GetHandleId(u)] = new NoxHero(u, null, null);
+            else s_indexer[War3Api.Common.GetHandleId(u)] = new NoxUnit(u);
             u = null;
             return false;
         }
@@ -94,7 +84,7 @@ namespace NoxRaven.Units
         /// <param name="u"></param>
         private static void AwaitRemoval(NoxUnit u, NoxUnit killer)
         {
-            if (!Indexer.ContainsKey(u.GetId())) return; // this is a very weird thing to happen, but will happen for Neutrals so yeah
+            if (!s_indexer.ContainsKey(u.GetId())) return; // this is a very weird thing to happen, but will happen for Neutrals so yeah
             if (u.corpse) return;
 
             foreach (Status st in u.Statuses.Values)
@@ -129,10 +119,11 @@ namespace NoxRaven.Units
             _globalEvents[typeof(T).FullName].Remove(behaviour);
         }
 
+
         // may be implicit operator, Ive been down this road
         public static NoxUnit Cast(unit u)
         {
-            return Indexer[War3Api.Common.GetHandleId(u)];
+            return s_indexer[War3Api.Common.GetHandleId(u)];
         }
         public static implicit operator NoxUnit(unit u)
         {

@@ -23,7 +23,7 @@ namespace NoxRaven
         /// <param name="target"></param>
         public void ApplyOnHit(NoxUnit source, NoxUnit target, float damage, float processedDamage)
         {
-            if (GetRandomReal(0, 1) < source.lookuptriggerChance * type.chance)
+            if (GetRandomReal(0, 1) < source.lookupTriggerChance * type.chance)
                 if (!type.epic)
                     for (int i = 0; i < count; i++)
                         type.callback.Invoke(source, target, damage, processedDamage, this);

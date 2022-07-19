@@ -21,11 +21,11 @@ namespace NoxRaven
         /// All charged items will be stacking.
         /// </summary>
         public static bool s_chargedStack = true;
-        private ItemAction _pickUp = null;
-        private ItemAction _drop = null;
-        private ItemAction _use = null;
+        protected ItemAction pickUp = null;
+        protected ItemAction drop = null;
+        protected ItemAction use = null;
 
-        private Modifier mod = null;
+        private IModifier mod = null;
         private List<IPriorityBehaviour> _behaviours = null;
 
         internal static void InitItemLogic()
@@ -37,35 +37,42 @@ namespace NoxRaven
             TriggerRegisterAnyUnitEventBJ(itemPick, EVENT_PLAYER_UNIT_PICKUP_ITEM);
             TriggerRegisterAnyUnitEventBJ(itemDrop, EVENT_PLAYER_UNIT_PAWN_ITEM);
             TriggerRegisterAnyUnitEventBJ(itemDrop, EVENT_PLAYER_UNIT_DROP_ITEM);
-            TriggerRegisterAnyUnitEventBJ(itemUse, EVENT_PLAYER_UNIT_USE_ITEM);
+            // TriggerRegisterAnyUnitEventBJ(itemUse, EVENT_PLAYER_UNIT_USE_ITEM);
 
             TriggerAddAction(itemPick, () =>
             {
                 int type = GetItemTypeId(GetManipulatedItem());
                 NoxItem check = s_index[type];
                 if (check != null)
-                    check._pickUp.Invoke(GetManipulatingUnit());
+                    NoxUnit.Cast(GetManipulatingUnit()).AddModifier(check.mod);
             });
             TriggerAddAction(itemDrop, () =>
             {
                 int type = GetItemTypeId(GetManipulatedItem());
                 NoxItem check = s_index[type];
                 if (check != null)
-                    check._drop.Invoke(GetManipulatingUnit());
+                    NoxUnit.Cast(GetManipulatingUnit()).RemoveModifier(check.mod);
             });
-            TriggerAddAction(itemUse, () =>
-            {
-                int type = GetItemTypeId(GetManipulatedItem());
-                NoxItem check = s_index[type];
-                if (check != null)
-                    check._use.Invoke(GetManipulatingUnit());
-            });
+            // TriggerAddAction(itemUse, () =>
+            // {
+            //     int type = GetItemTypeId(GetManipulatedItem());
+            //     NoxItem check = s_index[type];
+            //     if (check != null)
+            //         check.use.Invoke(GetManipulatingUnit());
+            // });
         }
-        private NoxItem(ItemAction pickUp, ItemAction drop, ItemAction use)
+        private NoxItem(IModifier mod)
+        {  
+            this.mod = mod;
+        }
+
+        public static void RegisterItem(int itemCode, IModifier mod)
         {
-            _pickUp = pickUp;
-            _drop = drop;
-            _use = use;
+            s_index.Add(itemCode, new NoxItem(mod));
+        }
+        public static void RegisterItem(string fourCC, IModifier mod)
+        {
+            RegisterItem(FourCC(fourCC), mod);
         }
     }
 }

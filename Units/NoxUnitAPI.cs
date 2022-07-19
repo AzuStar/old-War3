@@ -11,48 +11,6 @@ namespace NoxRaven.Units
 {
     public partial class NoxUnit
     {
-        public float lookupbaseDMG => _stats.baseDMG;
-        public float lookupbaseDMGPercent => _stats.baseDMGPercent;
-        public float lookupbonusDMG => _stats.bonusDMG;
-        public float lookupbaseDMGPercentBonus => _stats.baseDMGPercentBonus;
-        public float lookuparmorPenetration => _stats.armorPenetration;
-        public float lookupattackSpeed => _stats.attackSpeed;
-        public float lookupbaseAttackCooldown => _stats.baseAttackCooldown;
-        public float lookupbaseAP => _stats.baseAP;
-        public float lookupbaseAPPercent => _stats.baseAPPercent;
-        public float lookupbonusAP => _stats.bonusAP;
-        public float lookupbaseAPPercentBonus => _stats.baseAPPercentBonus;
-        public float lookupbaseHP => _stats.baseHP;
-        public float lookupbaseHPPercent => _stats.baseHPPercent;
-        public float lookupbonusHP => _stats.bonusHP;
-        public float lookupbaseHPPercentBonus => _stats.baseHPPercentBonus;
-        public float lookupregenHP => _stats.regenHP;
-        public float lookupregenHPPercent => _stats.regenHPPercent;
-        public float lookupbaseMP => _stats.baseMP;
-        public float lookupbaseMPPercent => _stats.baseMPPercent;
-        public float lookupbonusMP => _stats.bonusMP;
-        public float lookupbaseMPPercentBonus => _stats.baseMPPercentBonus;
-        public float lookupregenMP => _stats.regenMP;
-        public float lookupregenMPPercent => _stats.regenMPPercent;
-        public float lookupbaseARM => _stats.baseARM;
-        public float lookupbaseARMPercent => _stats.baseARMPercent;
-        public float lookupbonusARM => _stats.bonusARM;
-        public float lookupbaseARMPercentBonus => _stats.baseARMPercentBonus;
-        public float lookupbaseMR => _stats.baseMR;
-        public float lookupbaseMRPercent => _stats.baseMRPercent;
-        public float lookupbonusMR => _stats.bonusMR;
-        public float lookupbaseMRPercentBonus => _stats.baseMRPercentBonus;
-        public float lookupcritChace => _stats.critChace;
-        public float lookupcritDamage => _stats.critDamage;
-        public float lookuplifeSteal => _stats.lifeSteal;
-        public float lookupspellVamp => _stats.spellVamp;
-        public float lookupincomingHealing => _stats.incomingHealing;
-        public float lookupincomingMana => _stats.incomingMana;
-        public float lookupdamageReduction => _stats.damageReduction;
-        public float lookuptriggerChance => _stats.triggerChance;
-        public float lookupbaseMSPercent => _stats.baseMSPercent;
-        public float lookupbaseMS => _stats.baseMS;
-
         /// <summary>
         /// Call this to remove unit instantly.
         /// Not calling will leak.
@@ -95,7 +53,7 @@ namespace NoxRaven.Units
             _DealDamage(target, damage, triggerOnHit, triggerCrit, dmgSource, dmgType, stopRecursion);
         }
 
-        public void AddModifier(Modifier mod)
+        public void AddModifier(IModifier mod)
         {
             if (mod != null)
             {
@@ -104,7 +62,7 @@ namespace NoxRaven.Units
             }
 
         }
-        public void RemoveModifier(Modifier mod)
+        public void RemoveModifier(IModifier mod)
         {
             if (mod != null)
             {

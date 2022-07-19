@@ -2,14 +2,18 @@ using System;
 
 namespace NoxRaven.UnitAgents
 {
-    public class Modifier
+    public interface IModifier
     {
-        private Stats _stats;
-        public Modifier(Stats stats)
+        Stats ApplyModifier(Stats stats);
+        Stats UnapplyModifier(Stats stats);
+    }
+    public sealed class Modifier<T> : IModifier where T : Stats
+    {
+        private T _stats;
+        public Modifier(T stats)
         {
             _stats = stats;
         }
-
         public Stats ApplyModifier(Stats stats)
         {
             return (stats + _stats);

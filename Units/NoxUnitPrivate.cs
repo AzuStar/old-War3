@@ -26,17 +26,25 @@ namespace NoxRaven.Units
             source._DealDamage(this, dmg, true, true, DamageSource.BASIC_ATTACK, DamageType.PHYSICAL, false);
         }
 
-        protected NoxUnit(unit u)
+        protected NoxUnit(unit u, Stats initialStats = null)
         {
             _self_ = u;
-            _stats.baseMS = GetUnitMoveSpeed(u);
-            _stats.baseHP = BlzGetUnitMaxHP(u);
-            _stats.baseMP = BlzGetUnitMaxMana(u);
-            _stats.baseDMG = BlzGetUnitBaseDamage(u, 0);
-            _stats.baseAttackCooldown = BlzGetUnitAttackCooldown(_self_, 0);
-            _stats.baseARM = BlzGetUnitArmor(u);
+            if (initialStats == null)
+            {
+                _stats.baseMS = BlzGetUnitRealField(u, UNIT_RF_SPEED);
+                _stats.baseHP = BlzGetUnitRealField(u, UNIT_RF_HP);
+                _stats.baseMP = BlzGetUnitRealField(u, UNIT_RF_MANA);
+                _stats.baseDMG = BlzGetUnitWeaponIntegerField(u, UNIT_WEAPON_IF_ATTACK_DAMAGE_BASE, 0);
+                _stats.baseAttackCooldown = BlzGetUnitWeaponRealField(u, UNIT_WEAPON_RF_ATTACK_BASE_COOLDOWN, 0);
+                _stats.baseARM = BlzGetUnitRealField(u, UNIT_RF_DEFENSE);
+            }
+            else
+                _stats = initialStats;
             _RecalculateStats();
-            // Damage Utilization
+            // when unit indexed (aka created) it must have full vitals
+            SetUnitState(u, UNIT_STATE_LIFE, 999999999);
+            SetUnitState(u, UNIT_STATE_MANA, 999999999);
+
             DamageTrig = CreateTrigger();
             TriggerRegisterUnitEvent(DamageTrig, u, EVENT_UNIT_DAMAGED);
             TriggerAddAction(DamageTrig, DamageHandler);
@@ -48,69 +56,12 @@ namespace NoxRaven.Units
             OnHits.Clear();
             //AmHits.Clear();
             DestroyTrigger(DamageTrig);
-            Indexer.Remove(War3Api.Common.GetHandleId(_self_));
+            s_indexer.Remove(War3Api.Common.GetHandleId(_self_));
             OnHits = null;
             Statuses = null;
             RemoveUnit(this);
             DamageTrig = null;
         }
-
-        // /// <summary>
-        // /// Set unit's -xxx.x or +xxx.x armor. Does support single precision decimal point.
-        // /// </summary>
-        // /// <param name="val"></param>
-        // protected void SetGreenArmor(float val)
-        // {
-        //     int leftover = R2I(val);
-        //     int decimals = R2I((val - R2I(val)) * 10);
-        //     if (val < 0) decimals = 1 - decimals;
-        //     SetUnitAbilityLevel(s_ref, FourCC("ARDP"), decimals + 1);
-        //     GreenArmor = val;
-        //     foreach (int abil in Abilities_BonusArmor)
-        //         UnitRemoveAbility(this, abil);
-        //     foreach (int abil in Abilities_Corruption)
-        //         UnitRemoveAbility(this, abil);
-
-        //     if (leftover < 0)
-        //     {
-        //         leftover = -leftover;
-        //         for (int i = Abilities_Corruption.Length - 1; i >= 0; i--)
-        //         {
-        //             int comparator = R2I(Pow(2, i));
-        //             if (comparator <= leftover)
-        //             {
-        //                 UnitAddAbility(this, Abilities_Corruption[i]);
-        //                 leftover -= comparator;
-        //             }
-        //         }
-        //     }
-        //     else
-        //         for (int i = Abilities_BonusArmor.Length - 1; i >= 0; i--)
-        //         {
-        //             int comparator = R2I(Pow(2, i));
-        //             if (comparator <= leftover)
-        //             {
-        //                 UnitAddAbility(this, Abilities_BonusArmor[i]);
-        //                 leftover -= comparator;
-        //             }
-        //         }
-        // }
-
-        // // This guy makes +xxx damage magic
-        // protected void SetGreenDamage(int val)
-        // {
-        //     GreenDamage = val;
-        //     for (int i = Abilities_BonusDamage.Length - 1; i >= 0; i--)
-        //     {
-        //         UnitRemoveAbility(this, Abilities_BonusDamage[i]);
-        //         int comparator = R2I(Pow(2, i));
-        //         if (comparator <= val)
-        //         {
-        //             UnitAddAbility(this, Abilities_BonusDamage[i]);
-        //             val -= comparator;
-        //         }
-        //     }
-        // }
 
         // protected virtual void Regenerate()
         // {
@@ -130,9 +81,14 @@ namespace NoxRaven.Units
         private void _RecalculateStats()
         {
             BlzSetUnitAttackCooldown(_self_, _stats.baseAttackCooldown / (1 + _stats.attackSpeed), 0);
-            SetUnitMoveSpeed(_self_, _stats.baseMS * _stats.baseMSPercent);
-            BlzSetUnitMaxHP(this, R2I((_stats.baseHP * (1 + _stats.baseHPPercent)) * (1 + _stats.baseHPPercentBonus) + _stats.bonusHP + Utils.ROUND_DOWN_CONST_OVERHEAD)); // rounding issues
+            SetUnitMoveSpeed(_self_, _stats.baseMS * (1 + _stats.baseMSPercent));
+            BlzSetUnitMaxHP(this, R2I(((_stats.baseHP * (1 + _stats.baseHPPercent)) * (1 + _stats.baseHPPercentBonus) + _stats.bonusHP) * (1 + _stats.totalHPPercent) + Utils.ROUND_DOWN_CONST_OVERHEAD)); // rounding issues
+            BlzSetUnitMaxMana(this, R2I(((_stats.baseMP * (1 + _stats.baseMPPercent)) * (1 + _stats.baseMPPercentBonus) + _stats.bonusMP) * (1 + _stats.totalMPPercent) + Utils.ROUND_DOWN_CONST_OVERHEAD)); // rounding issues
 
+            DMG = (_stats.baseDMG * (1 + _stats.baseDMGPercent) * (1 + _stats.baseDMGPercentBonus) + _stats.bonusDMG) * (1 + _stats.totalDMGPercent);
+            AP = (_stats.baseAP * (1 + _stats.baseAPPercent) * (1 + _stats.baseAPPercentBonus) + _stats.bonusAP) * (1 + _stats.totalAPPercent);
+            ARM = (_stats.baseARM * (1 + _stats.baseARMPercent) * (1 + _stats.baseARMPercentBonus) + _stats.bonusARM) * (1 + _stats.totalARMPercent);
+            MR = (_stats.baseMR * (1 + _stats.baseMRPercent) * (1 + _stats.baseMRPercentBonus) + _stats.bonusMR) * (1 + _stats.totalMRPercent);
         }
 
         #region internal Status/onhit api
@@ -174,14 +130,15 @@ namespace NoxRaven.Units
 
             float critC = _stats.critChace;
             float critD = _stats.critDamage;
-            // maths
-            if (dmgtype == DamageType.PHYSICAL || dmgtype == DamageType.MAGICAL)
-                pars *= (1 - Math.Min(target._stats.damageReduction, 1));
-            float armor = BlzGetUnitArmor(target);
-            if (armor < 0)
-                pars *= (1.71f - Pow(1f - ARMOR_MR_REDUCTION, -armor)); // war3 real armor reduction is 1.71-pow(xxx) - why? - no idea
-            else pars *= 1 / (1 + armor * ARMOR_MR_REDUCTION * (1 - _stats.armorPenetration)); // Inverse armor reduction function, got by solving: Armor * CONST / (1 + ARMOR * CONST)
 
+            if (dmgtype == DamageType.PHYSICAL)
+            {
+                pars *= UnitUtils.GetDamageReductionFromArmor(target.ARM);
+            }
+            else if (dmgtype == DamageType.MAGICAL)
+            {
+                pars *= UnitUtils.GetDamageReductionFromArmor(target.MR);
+            }
             //Event Pars
 
             OnDamageDealt evt = new OnDamageDealt()
