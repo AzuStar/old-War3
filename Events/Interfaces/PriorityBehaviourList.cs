@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace NoxRaven.Events
 {
     public sealed class BehaviourList<T> where T : EventArgs
     {
-        private SortedList<int, List<IPriorityBehaviour>> _list = new SortedList<int, List<IPriorityBehaviour>>();
+        private Dictionary<int, List<IPriorityBehaviour>> _list = new Dictionary<int, List<IPriorityBehaviour>>();
 
         //?
         public BehaviourList() { }
@@ -34,9 +35,10 @@ namespace NoxRaven.Events
 
         public void InvokeBehaviours(T args)
         {
-            foreach (KeyValuePair<int, List<IPriorityBehaviour>> list in _list)
+            IEnumerable<int> sortedKeys = _list.Keys.OrderBy(key => key);
+            foreach (int key in sortedKeys)
             {
-                foreach (IPriorityBehaviour behaviour in list.Value)
+                foreach (IPriorityBehaviour behaviour in _list[key])
                 {
                     behaviour.GenericsInvoke(args);
                 }

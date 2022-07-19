@@ -1,4 +1,4 @@
-﻿ using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -16,16 +16,21 @@ namespace NoxRaven
         public const float ROUND_DOWN_CONST_OVERHEAD = 0.19f;
         public static item s_walkableItem;
         public static float s_walkableOverhead = 10;
+        public static List<string> s_debugMessages = new List<string>();
 
         static Utils()
         {
-            s_walkableItem = CreateItem(FourCC("afac"), 0, 0);
+            s_walkableItem = CreateItem(FourCC("afac"), 0, 0); // fix 0,0 bug
             SetItemVisible(s_walkableItem, false);
         }
 
+        /// <summary>
+        /// This is always a callable function, that records debug messages
+        /// </summary>
         public static void Debug(string str)
         {
-            DisplayMessageToEveryone(str, 1000);
+            s_debugMessages.Add(str);
+            LuaMethods.Print(str);
         }
 
         /// <summary>
@@ -43,7 +48,7 @@ namespace NoxRaven
             Master.s_badLoad = true;
             Master.s_errCount++;
             foreach (NoxPlayer p in NoxPlayer.players.Values)
-                DisplayTimedTextToPlayer(p._self_, 0, 0, 900f, "|cffFF0000ERROR IN: " + t.FullName + "|r\nMessage:" + message);
+                DisplayTimedTextToPlayer(p._self_, 0, 0, 900f, "|cffFF0000ERROR IN: " + t.FullName + "|r\nMessage: " + message);
         }
         /// <summary>
         /// Use this function to invoke something (anything) with a delay.
@@ -119,7 +124,7 @@ namespace NoxRaven
         [Obsolete]
         public static bool IsUnitDead(unit u)
         {
-            return GetWidgetLife(u) <= 0 || IsUnitType(u, UNIT_TYPE_DEAD);
+            return GetWidgetLife(u) <= 0.305f || IsUnitType(u, UNIT_TYPE_DEAD);
         }
 
         public static effect DisplayEffect(string effectPath, float x, float y, float duration)
@@ -191,10 +196,15 @@ namespace NoxRaven
         public static List<NoxUnit> GetUnitList(UnitFilter filter)
         {
             List<NoxUnit> lis = new List<NoxUnit>();
-            foreach (NoxUnit nu in NoxUnit.Indexer.Values)
+            foreach (NoxUnit nu in NoxUnit.s_indexer.Values)
                 if (filter.Invoke(nu))
                     lis.Add(nu);
             return lis;
+        }
+
+        public static string ValusToString<T>(this IEnumerable<T> collection)
+        {
+            return string.Format("[{0}]", string.Join(", ", collection));
         }
 
     }
