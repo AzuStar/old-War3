@@ -34,7 +34,7 @@ namespace NoxRaven
         /// @CSharpLua.Template = "benchmark({0}, {1})"
         /// </summary>
         /// <param name="obj"></param>
-        /// <returns></returns
+        /// <returns></returns>
         public static extern void Benchmark(string callName, Action testFunc);
 #pragma warning restore CS0626 // Method, operator, or accessor is marked external and has no attributes on it
     }
