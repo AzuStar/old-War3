@@ -112,7 +112,7 @@ namespace NoxRaven.Frames
                 s_statCells[i] = new StatCell(i);
             }
 
-            StatCell.DefineBigStat(0, "assetsnoxraven\\icon_DMG.blp",
+            StatCell.DefineBigStat(0, "noxraven\\icon_DMG.blp",
             (frame, u) =>
                 {
                     string val = u.ui_baseDMG + UIUtils.BonusStringFromValue(u.ui_bonusDMG);
@@ -124,7 +124,7 @@ namespace NoxRaven.Frames
                     return "Damage: " + u.DMG + " = (" + val + ")\n\nYour basic attacks deal this much damage.";
                 }
             );
-            StatCell.DefineBigStat(1, "assetsnoxraven\\icon_ARM.blp",
+            StatCell.DefineBigStat(1, "noxraven\\icon_ARM.blp",
             (frame, u) =>
                 {
                     string val = u.ui_baseARM + UIUtils.BonusStringFromValue(u.ui_bonusARM);
@@ -137,7 +137,7 @@ namespace NoxRaven.Frames
                     "Physical Damage Reduction: " + R2SW(100 - UnitUtils.GetDamageReductionFromArmor(u.ARM) * 100, 2, 2) + "%\n\nPhysical damage that you take will be reduced the higher the armour of your character is.";
                 }
             );
-            StatCell.DefineBigStat(2, "assetsnoxraven\\icon_AS.blp",
+            StatCell.DefineBigStat(2, "noxraven\\icon_AS.blp",
             (frame, u) =>
                 {
                     string val;
@@ -167,7 +167,7 @@ namespace NoxRaven.Frames
                 }
             );
 
-            StatCell.DefineBigStat(3, "assetsnoxraven\\icon_AP.blp",
+            StatCell.DefineBigStat(3, "noxraven\\icon_AP.blp",
             (frame, u) =>
                 {
                     string val = u.ui_baseAP + UIUtils.BonusStringFromValue(u.ui_bonusAP);
@@ -180,7 +180,7 @@ namespace NoxRaven.Frames
                     "Ability Power impoves abilities in various way.";
                 }
             );
-            StatCell.DefineBigStat(4, "assetsnoxraven\\icon_MR.blp",
+            StatCell.DefineBigStat(4, "noxraven\\icon_MR.blp",
             (frame, u) =>
                 {
                     string val = u.ui_baseMR + UIUtils.BonusStringFromValue(u.ui_bonusMR);
@@ -194,7 +194,7 @@ namespace NoxRaven.Frames
                     "Magical and spell damage that you take will be reduced the higher the armour of your character is.";
                 }
             );
-            StatCell.DefineBigStat(5, "assetsnoxraven\\icon_SPD.blp",
+            StatCell.DefineBigStat(5, "noxraven\\icon_SPD.blp",
             (frame, u) =>
                 {
                     string val;
