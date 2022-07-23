@@ -11,6 +11,7 @@ namespace NoxRavent.Frames
     {
         public framehandle tooltipFrame;
         public Func<NoxUnit, string> updateCallback;
+
         public Tooltip(framehandle buttonParent, Func<NoxUnit, string> update)
         {
             updateCallback = update;
@@ -19,6 +20,8 @@ namespace NoxRavent.Frames
             BlzFrameSetVisible(tooltipFrame, false);
             s_tooltips.Add(this);
         }
+
+
         public static framehandle s_parent;
         public static framehandle s_tooltipBox;
         public static framehandle s_tooltipTextTitle;
@@ -38,7 +41,6 @@ namespace NoxRavent.Frames
             BlzFrameSetPoint(s_tooltipBox, FRAMEPOINT_TOPLEFT, s_tooltipTextTitle, FRAMEPOINT_TOPLEFT, -0.004f, 0.004f);
             BlzFrameSetPoint(s_tooltipBox, FRAMEPOINT_BOTTOMRIGHT, s_tooltipTextTitle, FRAMEPOINT_BOTTOMRIGHT, 0.004f, -0.004f);
             BlzFrameSetVisible(s_tooltipBox, false);
-
             // TriggerAddAction(s_tooltipTrig, () =>
             // {
             // // request currently used unit of the clicking player
@@ -50,7 +52,6 @@ namespace NoxRavent.Frames
             // BlzFrameSetText(s_tooltipText, text);
             // BlzFrameSetVisible(s_tooltipBox, true);
             // });
-
             Master.s_globalTick.Add(() =>
             {
                 try

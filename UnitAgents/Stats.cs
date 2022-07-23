@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
-using NoxRaven.Frames;
 
 namespace NoxRaven.UnitAgents
 {
     ///<summary>
     /// Stats of the NoxUnit <br/>
-    /// Start custom stats at key (including) 47
+    /// Start custom stats at key (including) 49
+    /// Remineder: heroes use 49 for experience rate
     ///</summary>
     public class Stats
     {
@@ -24,7 +24,6 @@ namespace NoxRaven.UnitAgents
         (double|float|int) (\w)(\w+)(?: = .+|;)?
         $1 lookup\U$2$3=>_stats.$2$3;
         */
-
         private Dictionary<int, float> _statCollection = new Dictionary<int, float>();
         protected void SetStat(int key, float value)
         {
@@ -48,9 +47,6 @@ namespace NoxRaven.UnitAgents
         public float bonusDMG { get => GetStat(2); set => SetStat(2, value); }
         public float baseDMGPercentBonus { get => GetStat(3); set => SetStat(3, value); }
         public float totalDMGPercent { get => GetStat(4); set => SetStat(4, value); }
-
-        public float penetrationARM { get => GetStat(5); set => SetStat(5, value); }
-        public float penetrationMR { get => GetStat(6); set => SetStat(6, value); }
 
         /// <summary>
         /// Base attack speed / attackSpeed = New Attack Speed <br />
@@ -102,6 +98,8 @@ namespace NoxRaven.UnitAgents
         public float totalMRPercent { get => GetStat(37); set => SetStat(37, value); }
 
 
+        public float penetrationARM { get => GetStat(5); set => SetStat(5, value); }
+        public float penetrationMR { get => GetStat(6); set => SetStat(6, value); }
         public float critChace { get => GetStat(38); set => SetStat(38, value); }
         public float critDamage { get => GetStat(39); set => SetStat(39, value); }
         /// <summary>
@@ -133,42 +131,92 @@ namespace NoxRaven.UnitAgents
         public float triggerChance { get => GetStat(44); set => SetStat(44, value); }
         public float baseMSPercent { get => GetStat(45); set => SetStat(45, value); }
         public float baseMS { get => GetStat(46); set => SetStat(46, value); }
+        public float dodgeChance { get => GetStat(47); set => SetStat(47, value); }
+        public float blockChance { get => GetStat(48); set => SetStat(48, value); }
 
+
+        /// <summary>
+        /// Returned Stats are new class instance
+        /// </summary>
         public static Stats operator +(Stats left, Stats right)
         {
             HashSet<int> keys = new HashSet<int>();
+            Stats newstats = new Stats();
             left._statCollection.Keys.Union(right._statCollection.Keys).ToList().ForEach(key => keys.Add(key));
             foreach (int key in keys)
             {
-                left.SetStat(key, left.GetStat(key) + right.GetStat(key));
+                newstats.SetStat(key, left.GetStat(key) + right.GetStat(key));
             }
-            return left;
+            return newstats;
         }
+        /// <summary>
+        /// Returned Stats are new class instance
+        /// </summary>
         public static Stats operator -(Stats left, Stats right)
         {
             HashSet<int> keys = new HashSet<int>();
+            Stats newstats = new Stats();
             left._statCollection.Keys.Union(right._statCollection.Keys).ToList().ForEach(key => keys.Add(key));
             foreach (int key in keys)
             {
-                left.SetStat(key, left.GetStat(key) - right.GetStat(key));
+                newstats.SetStat(key, left.GetStat(key) - right.GetStat(key));
             }
-            return left;
+            return newstats;
         }
+        /// <summary>
+        /// Returned Stats are new class instance
+        /// </summary>
+        public static Stats operator *(Stats left, Stats right)
+        {
+            HashSet<int> keys = new HashSet<int>();
+            Stats newstats = new Stats();
+            left._statCollection.Keys.Union(right._statCollection.Keys).ToList().ForEach(key => keys.Add(key));
+            foreach (int key in keys)
+            {
+                newstats.SetStat(key, left.GetStat(key) * right.GetStat(key));
+            }
+            return newstats;
+        }
+        /// <summary>
+        /// Returned Stats are new class instance
+        /// </summary>
+        public static Stats operator /(Stats left, Stats right)
+        {
+            HashSet<int> keys = new HashSet<int>();
+            Stats newstats = new Stats();
+            left._statCollection.Keys.Union(right._statCollection.Keys).ToList().ForEach(key => keys.Add(key));
+            foreach (int key in keys)
+            {
+                if (right.GetStat(key) == 0)
+                    newstats.SetStat(key, 0);
+                else
+                    newstats.SetStat(key, left.GetStat(key) / right.GetStat(key));
+            }
+            return newstats;
+        }
+        /// <summary>
+        /// Returned Stats are new class instance
+        /// </summary>
         public static Stats operator *(Stats left, float right)
         {
+            Stats newstats = new Stats();
             foreach (int key in left._statCollection.Keys)
             {
-                left._statCollection[key] *= right;
+                newstats.SetStat(key, left._statCollection[key] * right);
             }
-            return left;
+            return newstats;
         }
+        /// <summary>
+        /// Returned Stats are new class instance
+        /// </summary>
         public static Stats operator /(Stats left, float right)
         {
+            Stats newstats = new Stats();
             foreach (int key in left._statCollection.Keys)
             {
-                left._statCollection[key] /= right;
+                newstats.SetStat(key, left._statCollection[key] / right);
             }
-            return left;
+            return newstats;
         }
     }
 }
