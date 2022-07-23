@@ -35,10 +35,15 @@ namespace NoxRaven.Units
         /// <param name="damage"></param>
         public void RawDamage(NoxUnit target, float damage)
         {
-            DamageEngineIgnore = true;
+            _damageEngineIgnore = true;
             UnitDamageTarget(this, target, damage, true, false, ATTACK_TYPE_CHAOS, DAMAGE_TYPE_UNIVERSAL, null);
-            DamageEngineIgnore = false;
+            _damageEngineIgnore = false;
             if (GetWidgetLife(target) <= 0.305) AwaitRemoval(target, this);// weird bug BECAUSE WC3REFUNDED SHIT HEHE
+        }
+
+        public void ResetBasicAttackTimer()
+        {
+            UnitAddAbility(_self_, _resetAAAbility);
         }
 
         /// <summary>
@@ -73,11 +78,11 @@ namespace NoxRaven.Units
 
         public void RemoveStatus(int id)
         {
-            Statuses.Remove(id);
+            _statuses.Remove(id);
         }
         public Status GetStatus(int id)
         {
-            return Statuses[id];
+            return _statuses[id];
         }
         /// <summary>
         /// Heal unit by % missing hp. Unit with 50% HP and 10% Missing Healing will receive effective 5% heal.

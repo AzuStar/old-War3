@@ -16,13 +16,16 @@ namespace NoxRaven.Units
         // ****************
         private void DamageHandler()
         {
-            if (DamageEngineIgnore) return;
+            if (_damageEngineIgnore) return;
             if (GetEventDamage() < 1) return;
             NoxUnit source = Cast(GetEventDamageSource());
             BlzSetEventDamage(0);
             // ~this is the target
             //if (!Ranged) // later
             float dmg = source.DMG;
+
+            UnitRemoveAbility(source._self_, _resetAAAbility);
+
             source._DealDamage(this, dmg, true, true, DamageSource.BASIC_ATTACK, DamageType.PHYSICAL, false);
         }
 
@@ -45,22 +48,22 @@ namespace NoxRaven.Units
             SetUnitState(u, UNIT_STATE_LIFE, 999999999);
             SetUnitState(u, UNIT_STATE_MANA, 999999999);
 
-            DamageTrig = CreateTrigger();
-            TriggerRegisterUnitEvent(DamageTrig, u, EVENT_UNIT_DAMAGED);
-            TriggerAddAction(DamageTrig, DamageHandler);
+            dmgHookTrig = CreateTrigger();
+            TriggerRegisterUnitEvent(dmgHookTrig, u, EVENT_UNIT_DAMAGED);
+            TriggerAddAction(dmgHookTrig, DamageHandler);
         }
 
         private void Remove()
         {
-            TriggerEvent(new RemovalEvent() { Target = this });
-            OnHits.Clear();
+            TriggerEvent(new OnRecycle() { Target = this });
+            onHits.Clear();
             //AmHits.Clear();
-            DestroyTrigger(DamageTrig);
+            DestroyTrigger(dmgHookTrig);
             s_indexer.Remove(War3Api.Common.GetHandleId(_self_));
-            OnHits = null;
-            Statuses = null;
+            onHits = null;
+            _statuses = null;
             RemoveUnit(this);
-            DamageTrig = null;
+            dmgHookTrig = null;
         }
 
         // protected virtual void Regenerate()
@@ -78,7 +81,7 @@ namespace NoxRaven.Units
         //     HealMP(parsEvent.ManaValue * RegenerationTimeout);
         // }
 
-        private void _RecalculateStats()
+        protected void _RecalculateStats()
         {
             BlzSetUnitAttackCooldown(_self_, _stats.baseAttackCooldown / (1 + _stats.attackSpeed), 0);
             SetUnitMoveSpeed(_self_, _stats.baseMS * (1 + _stats.baseMSPercent));
@@ -94,29 +97,29 @@ namespace NoxRaven.Units
         #region internal Status/onhit api
         internal bool ContainsOnHit(int id)
         {
-            return OnHits.ContainsKey(id);
+            return onHits.ContainsKey(id);
         }
         internal OnHit AddOnHit(int id, OnHit toAdd)
         {
-            OnHits.Add(id, toAdd);
+            onHits.Add(id, toAdd);
             return toAdd;
         }
         internal OnHit GetOnHit(int id)
         {
-            return OnHits[id];
+            return onHits[id];
         }
         internal void RemoveOnHit(int id)
         {
-            OnHits.Remove(id);
+            onHits.Remove(id);
         }
         internal bool ContainsStatus(int id)
         {
             //if(st.GetHashCode()<=100)
-            return Statuses.ContainsKey(id);
+            return _statuses.ContainsKey(id);
         }
         internal Status AddStatus(int id, Status toAdd)
         {
-            Statuses.Add(id, toAdd);
+            _statuses.Add(id, toAdd);
             return toAdd;
         }
         #endregion
@@ -192,7 +195,7 @@ namespace NoxRaven.Units
             // Onhits
             if (triggerOnHit)
             {
-                List<OnHit> onhits = new List<OnHit>(OnHits.Values);
+                List<OnHit> onhits = new List<OnHit>(onHits.Values);
                 foreach (OnHit onhit in onhits)
                     onhit.ApplyOnHit(this, target, damage, pars);
                 //ApplyAmHits(source);

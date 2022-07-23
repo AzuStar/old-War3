@@ -9,9 +9,10 @@ namespace NoxRaven.Units
     public partial class NoxUnit
     {
         protected internal static Dictionary<int, NoxUnit> s_indexer = new Dictionary<int, NoxUnit>();
-        private static Dictionary<int, Type> CustomTypes = new Dictionary<int, Type>();
+        private static Dictionary<int, Type> s_customTypes = new Dictionary<int, Type>();
+        private static int _resetAAAbility = FourCC("A00E");
         private static float KeepCorpsesFor = 25;
-        private static bool DamageEngineIgnore = false;
+        private static bool _damageEngineIgnore = false;
 
         private static Dictionary<string, BehaviourList<Events.EventArgs>> _globalEvents = new Dictionary<string, BehaviourList<Events.EventArgs>>();
 
@@ -27,7 +28,7 @@ namespace NoxRaven.Units
         /// <param name="t">hit type</param>
         public static void AddCustomType<T>(int unitId) where T : NoxUnit
         {
-            CustomTypes[unitId] = typeof(T);
+            s_customTypes[unitId] = typeof(T);
         }
         /// <summary>
         /// Put a custom type that will be attached to a unit when indexing.
@@ -72,7 +73,7 @@ namespace NoxRaven.Units
             if (GetUnitAbilityLevel(u, FourCC("Aloc")) > 0) return false;
             if (s_indexer.ContainsKey(War3Api.Common.GetHandleId(u))) return false;
 
-            if (CustomTypes.ContainsKey(GetUnitTypeId(u))) s_indexer[War3Api.Common.GetHandleId(u)] = (NoxUnit)Activator.CreateInstance(CustomTypes[GetUnitTypeId(u)], u);
+            if (s_customTypes.ContainsKey(GetUnitTypeId(u))) s_indexer[War3Api.Common.GetHandleId(u)] = (NoxUnit)Activator.CreateInstance(s_customTypes[GetUnitTypeId(u)], u);
             else if (IsUnitType(u, UNIT_TYPE_HERO)) s_indexer[War3Api.Common.GetHandleId(u)] = new NoxHero(u, null, null);
             else s_indexer[War3Api.Common.GetHandleId(u)] = new NoxUnit(u);
             u = null;
@@ -87,9 +88,9 @@ namespace NoxRaven.Units
             if (!s_indexer.ContainsKey(u.GetId())) return; // this is a very weird thing to happen, but will happen for Neutrals so yeah
             if (u.corpse) return;
 
-            foreach (Status st in u.Statuses.Values)
+            foreach (Status st in u._statuses.Values)
                 st.Remove();
-            u.Statuses.Clear();// just in case
+            u._statuses.Clear();// just in case
 
             if (GetUnitAbilityLevel(u, FourCC("Aloc")) > 0) return; // wat
             if (IsUnitType(u, UNIT_TYPE_HERO)) return; // always leak heroes

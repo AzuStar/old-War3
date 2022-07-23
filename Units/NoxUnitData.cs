@@ -26,11 +26,11 @@ namespace NoxRaven.Units
         /// Unit itself.
         /// </summary>
         public readonly unit _self_;
-        private trigger DamageTrig;
+        private trigger dmgHookTrig;
 
-        private Dictionary<int, Status> Statuses = new Dictionary<int, Status>();
+        private Dictionary<int, Status> _statuses = new Dictionary<int, Status>();
 
-        public Dictionary<int, OnHit> OnHits = new Dictionary<int, OnHit>();
+        public Dictionary<int, OnHit> onHits = new Dictionary<int, OnHit>();
         //public Dictionary<int, OnHit> AmHits = new Dictionary<int, OnHit>();
 
         private Stats _stats = new Stats();
