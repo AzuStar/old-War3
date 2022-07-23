@@ -20,6 +20,13 @@ Frame "BACKDROP" "NU_TT_Command_TextBox_TP" {
     BackdropBlendAll,
 }
 
+Texture "NU_TTE_Icon_TP" {
+    File "HeroStrengthIcon",
+    Width 0.017,
+    Height 0.017,
+    Anchor LEFT, 0, 0,
+}
+
 Frame "BACKDROP" "NU_TT_Command_TextBox" INHERITS "NU_TT_Command_TextBox_TP" {
     UseActiveContext,
 }
