@@ -11,7 +11,7 @@ namespace NoxRaven
 {
     public static class Master
     {
-        public const float TICKS_PER_SECOND = 64; // internal wc3:reforged logic tick is about 128
+        public const float TICKS_PER_SECOND = 128; // internal wc3:reforged logic tick is about 128
         public const float TICK_DELTA = 1 / TICKS_PER_SECOND;
         public const int VERSION = 1;
         public static bool s_badLoad = false;
