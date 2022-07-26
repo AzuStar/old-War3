@@ -24,6 +24,10 @@ namespace NoxRaven.UnitAgents
         (double|float|int) (\w)(\w+)(?: = .+|;)?
         $1 lookup\U$2$3=>_stats.$2$3;
         */
+        public override string ToString()
+        {
+            return string.Format("[{0}]", string.Join(", ", _statCollection.Values));
+        }
         private Dictionary<int, float> _statCollection = new Dictionary<int, float>();
         protected void SetStat(int key, float value)
         {
