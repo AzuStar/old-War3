@@ -125,7 +125,7 @@ namespace NoxRaven.Frames
 
             // run update timer
             // this is real time, at max of 60 FPS
-            Master.s_globalTick.Add(() =>
+            Master.s_globalTick.Add((delta) =>
             {
                 // problematic, because a lot of things can backfire
                 try
@@ -267,21 +267,21 @@ namespace NoxRaven.Frames
                 (u) =>
                 {
                     string val = u.lookupLifeSteal * 100 + "%";
-                    return "Life Steal: " + val + " = (" + u.lookupLifeSteal + ")\n\n" +
-                    "All basic attacks and onhit effects will heal your character by percent of damage dealt.";
+                    return "Life Vamp: " + val + " = (" + u.lookupLifeSteal + ")\n\n" +
+                    "All basic attacks and on-hit effects will heal your character by percent of damage dealt.";
                 }
             );
             StatCell.DefineSmallStat(4, "noxraven\\icon_spellvamp.blp",
             (cell, u) =>
                 {
-                    string val = u.lookupLifeSteal * 100 + "%";
+                    string val = u.lookupSpellVamp * 100 + "%";
                     BlzFrameSetText(cell.textFrame, val);
                 },
                 (u) =>
                 {
-                    string val = u.lookupLifeSteal * 100 + "%";
-                    return "Life Steal: " + val + " = (" + u.lookupLifeSteal + ")\n\n" +
-                    "All spells will heal your character by percent of damage dealt.";
+                    string val = u.lookupSpellVamp * 100 + "%";
+                    return "Spell Vamp: " + val + " = (" + u.lookupSpellVamp + ")\n\n" +
+                    "All spell damage will heal your character by percent of damage dealt.";
                 }
             );
             StatCell.DefineSmallStat(6, "noxraven\\icon_HPregen.blp",
@@ -311,7 +311,7 @@ namespace NoxRaven.Frames
                     string val = (u.lookupRegenMP * (1 + u.lookupRegenMPPercent)) + "";
                     string incomingMana = UIUtils.BonusStringFromValue(u.lookupIncomingMana);
                     return "Mana Regeneration: " + val + " = (" + u.lookupRegenMP + UIUtils.BonusStringFromValue(u.lookupRegenMP * u.lookupRegenMPPercent) + ")" + "\n" +
-                    "Incoming Healing: " + (String.IsNullOrEmpty(incomingMana) ? "0" : incomingMana) + "%\n\n" +
+                    "Incoming Mana: " + (String.IsNullOrEmpty(incomingMana) ? "0" : incomingMana) + "%\n\n" +
                     "This indicates how much your character replenishes mana per second." + "\n" +
                     "Incoming mana is the amount of mana you receive from all sources.";
                 }

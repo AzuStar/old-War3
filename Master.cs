@@ -18,7 +18,7 @@ namespace NoxRaven
         public static int s_errCount = 0;
         private static unit _selectedUnit = null;
         private static group _selectedGroup = CreateGroup();
-        public static List<Action> s_globalTick = new List<Action>();
+        public static List<Action<float>> s_globalTick = new List<Action<float>>();
 
         private static timer s_sanityTimer = CreateTimer();
         private static bool s_isSane = false;
@@ -51,10 +51,11 @@ namespace NoxRaven
         public static void RunAfterExtensionsReady()
         {
             BlzLoadTOCFile("noxraven\\NoxUnitFrames.toc");
-            TimerStart(CreateTimer(), TICK_DELTA, true, () =>
+            timer ticker = CreateTimer();
+            TimerStart(ticker, TICK_DELTA, true, () =>
             {
                 foreach (var action in s_globalTick)
-                    action();
+                    action(TimerGetElapsed(ticker));
             });
             NoxUnit.InitUnitLogic();
             NoxItem.InitItemLogic();

@@ -52,7 +52,7 @@ namespace NoxRavent.Frames
             // BlzFrameSetText(s_tooltipText, text);
             // BlzFrameSetVisible(s_tooltipBox, true);
             // });
-            Master.s_globalTick.Add(() =>
+            Master.s_globalTick.Add((delta) =>
             {
                 try
                 {
