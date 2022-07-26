@@ -29,29 +29,7 @@ namespace NoxRaven.Units
             source._DealDamage(this, dmg, true, true, DamageSource.BASIC_ATTACK, DamageType.PHYSICAL, false);
         }
 
-        protected NoxUnit(unit u, Stats initialStats = null)
-        {
-            _self_ = u;
-            if (initialStats == null)
-            {
-                _stats.baseMS = BlzGetUnitRealField(u, UNIT_RF_SPEED);
-                _stats.baseHP = BlzGetUnitRealField(u, UNIT_RF_HP);
-                _stats.baseMP = BlzGetUnitRealField(u, UNIT_RF_MANA);
-                _stats.baseDMG = BlzGetUnitWeaponIntegerField(u, UNIT_WEAPON_IF_ATTACK_DAMAGE_BASE, 0);
-                _stats.baseAttackCooldown = BlzGetUnitWeaponRealField(u, UNIT_WEAPON_RF_ATTACK_BASE_COOLDOWN, 0);
-                _stats.baseARM = BlzGetUnitRealField(u, UNIT_RF_DEFENSE);
-            }
-            else
-                _stats = initialStats;
-            _RecalculateStats();
-            // when unit indexed (aka created) it must have full vitals
-            SetUnitState(u, UNIT_STATE_LIFE, 999999999);
-            SetUnitState(u, UNIT_STATE_MANA, 999999999);
 
-            dmgHookTrig = CreateTrigger();
-            TriggerRegisterUnitEvent(dmgHookTrig, u, EVENT_UNIT_DAMAGED);
-            TriggerAddAction(dmgHookTrig, DamageHandler);
-        }
 
         private void Remove()
         {
@@ -80,19 +58,6 @@ namespace NoxRaven.Units
         //     HealHP(parsEvent.HealthValue * RegenerationTimeout);
         //     HealMP(parsEvent.ManaValue * RegenerationTimeout);
         // }
-
-        protected void _RecalculateStats()
-        {
-            BlzSetUnitAttackCooldown(_self_, _stats.baseAttackCooldown / (1 + _stats.attackSpeed), 0);
-            SetUnitMoveSpeed(_self_, _stats.baseMS * (1 + _stats.baseMSPercent));
-            BlzSetUnitMaxHP(this, R2I(((_stats.baseHP * (1 + _stats.baseHPPercent)) * (1 + _stats.baseHPPercentBonus) + _stats.bonusHP) * (1 + _stats.totalHPPercent) + Utils.ROUND_DOWN_CONST_OVERHEAD)); // rounding issues
-            BlzSetUnitMaxMana(this, R2I(((_stats.baseMP * (1 + _stats.baseMPPercent)) * (1 + _stats.baseMPPercentBonus) + _stats.bonusMP) * (1 + _stats.totalMPPercent) + Utils.ROUND_DOWN_CONST_OVERHEAD)); // rounding issues
-
-            DMG = (_stats.baseDMG * (1 + _stats.baseDMGPercent) * (1 + _stats.baseDMGPercentBonus) + _stats.bonusDMG) * (1 + _stats.totalDMGPercent);
-            AP = (_stats.baseAP * (1 + _stats.baseAPPercent) * (1 + _stats.baseAPPercentBonus) + _stats.bonusAP) * (1 + _stats.totalAPPercent);
-            ARM = (_stats.baseARM * (1 + _stats.baseARMPercent) * (1 + _stats.baseARMPercentBonus) + _stats.bonusARM) * (1 + _stats.totalARMPercent);
-            MR = (_stats.baseMR * (1 + _stats.baseMRPercent) * (1 + _stats.baseMRPercentBonus) + _stats.bonusMR) * (1 + _stats.totalMRPercent);
-        }
 
         #region internal Status/onhit api
         internal bool ContainsOnHit(int id)

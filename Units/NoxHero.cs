@@ -45,7 +45,14 @@ namespace NoxRaven.Units
                 newLevel = previouslvl + times
             };
             TriggerEvent(parsEvent);
-            getStats = (HeroStats)(getStats + getStatsPerLevel * times);
+            RecalculateStats(getStats);
+        }
+
+        protected override void RecalculateStats(Stats myStats)
+        {
+            Stats completeHeroStats = myStats + getStatsPerLevel * GetHeroLevel(_self_);
+            // recalculate custom stuff like ability tooltips
+            base.RecalculateStats(completeHeroStats);
         }
 
         protected internal NoxHero(Common.unit u, HeroStats statsPerLevel, HeroStats initialStats) : base(u, initialStats)

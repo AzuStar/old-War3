@@ -63,7 +63,7 @@ namespace NoxRaven.Units
             if (mod != null)
             {
                 _stats = mod.ApplyModifier(_stats);
-                _RecalculateStats();
+                RecalculateStats(_stats);
             }
 
         }
@@ -72,7 +72,7 @@ namespace NoxRaven.Units
             if (mod != null)
             {
                 _stats = mod.UnapplyModifier(_stats);
-                _RecalculateStats();
+                RecalculateStats(_stats);
             }
         }
 

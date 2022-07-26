@@ -10,6 +10,7 @@ namespace NoxRaven.Units
     {
         protected internal static Dictionary<int, NoxUnit> s_indexer = new Dictionary<int, NoxUnit>();
         private static Dictionary<int, Type> s_customTypes = new Dictionary<int, Type>();
+        private static Dictionary<Type, int> s_inversedCustomType = new Dictionary<Type, int>();
         private static int _resetAAAbility = FourCC("A00E");
         private static float KeepCorpsesFor = 25;
         private static bool _damageEngineIgnore = false;
@@ -29,6 +30,7 @@ namespace NoxRaven.Units
         public static void AddCustomType<T>(int unitId) where T : NoxUnit
         {
             s_customTypes[unitId] = typeof(T);
+            s_inversedCustomType[typeof(T)] = unitId;
         }
         /// <summary>
         /// Put a custom type that will be attached to a unit when indexing.
@@ -39,6 +41,11 @@ namespace NoxRaven.Units
         public static void AddCustomType<T>(string unitId) where T : NoxUnit
         {
             AddCustomType<T>(FourCC(unitId));
+        }
+
+        public static NoxUnit CreateCustomUnit<T>(NoxPlayer owner, float x, float y, float facing = 0)
+        {
+            return CreateUnit(owner._self_, s_inversedCustomType[typeof(T)], x, y, facing);
         }
         /// <summary>
         /// Put this initializer somewhere after all players have been initialized. Do this only after you have put all customtypes in the dictionary.
@@ -57,7 +64,9 @@ namespace NoxRaven.Units
             // Deattach when unit leaves the map
             TriggerRegisterLeaveRegion(CreateTrigger(), reg, Filter(() => { ((NoxUnit)GetLeavingUnit()).Remove(); return false; })); // catch unit removal, destroy everything attached
                                                                                                                                      // Utility functions
-                                                                                                                                     // TimerStart(CreateTimer(), RegenerationTimeout, true, () => { foreach (NoxUnit ue in Indexer.Values) ue.Regenerate(); });
+
+
+            Master.s_globalTick.Add((delta) => { foreach (NoxUnit ue in s_indexer.Values) ue.Regenerate(delta); });
 
             // Recycle stuff
             DestroyGroup(g);
