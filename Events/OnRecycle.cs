@@ -4,6 +4,6 @@ namespace NoxRaven.Events
 {
     public class OnRecycle : EventArgs
     {
-        public NoxUnit Target;
+        public NUnit Target;
     }
 }

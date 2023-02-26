@@ -8,7 +8,7 @@ namespace NoxRaven.Events
     /// <summary>
     /// Interface for storing genric types
     /// </summary>
-    public interface IPriorityBehaviour
+    public interface IBehaviour
     {
         PriorityType priority { get; }
         void GenericsInvoke(EventArgs args); // generics bypass

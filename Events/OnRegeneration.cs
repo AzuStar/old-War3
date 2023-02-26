@@ -5,9 +5,9 @@ using System.Text;
 
 namespace NoxRaven.Events
 {
-    public class RegenerationTickEvent : EventArgs
+    public class OnRegeneration : EventArgs
     {
-        public float HealthValue;
-        public float ManaValue;
+        public float healthRegen;
+        public float manaRegen;
     }
 }

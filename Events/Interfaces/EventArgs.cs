@@ -4,6 +4,6 @@ namespace NoxRaven.Events
 {
     public abstract class EventArgs
     {
-        public NoxUnit caller;
+        public NUnit caller;
     }
 }

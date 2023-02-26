@@ -15,9 +15,9 @@ namespace NoxRaven.IO
         /// </summary>
         public const int ChunkLen = 150; // you can fit upto 15,000 long stirng
         public readonly string Path;
-        public readonly NoxPlayer TargetPlayer;
+        public readonly NPlayer TargetPlayer;
 
-        public File(string path, NoxPlayer forWhatPlayer)
+        public File(string path, NPlayer forWhatPlayer)
         {
             TargetPlayer = forWhatPlayer;
             Path = path;
@@ -27,7 +27,7 @@ namespace NoxRaven.IO
         {
             int len = payload.Length;
             int level = 0;
-            if (GetLocalPlayer() == TargetPlayer._self_)
+            if (GetLocalPlayer() == TargetPlayer.wc3agent)
             {
                 PreloadGenClear();
                 PreloadGenStart();
@@ -52,10 +52,10 @@ namespace NoxRaven.IO
             PromisedString ret = new PromisedString();
             trigger SyncThread = CreateTrigger();
             for (int i = 0; i < 100; i++)
-                foreach (NoxPlayer pl in NoxPlayer.players.Values)
-                    BlzTriggerRegisterPlayerSyncEvent(SyncThread, pl._self_, I2S(i) + "sync" + I2S(ReadCount), false);
-            foreach (NoxPlayer pl in NoxPlayer.players.Values)
-                BlzTriggerRegisterPlayerSyncEvent(SyncThread, pl._self_, "async" + I2S(ReadCount), false); // util
+                foreach (NPlayer pl in NPlayer.players.Values)
+                    BlzTriggerRegisterPlayerSyncEvent(SyncThread, pl.wc3agent, I2S(i) + "sync" + I2S(ReadCount), false);
+            foreach (NPlayer pl in NPlayer.players.Values)
+                BlzTriggerRegisterPlayerSyncEvent(SyncThread, pl.wc3agent, "async" + I2S(ReadCount), false); // util
             TriggerAddAction(SyncThread, () =>
             {
                 string prefix = BlzGetTriggerSyncPrefix().Split("sync")[0];
@@ -67,7 +67,7 @@ namespace NoxRaven.IO
 
             });
 
-            if (GetLocalPlayer() == TargetPlayer._self_)
+            if (GetLocalPlayer() == TargetPlayer.wc3agent)
             {
                 Preloader(Path);
                 int i = 0;

@@ -9,7 +9,7 @@ using NoxRaven.UnitAgents;
 
 namespace NoxRaven.Units
 {
-    public partial class NoxUnit
+    public partial class NUnit
     {
         /// <summary>
         /// Call this to remove unit instantly.
@@ -20,20 +20,19 @@ namespace NoxRaven.Units
             Remove();
         }
 
-        // public void Kill(NoxUnit whoToKill)
-        // {
-        //     Kill(whoToKill);
-        //     AwaitRemoval(this, whoToKill);
-        // }
+        public void Execute(NUnit whoToKill)
+        {
+            RawDamage(whoToKill, GetWidgetLife(whoToKill));
+        }
 
-        public int GetId() => War3Api.Common.GetHandleId(_self_);
+        public int GetId() => War3Api.Common.GetHandleId(wc3agent);
 
         /// <summary>
         /// Ensure all damage goes through this.
         /// </summary>
         /// <param name="target"></param>
         /// <param name="damage"></param>
-        public void RawDamage(NoxUnit target, float damage)
+        public void RawDamage(NUnit target, float damage)
         {
             _damageEngineIgnore = true;
             UnitDamageTarget(this, target, damage, true, false, ATTACK_TYPE_CHAOS, DAMAGE_TYPE_UNIVERSAL, null);
@@ -43,19 +42,15 @@ namespace NoxRaven.Units
 
         public void ResetBasicAttackTimer()
         {
-            UnitAddAbility(_self_, _resetAAAbility);
+            UnitAddAbility(wc3agent, _resetAAAbility);
         }
 
         /// <summary>
         /// Damage parsers that takes care of all calculations. Damage parser calculates outgoing damage from the unit.
         /// </summary>
-        /// <param name="target">Whos is the target</param>
-        /// <param name="damage"></param>
-        /// <param name="triggerOnHit">Does it apply on-hit effects?</param>
-        /// <param name="triggerCrit">Can it crit?</param>
-        public void DealDamage(NoxUnit target, float damage, bool triggerOnHit, bool triggerCrit, DamageSource dmgSource, DamageType dmgType, bool stopRecursion = false)
+        public void DealDamage(NUnit target, float damage, DamageOnHit dmgOnHit, DamageCrit dmgCrit, DamageSource dmgSource, DamageType dmgType, bool stopRecursion = false)
         {
-            _DealDamage(target, damage, triggerOnHit, triggerCrit, dmgSource, dmgType, stopRecursion);
+            _DealDamage(target, damage, dmgOnHit, dmgCrit, dmgSource, dmgType, stopRecursion);
         }
 
         public void AddModifier(IModifier mod)
@@ -76,14 +71,63 @@ namespace NoxRaven.Units
             }
         }
 
-        public void RemoveStatus(int id)
+        public T AddAbility<T>() where T : NAbility
         {
-            _statuses.Remove(id);
+            return (T)AddAbility(typeof(T));
         }
-        public Status GetStatus(int id)
+        public NAbility AddAbility(Type t)
         {
-            return _statuses[id];
+            NAbility abil = (NAbility)Activator.CreateInstance(t, this);
+            abilities.Add(abil);
+            if (abil.mod != null)
+            {
+                AddModifier(abil.mod);
+            }
+            foreach (IBehaviour behaviour in abil.localBehaviours)
+            {
+                SubscribeToEvent(behaviour);
+            }
+            foreach (IBehaviour behaviour in abil.globalBehaviours)
+            {
+                SubscribeToGlobalEvent(behaviour);
+            }
+            return abil;
         }
+        public void RemoveAbility(NAbility abil)
+        {
+            if (abil.mod != null)
+            {
+                RemoveModifier(abil.mod);
+            }
+            foreach (IBehaviour behaviour in abil.localBehaviours)
+            {
+                UnsubscribeFromEvent(behaviour);
+            }
+            foreach (IBehaviour behaviour in abil.globalBehaviours)
+            {
+                UnsubscribeFromGlobalEvent(behaviour);
+            }
+            abilities.Remove(abil);
+        }
+        public Status AddStatus<T>() where T : Status
+        {
+            Status st = (Status)Activator.CreateInstance(typeof(T), this);
+            if (!_statuses.ContainsKey(typeof(T)))
+            {
+                _statuses.Add(typeof(T), new SortedSet<Status>(Comparer<Status>.Create((x, y) => x.level.CompareTo(y.level))));
+            }
+            _statuses[typeof(T)].Add(st);
+
+            return st;
+        }
+        // public void RemoveStatus(int id)
+        // {
+        //     _statuses.Remove(id);
+        // }
+        // public Status GetStatus(int id)
+        // {
+        //     return _statuses[id];
+        // }
         /// <summary>
         /// Heal unit by % missing hp. Unit with 50% HP and 10% Missing Healing will receive effective 5% heal.
         /// </summary>
@@ -131,30 +175,40 @@ namespace NoxRaven.Units
             }
         }
 
-        /// <summary>
-        /// Subscribes to a certain event type
-        /// </summary>
-        /// <param name="behaviour"></param>
-        /// <typeparam name="T"></typeparam>
-        public void SubscribeToEvent<T>(Behaviour<T> behaviour) where T : Events.EventArgs
+        public void SubscribeToEvent(IBehaviour pb)
         {
-            if (_events.ContainsKey(typeof(T).FullName))
+            string fullName = pb.GetType().GetGenericArguments()[0].FullName;
+            if (!_events.ContainsKey(fullName))
             {
-                _events[typeof(T).FullName].Add(behaviour);
+                _events.Add(fullName, new BehaviourList<Events.EventArgs>());
             }
+            _events[pb.GetType().GetGenericArguments()[0].FullName].Add(pb);
         }
-        /// <summary>
-        /// Unscubscribes from a certain event type
-        /// </summary>
-        /// <param name="behaviour"></param>
-        /// <typeparam name="T"></typeparam>
-        public void UnsubscribeFromEvent<T>(Behaviour<T> behaviour) where T : Events.EventArgs
+        public void UnsubscribeFromEvent(IBehaviour pb)
         {
-            if (_events.ContainsKey(typeof(T).FullName))
-            {
-                _events[typeof(T).FullName].Remove(behaviour);
-            }
+            _events[pb.GetType().GetGenericArguments()[0].FullName].Remove(pb);
         }
+        // /// <summary>
+        // /// Subscribes to a certain event type
+        // /// </summary>
+        // /// <param name="behaviour"></param>
+        // /// <typeparam name="T"></typeparam>
+        // public void SubscribeToEvent<T>(Behaviour<T> behaviour) where T : Events.EventArgs
+        // {
+        //     SubscribeToEvent(behaviour);
+        // }
+        // /// <summary>
+        // /// Unscubscribes from a certain event type
+        // /// </summary>
+        // /// <param name="behaviour"></param>
+        // /// <typeparam name="T"></typeparam>
+        // public void UnsubscribeFromEvent<T>(Behaviour<T> behaviour) where T : Events.EventArgs
+        // {
+        //     if (_events.ContainsKey(typeof(T).FullName))
+        //     {
+        //         _events[typeof(T).FullName].Remove(behaviour);
+        //     }
+        // }
         /// <summary>
         /// Trigger a certain event type
         /// </summary>
@@ -165,6 +219,9 @@ namespace NoxRaven.Units
             if (_events.ContainsKey(typeof(T).FullName))
             {
                 _events[typeof(T).FullName].InvokeBehaviours(eventMeta);
+            }
+            if (_globalEvents.ContainsKey(typeof(T).FullName))
+            {
                 _globalEvents[typeof(T).FullName].InvokeBehaviours(eventMeta);
             }
         }

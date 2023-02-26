@@ -2,11 +2,11 @@ IncludeFile "UI\FrameDef\UI\SimpleInfoPanel.fdf",
 IncludeFile "UI\FrameDef\UI\EscMenuTemplates.fdf",
 
 // *******************
-// NoxUnit - NU_
+// NUnit - NU_
 // Tooltip - TT_
 // TooltipElemtn - TTE_
 // Template - _TP
-// NoxUnitTooltipCommandTemplate - NU_TT_Command_TP
+// NUnitTooltipCommandTemplate - NU_TT_Command_TP
 // *******************
 
 Frame "BACKDROP" "NU_TT_Command_TextBox_TP" {

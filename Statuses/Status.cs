@@ -7,17 +7,20 @@ using NoxRaven.Units;
 
 namespace NoxRaven.Statuses
 {
-    public sealed class Status
+        /// <summary>
+    /// Base class for all statuses. <br />
+    /// Constructor parsed with <see cref="NUnit"/>source, <see cref="NUnit"/>target. <br />
+    /// </summary>
+    public abstract class Status
     {
 
         public enum Polarity : int
         {
             Neutral, Positive, Negative, Reserved
         }
-        public int Id { get; private set; }
-        public TimedType Type { get; private set; }
-        public NoxUnit Source { get; private set; }
-        public NoxUnit Target { get; private set; }
+        public NUnit Source { get; private set; }
+        public NUnit Target { get; private set; }
+        public bool removeOndeath = true;
         timer t;
         effect SpecialEffect;
         /// <summary>
@@ -56,7 +59,7 @@ namespace NoxRaven.Statuses
         /// <summary>
         /// This is for reseting ability if level greater
         /// </summary>
-        public int Level { get; private set; }
+        public int level { get; private set; }
         public float TimeElapsed { get; private set; }
         public float PeriodicTimeout { get; private set; }
 
@@ -71,15 +74,13 @@ namespace NoxRaven.Statuses
         /// <param name="duration"></param>
         /// <param name="stacking"></param>
         /// <param name="periodic"></param>
-        private Status(int id, TimedType type, NoxUnit source, NoxUnit target, int level, int initialStacks, int stacksLim, float duration, float periodicTimeout, bool stacking, bool periodic, bool permanent = false)
+        private Status(NUnit source, NUnit target, int level, int initialStacks, int stacksLim, float duration, float periodicTimeout, bool stacking, bool periodic, bool permanent = false)
         {
             //if(type.DataType != null)
             //Data = Activator.CreateInstance(type.DataType);
-            Id = id;
-            Type = type;
             Source = source;
             Target = target;
-            Level = level;
+            this.level = level;
             Stacking = stacking;
             Periodic = periodic;
             //Permanent = permanent;
@@ -98,65 +99,18 @@ namespace NoxRaven.Statuses
                 TimerStart(t, duration, false, Remove);
             }
             if (stacking) Stacks = initialStacks;
-            if (Type.Apply != null)
-                Type.Apply.Invoke(this);
-            if (Type.Effectpath != null && Type.Attachment != null)
-                SpecialEffect = AddSpecialEffectTarget(Type.Effectpath, target._self_, Type.Attachment);
+            // if (Type.Apply != null)
+            //     Type.Apply.Invoke(this);
+            // if (Type.Effectpath != null && Type.Attachment != null)
+            //     SpecialEffect = AddSpecialEffectTarget(Type.Effectpath, target.wc3agent, Type.Attachment);
         }
 
-        ///// <summary>
-        ///// Permanent Status
-        ///// </summary>
-        //internal Status(int id, StatusType type, NoxUnit source, NoxUnit target, int level)
-        //    : this(id, type, source, target, level, 0, 0, 0, 0, false, false, true) { }
 
-        ///// <summary>
-        ///// Permanent Stacking
-        ///// </summary>
-        //internal Status(int id, StatusType type, NoxUnit source, NoxUnit target, int level, int initialStacks, int stacksLim)
-        //    : this(id, type, source, target, level, initialStacks, stacksLim, 0, 0, true, false, true) { }
-
-        ///// <summary>
-        ///// Permanent Periodic
-        ///// </summary>
-        ///// <param name="id"></param>
-        ///// <param name="type"></param>
-        ///// <param name="source"></param>
-        ///// <param name="target"></param>
-        ///// <param name="level"></param>
-        //internal Status(int id, StatusType type, NoxUnit source, NoxUnit target, int level)
-        //    : this(id, type, source, target, level, 0, 0, 0, 0, false, true, true) { }
-
-        /// <summary>
-        /// Timed Status
-        /// </summary>
-        internal Status(int id, TimedType type, NoxUnit source, NoxUnit target, int level, float duration)
-        : this(id, type, source, target, level, 0, 0, duration, 0, false, false) { }
-
-        /// <summary>
-        /// Timed Stacking Status
-        /// </summary>
-        internal Status(int id, TimedType type, NoxUnit source, NoxUnit target, int level, float duration, int initialStacks, int stacksLim)
-        : this(id, type, source, target, level, initialStacks, stacksLim, duration, 0, false, false) { }
-
-        /// <summary>
-        /// Periodic Timed Status
-        /// </summary>
-        internal Status(int id, TimedType type, NoxUnit source, NoxUnit target, int level, float duration, float periodicTimeout)
-        : this(id, type, source, target, level, 0, 0, duration, periodicTimeout, false, true) { }
-
-        /// <summary>
-        /// Periodic Timed Stacking Status
-        /// </summary>
-        internal Status(int id, TimedType type, NoxUnit source, NoxUnit target, int level, float duration, float peridoticTimeout, int initialStacks, int stacksLim)
-        : this(id, type, source, target, level, initialStacks, stacksLim, duration, peridoticTimeout, false, true) { }
-
-        internal Status() { }
 
         private void PeriodicTimerRestart()
         {
-            if (Type.Apply != null)
-                Type.Apply.Invoke(this);
+            // if (Type.Apply != null)
+            //     Type.Apply.Invoke(this);
             PeriodicTicks++;
             TimeElapsed += PeriodicTimeout;
             TimeRemain -= PeriodicTimeout;
@@ -180,7 +134,7 @@ namespace NoxRaven.Statuses
         /// <param name="periodic"></param>
         public Status Reapply(float bonusDuration, int bonusLevel, int bonusStacks)
         {
-            int prevLevel = Level;
+            int prevLevel = level;
             Duration += bonusDuration;
             if (Periodic)
             {
@@ -196,8 +150,8 @@ namespace NoxRaven.Statuses
                     TimeElapsed += TimerGetElapsed(t);
                     TimerStart(t, Duration, false, Remove);
                 }
-                if (Stacking) Reset(bonusStacks, Level + bonusLevel); // reset if stack
-                else if (Level + bonusLevel > Level) Reset(0, bonusLevel); // reset to new level
+                if (Stacking) Reset(bonusStacks, level + bonusLevel); // reset if stack
+                else if (level + bonusLevel > level) Reset(0, bonusLevel); // reset to new level
             }
             return this;
         }
@@ -210,16 +164,15 @@ namespace NoxRaven.Statuses
             PauseTimer(t);
             TimeElapsed += TimerGetElapsed(t);
             DestroyTimer(t);
-            if (Type.Reset != null)
-                Type.Reset.Invoke(this);
-            if (Type.OnRemove != null)
-                Type.OnRemove.Invoke(this);
-            Target.RemoveStatus(Id);
+            // if (Type.Reset != null)
+            //     Type.Reset.Invoke(this);
+            // if (Type.OnRemove != null)
+            //     Type.OnRemove.Invoke(this);
+            // Target.RemoveStatus(Id);
             DestroyEffect(SpecialEffect);
             t = null;
             Data = null;
             SpecialEffect = null;
-            Type = null;
             Source = null;
             Target = null;
         }
@@ -229,16 +182,20 @@ namespace NoxRaven.Statuses
         /// </summary>
         public void Reset(int addToStack, int addToLevel)
         {
-            if (Type.Reset != null)
-                Type.Reset.Invoke(this);
+            // if (Type.Reset != null)
+            //     Type.Reset.Invoke(this);
             Stacks += addToStack;
             if (StacksLim != 0)
                 if (Stacks > StacksLim)
                     Stacks = StacksLim;
-            Level += addToLevel;
-            if (Type.Apply != null)
-                Type.Apply.Invoke(this);
+            level += addToLevel;
+            // if (Type.Apply != null)
+            //     Type.Apply.Invoke(this);
         }
+
+        public abstract void Apply();
+        public abstract void Reset();
+        public abstract void OnRemove();
 
     }
 }

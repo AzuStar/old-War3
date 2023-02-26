@@ -7,7 +7,7 @@ namespace NoxRaven.Events
     ///<summary>
     /// Behaves like a delegate Action<EventArguments>, except behaviours can be stacked according to their priority.
     ///</summary>
-    public sealed class Behaviour<EvtType> : IPriorityBehaviour where EvtType : EventArgs
+    public sealed class Behaviour<EvtType> : IBehaviour where EvtType : EventArgs
     {
         public Behaviour(Action<EvtType> action, PriorityType priority){
             _action = action;
@@ -17,7 +17,7 @@ namespace NoxRaven.Events
         private PriorityType _priority = PriorityType.RESERVED_BEHAVIOUR;
         private Action<EvtType> _action = null;
 
-        PriorityType IPriorityBehaviour.priority => _priority;
+        PriorityType IBehaviour.priority => _priority;
 
         public void GenericsInvoke(EventArgs eventArgs)
         {

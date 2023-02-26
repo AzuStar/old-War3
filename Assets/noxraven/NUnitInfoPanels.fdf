@@ -2,11 +2,11 @@ IncludeFile "UI\FrameDef\UI\SimpleInfoPanel.fdf",
 IncludeFile "UI\FrameDef\UI\EscMenuTemplates.fdf",
 
 // *******************
-// NoxUnit - NU_
+// NUnit - NU_
 // InfoPanel - IP_
 // InfoPanelElement - IPE_
 // Template - _TP
-// NoxUnitInoPanelBigButtonTemplate - NU_IP_BigButton_TP
+// NUnitInoPanelBigButtonTemplate - NU_IP_BigButton_TP
 // *******************
 
 Frame "SIMPLEBUTTON" "EmptySimpleButton" {}

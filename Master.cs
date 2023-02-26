@@ -5,7 +5,6 @@ using static War3Api.Common;
 using static War3Api.Blizzard;
 using NoxRaven.Units;
 using NoxRaven.Frames;
-using NoxRavent.Frames;
 
 namespace NoxRaven
 {
@@ -23,12 +22,12 @@ namespace NoxRaven
         private static timer s_sanityTimer = CreateTimer();
         private static bool s_isSane = false;
         public static bool s_numbersOn = true;
-
+        public static float s_corpseFadeTime = 10;
 
         /// <summary>
         /// Retrieves first selected unit, for which unit info would have been displayed normally.
         /// </summary>
-        public static NoxUnit GetSelectedUnit()
+        public static NUnit GetSelectedUnit()
         {
             player p = null;
             p = GetLocalPlayer();
@@ -50,15 +49,15 @@ namespace NoxRaven
         /// </summary>
         public static void RunAfterExtensionsReady()
         {
-            BlzLoadTOCFile("noxraven\\NoxUnitFrames.toc");
+            BlzLoadTOCFile("noxraven\\NUnitFrames.toc");
             timer ticker = CreateTimer();
             TimerStart(ticker, TICK_DELTA, true, () =>
             {
                 foreach (var action in s_globalTick)
                     action(TimerGetElapsed(ticker));
             });
-            NoxUnit.InitUnitLogic();
-            NoxItem.InitItemLogic();
+            NUnit.InitUnitLogic();
+            NItem._InitItemLogic();
             Tooltip.InitCustomTooltip();
             StatCell.InitCustomInfoPanel();
             HotReload.ReloaderInit();

@@ -8,7 +8,7 @@ using static War3Api.Blizzard;
 namespace NoxRaven
 {
     /// <summary>
-    /// Some really special utilities that do not really belong (or may be not yet) in NoxUnit
+    /// Some really special utilities that do not really belong (or may be not yet) in NUnit
     /// </summary>
     public static class UnitExperimentals
     {
@@ -76,6 +76,10 @@ namespace NoxRaven
                 {
                     SetUnitX(Unit, xi);
                     SetUnitY(Unit, yi);
+                }
+                if(IsUnitDeadBJ(Unit))
+                {
+                    return true;
                 }
             return (TimeLeft -= Master.TICK_DELTA) <= 0;
         }

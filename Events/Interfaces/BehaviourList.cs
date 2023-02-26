@@ -6,25 +6,25 @@ namespace NoxRaven.Events
 {
     public sealed class BehaviourList<T> where T : EventArgs
     {
-        private Dictionary<int, List<IPriorityBehaviour>> _list = new Dictionary<int, List<IPriorityBehaviour>>();
+        private Dictionary<int, List<IBehaviour>> _list = new Dictionary<int, List<IBehaviour>>();
 
         //?
         public BehaviourList() { }
 
-        public void Add(IPriorityBehaviour obj)
+        public void Add(IBehaviour obj)
         {
-            List<IPriorityBehaviour> list;
+            List<IBehaviour> list;
             if (!_list.TryGetValue((int)obj.priority, out list))
             {
-                list = new List<IPriorityBehaviour>();
+                list = new List<IBehaviour>();
                 _list.Add((int)obj.priority, list);
             }
             list.Add(obj);
         }
 
-        public void Remove(IPriorityBehaviour obj)
+        public void Remove(IBehaviour obj)
         {
-            List<IPriorityBehaviour> list;
+            List<IBehaviour> list;
             if (!_list.TryGetValue((int)obj.priority, out list)) return;
 
             list.Remove(obj);
@@ -38,7 +38,7 @@ namespace NoxRaven.Events
             IEnumerable<int> sortedKeys = _list.Keys.OrderBy(key => key);
             foreach (int key in sortedKeys)
             {
-                foreach (IPriorityBehaviour behaviour in _list[key])
+                foreach (IBehaviour behaviour in _list[key])
                 {
                     behaviour.GenericsInvoke(args);
                 }
@@ -47,7 +47,7 @@ namespace NoxRaven.Events
 
         public void Clear()
         {
-            foreach (List<IPriorityBehaviour> list in _list.Values)
+            foreach (List<IBehaviour> list in _list.Values)
                 list.Clear();
         }
     }

@@ -8,7 +8,6 @@ namespace NoxRaven
 {
     public sealed class OnHit
     {
-        public dynamic data;
         private OnHitType type;
         public int count = 0;
 
@@ -21,10 +20,10 @@ namespace NoxRaven
         /// </summary>
         /// <param name="source"></param>
         /// <param name="target"></param>
-        public void ApplyOnHit(NoxUnit source, NoxUnit target, float damage, float processedDamage)
+        public void ApplyOnHit(NUnit source, NUnit target, float damage, float processedDamage)
         {
-            if (GetRandomReal(0, 1) < source.lookupTriggerChance * type.chance)
-                if (!type.epic)
+            if (GetRandomReal(0, 1) < source.getStats.triggerChance * type.chance)
+                if (!type.unique)
                     for (int i = 0; i < count; i++)
                         type.callback.Invoke(source, target, damage, processedDamage, this);
                 else type.callback.Invoke(source, target, damage, processedDamage, this);

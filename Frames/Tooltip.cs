@@ -5,14 +5,14 @@ using NoxRaven;
 using NoxRaven.Units;
 using static War3Api.Common;
 
-namespace NoxRavent.Frames
+namespace NoxRaven.Frames
 {
     public class Tooltip : IDisposable
     {
         public framehandle tooltipFrame;
-        public Func<NoxUnit, string> updateCallback;
+        public Func<NUnit, string> updateCallback;
 
-        public Tooltip(framehandle buttonParent, Func<NoxUnit, string> update)
+        public Tooltip(framehandle buttonParent, Func<NUnit, string> update)
         {
             updateCallback = update;
             tooltipFrame = BlzCreateFrameByType("SIMPLEFRAME", "", buttonParent, "", 0);
@@ -62,7 +62,7 @@ namespace NoxRavent.Frames
                         if (BlzFrameIsVisible(tooltip.tooltipFrame))
                         {
                             string text;
-                            NoxUnit u = Master.GetSelectedUnit();
+                            NUnit u = Master.GetSelectedUnit();
 
                             if (u != null && tooltip.updateCallback != null)
                             {

@@ -12,7 +12,7 @@ namespace NoxRaven
 {
     public static class Utils
     {
-        public delegate bool UnitFilter(NoxUnit nu);
+        public delegate bool UnitFilter(NUnit nu);
         public const float ROUND_DOWN_CONST_OVERHEAD = 0.19f;
         public static item s_walkableItem;
         public static float s_walkableOverhead = 10;
@@ -40,15 +40,15 @@ namespace NoxRaven
         /// <param name="timespan"></param>
         public static void DisplayMessageToEveryone(string msg, float timespan)
         {
-            foreach (NoxPlayer p in NoxPlayer.players.Values)
-                DisplayTimedTextToPlayer(p._self_, 0, 0, timespan, msg);
+            foreach (NPlayer p in NPlayer.players.Values)
+                DisplayTimedTextToPlayer(p.wc3agent, 0, 0, timespan, msg);
         }
         internal static void Error(string message, Type t)
         {
             Master.s_badLoad = true;
             Master.s_errCount++;
-            foreach (NoxPlayer p in NoxPlayer.players.Values)
-                DisplayTimedTextToPlayer(p._self_, 0, 0, 900f, "|cffFF0000ERROR IN: " + t.FullName + "|r\nMessage: " + message);
+            foreach (NPlayer p in NPlayer.players.Values)
+                DisplayTimedTextToPlayer(p.wc3agent, 0, 0, 900f, "|cffFF0000ERROR IN: " + t.FullName + "|r\nMessage: " + message);
         }
         /// <summary>
         /// Use this function to invoke something (anything) with a delay.
@@ -166,13 +166,13 @@ namespace NoxRaven
         /// <param name="unitArray"></param>
         /// <param name="amount"></param>
         /// <returns></returns>
-        public static List<NoxUnit> RandomNUnitsFromList(NoxUnit[] unitArray, int amount, Predicate<NoxUnit> filter)// can't cast list<> to basetype list<> >_<
+        public static List<NUnit> RandomNUnitsFromList(NUnit[] unitArray, int amount, Predicate<NUnit> filter)// can't cast list<> to basetype list<> >_<
         {
-            List<NoxUnit> unitList = new List<NoxUnit>(unitArray);
+            List<NUnit> unitList = new List<NUnit>(unitArray);
             if (filter != null)
                 unitList.RemoveAll(filter);
             if (amount >= unitList.Count) return unitList;
-            List<NoxUnit> list = new List<NoxUnit>();
+            List<NUnit> list = new List<NUnit>();
             List<int> range = new List<int>();
             for (int i = 0; i < unitList.Count; i++)
                 range.Add(i);
@@ -193,10 +193,10 @@ namespace NoxRaven
             return vec;
         }
 
-        public static List<NoxUnit> GetUnitList(UnitFilter filter)
+        public static List<NUnit> GetUnitList(UnitFilter filter)
         {
-            List<NoxUnit> lis = new List<NoxUnit>();
-            foreach (NoxUnit nu in NoxUnit.s_indexer.Values)
+            List<NUnit> lis = new List<NUnit>();
+            foreach (NUnit nu in NUnit.s_indexer.Values)
                 if (filter.Invoke(nu))
                     lis.Add(nu);
             return lis;

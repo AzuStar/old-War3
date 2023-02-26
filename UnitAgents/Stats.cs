@@ -4,7 +4,7 @@ using System.Linq;
 namespace NoxRaven.UnitAgents
 {
     ///<summary>
-    /// Stats of the NoxUnit <br/>
+    /// Stats of the NUnit <br/>
     /// Start custom stats at key (including) 49
     /// Remineder: heroes use 49 for experience rate
     ///</summary>
@@ -26,7 +26,12 @@ namespace NoxRaven.UnitAgents
         */
         public override string ToString()
         {
-            return string.Format("[{0}]", string.Join(", ", _statCollection.Values));
+            string dictionaryString = "[";
+            foreach (KeyValuePair<int, float> keyValues in _statCollection)
+            {
+                dictionaryString += keyValues.Key + ":" + keyValues.Value + ", ";
+            }
+            return dictionaryString.TrimEnd(',', ' ') + "]";
         }
         private Dictionary<int, float> _statCollection = new Dictionary<int, float>();
         protected void SetStat(int key, float value)

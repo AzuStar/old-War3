@@ -9,31 +9,35 @@ namespace NoxRaven
     /// Class for player data, might add some neat stuff here later on.
     /// Extend to your needs for players in map.
     /// </summary>
-    public class NoxPlayer
+    public class NPlayer
     {
-        public static Dictionary<int, NoxPlayer> players = new Dictionary<int, NoxPlayer>();
+        public static Dictionary<int, NPlayer> players = new Dictionary<int, NPlayer>();
         /// <summary>
-        /// Throw-away value for <see cref="_self_"/>.
+        /// Throw-away value for <see cref="wc3agent"/>.
         /// </summary>
         public int id;
         /// <summary>
         /// Real reference to player.
         /// </summary>
-        public player _self_;
+        public player wc3agent;
 
-        public NoxPlayer(int id)
+        public NPlayer(int id)
         {
             this.id = id;
-            _self_ = Player(id);
+            wc3agent = Player(id);
             players.Add(id, this);
         }
 
-        public static NoxPlayer FromId(int id) => players[id];
+        public static NPlayer FromId(int id) => players[id];
+
+        public static implicit operator NPlayer(player p){
+            return players[GetPlayerId(p)];
+        }
 
         public void SendMessage(string msg, float timeout, RecipientType whoGets)
         {
             timer msgt = CreateTimer();
-            TimerStart(msgt, timeout, false, () => { BlzDisplayChatMessage(_self_, (int)whoGets, msg); DestroyTimer(msgt); });
+            TimerStart(msgt, timeout, false, () => { BlzDisplayChatMessage(wc3agent, (int)whoGets, msg); DestroyTimer(msgt); });
         }
     }
 }

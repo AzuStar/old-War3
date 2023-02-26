@@ -13,8 +13,8 @@ namespace NoxRaven
         public static int s_count = 0;
 
         public int id;
-        public delegate void OnHitCallback(NoxUnit source, NoxUnit target, float damage, float processedDamage, OnHit data);
-        public readonly bool epic; // only single instance of onhit per unit allowed
+        public delegate void OnHitCallback(NUnit source, NUnit target, float damage, float processedDamage, OnHit data);
+        public readonly bool unique; // only single instance of onhit per unit allowed
         public readonly OnHitCallback callback;
         public readonly float chance = 0;
 
@@ -23,10 +23,10 @@ namespace NoxRaven
             id = s_count++;
             this.chance = chance;
             this.callback = callback;
-            this.epic = epic;
+            this.unique = epic;
         }
 
-        public void RegisterOnHit(NoxUnit whatUnit)
+        public void RegisterOnHit(NUnit whatUnit)
         {
             if (whatUnit.ContainsOnHit(id))
                 whatUnit.GetOnHit(id).count++;
@@ -34,17 +34,17 @@ namespace NoxRaven
                 whatUnit.AddOnHit(id, new OnHit(this));
         }
 
-        public bool ContainsOnHit(NoxUnit whatUnit)
+        public bool ContainsOnHit(NUnit whatUnit)
         {
             return whatUnit.ContainsOnHit(id);
         }
 
-        public OnHit GetOnHit(NoxUnit whatUnit)
+        public OnHit GetOnHit(NUnit whatUnit)
         {
             return whatUnit.GetOnHit(id);
         }
 
-        public void UnregisterOnHit(NoxUnit whatUnit)
+        public void UnregisterOnHit(NUnit whatUnit)
         {
             if (whatUnit.ContainsOnHit(id))
             {

@@ -15,10 +15,10 @@ Globals.LastLiving = new NoxPlayer(6);
 // Unit Indexing after players known
 // Register any custom Type indexes
 // Dont forget to add it to all others!
-NoxUnit.AddCustomType(FourCC("H000"), typeof(Marine)); // Makes unit "H000" hit public Marine(unit u) function
-NoxUnit.AddCustomType(FourCC("n00A"), typeof(EnemyArmyUnit));
-NoxUnit.AddCustomType(FourCC("u000"), typeof(EnemyArmyUnit));
-NoxUnit.AddCustomType(FourCC("n00B"), typeof(EnemyArmyUnit));
+NUnit.AddCustomType(FourCC("H000"), typeof(Marine)); // Makes unit "H000" hit public Marine(unit u) function
+NUnit.AddCustomType(FourCC("n00A"), typeof(EnemyArmyUnit));
+NUnit.AddCustomType(FourCC("u000"), typeof(EnemyArmyUnit));
+NUnit.AddCustomType(FourCC("n00B"), typeof(EnemyArmyUnit));
 // Custom items
 // When picking up "I003" unit will recieve 10 base damage, when drop/sell/pawn loose 10 base damage
 // the magic is that AddBaseDamage hits bottom inheritance, so Marine from example will get +15 and loose -15 on pickup/drop

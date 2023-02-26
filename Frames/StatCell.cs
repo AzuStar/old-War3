@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using NoxRaven.Units;
-using NoxRavent.Frames;
+using NoxRaven.Frames;
 using static War3Api.Common;
 
 namespace NoxRaven.Frames
@@ -22,7 +22,7 @@ namespace NoxRaven.Frames
         public framehandle textFrame;
         public framehandle buttonFrame;
         public Tooltip tooltip;
-        public Action<StatCell, NoxUnit> updateCallback = null;
+        public Action<StatCell, NUnit> updateCallback = null;
 
         // hide stat creation
         private StatCell(int iterator)
@@ -62,7 +62,7 @@ namespace NoxRaven.Frames
             // end
         }
 
-        public static void DefineBigStat(int pos, string iconTexture, Action<StatCell, NoxUnit> update, Func<NoxUnit, string> tooltipUpdate)
+        public static void DefineBigStat(int pos, string iconTexture, Action<StatCell, NUnit> update, Func<NUnit, string> tooltipUpdate)
         {
             StatCell cell = s_statCells[pos];
             BlzFrameSetTexture(cell.iconFrame, iconTexture, 0, false);
@@ -70,7 +70,7 @@ namespace NoxRaven.Frames
             cell.tooltip.updateCallback = tooltipUpdate;
         }
 
-        public static void DefineSmallStat(int pos, string iconTexture, Action<StatCell, NoxUnit> update, Func<NoxUnit, string> tooltipUpdate)
+        public static void DefineSmallStat(int pos, string iconTexture, Action<StatCell, NUnit> update, Func<NUnit, string> tooltipUpdate)
         {
             StatCell cell = s_statCells[pos + 6];
             BlzFrameSetTexture(cell.iconFrame, iconTexture, 0, false);
@@ -132,7 +132,7 @@ namespace NoxRaven.Frames
                 {
                     if (BlzFrameIsVisible(s_unitInfoFrame))
                     {
-                        NoxUnit u = Master.GetSelectedUnit();
+                        NUnit u = Master.GetSelectedUnit();
                         if (u != null)
                             foreach (StatCell stframe in s_statCells)
                             {
@@ -162,7 +162,7 @@ namespace NoxRaven.Frames
                 (u) =>
                 {
                     string val = u.ui_baseDMG + UIUtils.BonusStringFromValue(u.ui_bonusDMG);
-                    return "Damage: " + u.DMG + " = (" + val + ")\n\nYour basic attacks deal this much damage.";
+                    return "Damage: " + u.state.DMG + " = (" + val + ")\n\nYour basic attacks deal this much damage.";
                 }
             );
             StatCell.DefineBigStat(1, "noxraven\\icon_ARM.blp",
@@ -174,19 +174,19 @@ namespace NoxRaven.Frames
                 (u) =>
                 {
                     string val = u.ui_baseARM + UIUtils.BonusStringFromValue(u.ui_bonusARM);
-                    return "Armor: " + u.ARM + " = (" + val + ")\n" +
-                    "Physical Damage Reduction: " + R2SW(100 - UnitUtils.GetDamageReductionFromArmor(u.ARM) * 100, 2, 2) + "%\n\nPhysical damage that you take will be reduced the higher the armour of your character is.";
+                    return "Armor: " + u.state.ARM + " = (" + val + ")\n" +
+                    "Physical Damage Reduction: " + R2SW(100 - UnitUtils.GetDamageReductionFromArmor(u.state.ARM) * 100, 2, 2) + "%\n\nPhysical damage that you take will be reduced the higher the armour of your character is.";
                 }
             );
             StatCell.DefineBigStat(2, "noxraven\\icon_AS.blp",
             (cell, u) =>
                 {
                     string val;
-                    if (u.lookupBaseAttackCooldown <= 0.001f)
+                    if (u.getStats.baseAttackCooldown <= 0.001f)
                         val = "0.00";
                     else
                     {
-                        float aps = (1 + u.lookupAttackSpeed) / u.lookupBaseAttackCooldown;
+                        float aps = (1 + u.getStats.attackSpeed) / u.getStats.baseAttackCooldown;
                         val = R2SW(aps, 2, 2);//.ToString("0.00");
                     }
                     BlzFrameSetText(cell.textFrame, val);
@@ -194,16 +194,16 @@ namespace NoxRaven.Frames
                 (u) =>
                 {
                     string val;
-                    if (u.lookupBaseAttackCooldown <= 0.001f)
+                    if (u.getStats.baseAttackCooldown <= 0.001f)
                         val = "0.00";
                     else
                     {
-                        float aps = (1 + u.lookupAttackSpeed) / u.lookupBaseAttackCooldown;
+                        float aps = (1 + u.getStats.attackSpeed) / u.getStats.baseAttackCooldown;
                         val = R2SW(aps, 2, 2);//.ToString("0.00");
                     }
                     return "Attacks Per Second: " + val + "\n" +
                     "Base Attack Cooldown: " + BlzGetUnitAttackCooldown(u, 0) + "sec" + "\n" +
-                    "Attack Speed: " + u.lookupAttackSpeed + "%\n\n" +
+                    "Attack Speed: " + u.getStats.attackSpeed + "%\n\n" +
                     "This is how often your character can attack.";
                 }
             );
@@ -217,7 +217,7 @@ namespace NoxRaven.Frames
                 (u) =>
                 {
                     string val = u.ui_baseAP + UIUtils.BonusStringFromValue(u.ui_bonusAP);
-                    return "Ability Power: " + u.AP + " = (" + val + ")" + "\n\n" +
+                    return "Ability Power: " + u.state.AP + " = (" + val + ")" + "\n\n" +
                     "Ability Power impoves abilities in various way.";
                 }
             );
@@ -230,8 +230,8 @@ namespace NoxRaven.Frames
                 (u) =>
                 {
                     string val = u.ui_baseMR + UIUtils.BonusStringFromValue(u.ui_bonusMR);
-                    return "Magic Resist: " + u.MR + " = (" + val + ")\n" +
-                    "Magical Damage Reduction: " + R2SW(100 - UnitUtils.GetDamageReductionFromArmor(u.MR) * 100, 2, 2) + "%\n\n" +
+                    return "Magic Resist: " + u.state.MR + " = (" + val + ")\n" +
+                    "Magical Damage Reduction: " + R2SW(100 - UnitUtils.GetDamageReductionFromArmor(u.state.MR) * 100, 2, 2) + "%\n\n" +
                     "Magical and spell damage that you take will be reduced the higher the armour of your character is.";
                 }
             );
@@ -252,7 +252,7 @@ namespace NoxRaven.Frames
                     if (ms > 50)
                         val = ms.ToString();
                     else val = "0";
-                    return "Movement Speed: " + val + " = (" + u.lookupBaseMS + UIUtils.BonusStringFromValue(u.lookupBaseMS * u.lookupBaseMSPercent) + ")\n\n" +
+                    return "Movement Speed: " + val + " = (" + u.getStats.baseMS + UIUtils.BonusStringFromValue(u.getStats.baseMS * u.getStats.baseMSPercent) + ")\n\n" +
                     "Movement speed is how fast character is moving";
                 }
             );
@@ -261,40 +261,40 @@ namespace NoxRaven.Frames
             StatCell.DefineSmallStat(0, "noxraven\\icon_lifesteal.blp",
             (cell, u) =>
                 {
-                    string val = u.lookupLifeSteal * 100 + "%";
+                    string val = u.getStats.lifeSteal * 100 + "%";
                     BlzFrameSetText(cell.textFrame, val);
                 },
                 (u) =>
                 {
-                    string val = u.lookupLifeSteal * 100 + "%";
-                    return "Life Vamp: " + val + " = (" + u.lookupLifeSteal + ")\n\n" +
+                    string val = u.getStats.lifeSteal * 100 + "%";
+                    return "Life Vamp: " + val + " = (" + u.getStats.lifeSteal + ")\n\n" +
                     "All basic attacks and on-hit effects will heal your character by percent of damage dealt.";
                 }
             );
             StatCell.DefineSmallStat(4, "noxraven\\icon_spellvamp.blp",
             (cell, u) =>
                 {
-                    string val = u.lookupSpellVamp * 100 + "%";
+                    string val = u.getStats.spellVamp * 100 + "%";
                     BlzFrameSetText(cell.textFrame, val);
                 },
                 (u) =>
                 {
-                    string val = u.lookupSpellVamp * 100 + "%";
-                    return "Spell Vamp: " + val + " = (" + u.lookupSpellVamp + ")\n\n" +
+                    string val = u.getStats.spellVamp * 100 + "%";
+                    return "Spell Vamp: " + val + " = (" + u.getStats.spellVamp + ")\n\n" +
                     "All spell damage will heal your character by percent of damage dealt.";
                 }
             );
             StatCell.DefineSmallStat(6, "noxraven\\icon_HPregen.blp",
             (cell, u) =>
                 {
-                    string val = (u.lookupRegenHP * (1 + u.lookupRegenHPPercent)) + "";
+                    string val = (u.state.HPRegen) + "";
                     BlzFrameSetText(cell.textFrame, val);
                 },
                 (u) =>
                 {
-                    string val = (u.lookupRegenHP * (1 + u.lookupRegenHPPercent)) + "";
-                    string incomingHeal = UIUtils.BonusStringFromValue(u.lookupIncomingHealing);
-                    return "HitPoints Regeneration: " + val + " = (" + u.lookupRegenHP + UIUtils.BonusStringFromValue(u.lookupRegenHP * u.lookupRegenHPPercent) + ")" + "\n" +
+                    string val = u.state.HPRegen + "";
+                    string incomingHeal = UIUtils.BonusStringFromValue(u.getStats.incomingHealing);
+                    return "HitPoints Regeneration: " + val + " = (" + u.getStats.regenHP + UIUtils.BonusStringFromValue(u.getStats.regenHP * u.getStats.regenHPPercent) + ")" + "\n" +
                     "Incoming Healing: " + (String.IsNullOrEmpty(incomingHeal) ? "0" : incomingHeal) + "%\n\n" +
                     "This indicates how much your character regenerates health per second." + "\n" +
                     "Incoming healing is the amount of healing you receive from all sources.";
@@ -303,14 +303,14 @@ namespace NoxRaven.Frames
             StatCell.DefineSmallStat(7, "noxraven\\icon_MPregen.blp",
             (cell, u) =>
                 {
-                    string val = (u.lookupRegenMP * (1 + u.lookupRegenMPPercent)) + "";
+                    string val = (u.state.MPRegen) + "";
                     BlzFrameSetText(cell.textFrame, val);
                 },
                 (u) =>
                 {
-                    string val = (u.lookupRegenMP * (1 + u.lookupRegenMPPercent)) + "";
-                    string incomingMana = UIUtils.BonusStringFromValue(u.lookupIncomingMana);
-                    return "Mana Regeneration: " + val + " = (" + u.lookupRegenMP + UIUtils.BonusStringFromValue(u.lookupRegenMP * u.lookupRegenMPPercent) + ")" + "\n" +
+                    string val = (u.getStats.regenMP * (1 + u.getStats.regenMPPercent)) + "";
+                    string incomingMana = UIUtils.BonusStringFromValue(u.getStats.incomingMana);
+                    return "Mana Regeneration: " + val + " = (" + u.getStats.regenMP + UIUtils.BonusStringFromValue(u.getStats.regenMP * u.getStats.regenMPPercent) + ")" + "\n" +
                     "Incoming Mana: " + (String.IsNullOrEmpty(incomingMana) ? "0" : incomingMana) + "%\n\n" +
                     "This indicates how much your character replenishes mana per second." + "\n" +
                     "Incoming mana is the amount of mana you receive from all sources.";

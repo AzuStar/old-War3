@@ -7,11 +7,13 @@ using War3Api;
 using static War3Api.Common;
 namespace NoxRaven.Units
 {
-    public class NoxHero : NoxUnit
+    public class NHero : NUnit
     {
-        private HeroStats _statsPerLevel = new HeroStats();
+        private HeroStats _statsPerLevel;
+        protected virtual HeroStats perLevelStats => new HeroStats();
+
         protected HeroStats getStatsPerLevel { get => _statsPerLevel; set => _statsPerLevel = value; }
-        protected new HeroStats getStats { get => base.getStats as HeroStats; set => base.getStats = value; }
+        protected new HeroStats getStats { get => (HeroStats)base.getStats; set => base.getStats = value; }
 
         protected float CacheExp;
 
@@ -23,13 +25,13 @@ namespace NoxRaven.Units
         public virtual void AddExperience(float exp)
         {
             // For now just use war3 built-in experience manipulator
-            int lvl = GetHeroLevel(_self_);
+            int lvl = GetHeroLevel(wc3agent);
             CacheExp += exp * (1 + getStats.experienceGain);
-            AddHeroXP(_self_, R2I(CacheExp), true);
+            AddHeroXP(wc3agent, R2I(CacheExp), true);
             CacheExp -= R2I(CacheExp);
-            int difference = GetHeroLevel(_self_) - lvl;
+            int difference = GetHeroLevel(wc3agent) - lvl;
             if (difference > 0)
-                LevelUp(difference, GetHeroLevel(_self_));
+                LevelUp(difference, GetHeroLevel(wc3agent));
         }
         /// <summary>
         /// This is called every levelup, and even multiple times if gained experience more than level table.
@@ -40,7 +42,7 @@ namespace NoxRaven.Units
         {
             OnLevelUp parsEvent = new OnLevelUp()
             {
-                caller = _self_,
+                caller = wc3agent,
                 previousLevel = previouslvl,
                 newLevel = previouslvl + times
             };
@@ -50,22 +52,25 @@ namespace NoxRaven.Units
 
         protected override void RecalculateStats(Stats myStats)
         {
-            Stats completeHeroStats = myStats + getStatsPerLevel * GetHeroLevel(_self_);
+            if (_statsPerLevel == null) return;
+            Stats completeHeroStats = myStats + (getStatsPerLevel * (GetHeroLevel(wc3agent) - 1));
             // recalculate custom stuff like ability tooltips
             base.RecalculateStats(completeHeroStats);
         }
 
-        protected internal NoxHero(Common.unit u, HeroStats statsPerLevel, HeroStats initialStats) : base(u, initialStats)
+        protected internal NHero(Common.unit u, HeroStats initialStats = null) : base(u, initialStats)
         {
-            if (statsPerLevel != null)
-                _statsPerLevel = statsPerLevel;
+            _statsPerLevel = perLevelStats;
+            RecalculateStats(getStats);
+            SetUnitState(wc3agent, UNIT_STATE_LIFE, 9999999);
+            SetUnitState(wc3agent, UNIT_STATE_MANA, 9999999);
         }
 
-        public new static NoxHero Cast(unit u)
+        public new static NHero Cast(unit u)
         {
-            return (NoxHero)s_indexer[Common.GetHandleId(u)];
+            return (NHero)s_indexer[Common.GetHandleId(u)];
         }
-        public static implicit operator NoxHero(unit u)
+        public static implicit operator NHero(unit u)
         {
             return Cast(u);
         }
