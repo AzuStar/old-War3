@@ -10,21 +10,24 @@ namespace NoxRaven.UnitAgents
         MP_REG,
         HP_REG,
 
-        ATK,
-        AP,
+        GREY_ATK,
+        GREEN_ATK,
+        GREY_AP,
+        GREEN_AP,
         RLD,
 
-        DEF,
-        RESIST,
+        GREY_ARM,
+        GREEN_ARM,
+        GREY_RES,
+        GREEN_RES,
+
         ABS,
         DMG_REDUCE,
 
-        MS,
+        UNIT_MS,
         RNG,
 
-        EXP = 10,
-
-        EXP_RATE = 15,
+        EXP_RATE,
 
         // Stats from which states above are computed
         BASE_ATK = 100,
@@ -102,6 +105,9 @@ namespace NoxRaven.UnitAgents
         /// </summary>
         INCOMING_MANA,
 
+        DODGE_CHANCE,
+
+        
         //*********
         // * Util *
         //*********

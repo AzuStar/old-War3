@@ -7,6 +7,8 @@ using NoxRaven;
 using NoxRaven.Events;
 using NoxRaven.UnitAgents;
 
+using static NoxRaven.UnitAgents.EUnitState;
+
 namespace NoxRaven.Units
 {
     public partial class NUnit
@@ -22,7 +24,7 @@ namespace NoxRaven.Units
             BlzSetEventDamage(0);
             // ~this is the target
             //if (!Ranged) // later
-            float dmg = source.state.DMG;
+            float dmg = source.state[GREY_ATK] + source.state[GREEN_ATK];
 
             UnitRemoveAbility(source.wc3agent, _resetAAAbility);
 
@@ -33,7 +35,7 @@ namespace NoxRaven.Units
 
         private void Remove()
         {
-            foreach (SortedSet<Status> st in _statuses.Values)
+            foreach (SortedList<Status> st in _statuses.Values)
                 foreach (Status s in st)
                     s.Remove();
             TriggerEvent(new OnRecycle() { Target = this });
@@ -61,6 +63,37 @@ namespace NoxRaven.Units
         //     HealHP(parsEvent.HealthValue * RegenerationTimeout);
         //     HealMP(parsEvent.ManaValue * RegenerationTimeout);
         // }
+
+        internal void _ApplyAbility(NAbility inst){
+            inst.AttachAbility(this);
+            if (inst.modifier != null)
+            {
+                AddModifier(inst.modifier);
+            }
+            foreach (IBehaviour behaviour in inst.localBehaviours)
+            {
+                SubscribeToEvent(behaviour);
+            }
+            foreach (IBehaviour behaviour in inst.globalBehaviours)
+            {
+                SubscribeToGlobalEvent(behaviour);
+            }
+        }
+        internal void _UnapplyAbility(NAbility inst){
+            inst.DetachAbility();
+            if (inst.modifier != null)
+            {
+                RemoveModifier(inst.modifier);
+            }
+            foreach (IBehaviour behaviour in inst.localBehaviours)
+            {
+                UnsubscribeFromEvent(behaviour);
+            }
+            foreach (IBehaviour behaviour in inst.globalBehaviours)
+            {
+                UnsubscribeFromGlobalEvent(behaviour);
+            }
+        }
 
         #region internal Status/onhit api
         internal bool ContainsOnHit(int id)
@@ -92,7 +125,7 @@ namespace NoxRaven.Units
             if (damage < 0) return;
             location loc = Location(GetUnitX(target) + GetRandomReal(0, 5), GetUnitY(target) + GetRandomReal(0, 5));
             // here for now ?
-            if (dmgsource == DamageSource.BASIC_ATTACK && GetRandomReal(0, 1) < target.getStats.dodgeChance)
+            if (dmgsource == DamageSource.BASIC_ATTACK && GetRandomReal(0, 1) < target.state[DODGE_CHANCE])
             {
                 Utils.TextDirectionRandom("dodge!", loc, 3.5f, 255, 255, 255, 0, 0.8f, GetOwningPlayer(this));
                 Utils.TextDirectionRandom("dodge!", loc, 3.5f, 255, 255, 255, 0, 0.8f, GetOwningPlayer(target));
@@ -103,11 +136,11 @@ namespace NoxRaven.Units
 
             if (dmgtype == DamageType.PHYSICAL)
             {
-                pars *= UnitUtils.GetDamageReductionFromArmor(target.state.ARM);
+                pars *= UnitUtils.GetDamageReductionFromArmor(target.state[GREY_ARM] + target.state[GREEN_ARM]);
             }
             else if (dmgtype == DamageType.MAGICAL)
             {
-                pars *= UnitUtils.GetDamageReductionFromArmor(target.state.MR);
+                pars *= UnitUtils.GetDamageReductionFromArmor(target.state[GREY_RES] + target.state[GREEN_RES]);
             }
             //Event Pars
 
@@ -127,8 +160,8 @@ namespace NoxRaven.Units
             TriggerEvent(evt);
 
             pars = evt.processedDamage;
-            float critC = _stats.critChace + evt.dmgCrit.critChanceBonus;
-            float critD = _stats.critDamage * (1 + evt.dmgCrit.critDamageBonus);
+            float critC = state[CRIT_CHANCE] + evt.dmgCrit.critChanceBonus;
+            float critD = state[CRIT_DAMAGE] * (1 + evt.dmgCrit.critDamageBonus);
             // The logic
             float txtSize = 5.9f;
             float txtDur = 0.8f;
@@ -154,9 +187,9 @@ namespace NoxRaven.Units
             RawDamage(target, pars);
 
             if (dmgsource == DamageSource.SPELL)
-                HealHP(pars * _stats.spellVamp);
+                HealHP(pars * state[SPELLVAMP]);
             else if (dmgsource == DamageSource.ONHIT || dmgsource == DamageSource.BASIC_ATTACK)
-                HealHP(pars * _stats.lifeSteal);
+                HealHP(pars * state[LIFESTEAL]);
 
             // Now that's done
             // Onhits

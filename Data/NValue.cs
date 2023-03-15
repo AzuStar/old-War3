@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace NoxRaven.Data
 {
@@ -11,7 +12,8 @@ namespace NoxRaven.Data
         public float value { get => _value; set => Set(value); }
         private float _value = 0;
         private HashSet<NData.StateChangeHandler> _callbacks = new HashSet<NData.StateChangeHandler>();
-        private Dictionary<NValue, Func<float, float, float>> _valueStacks = new Dictionary<NValue, Func<float, float, float>>();
+
+        private List<ChainTuple> _valueChains = new List<ChainTuple>();
         #endregion
 
         #region Constructors
@@ -44,29 +46,39 @@ namespace NoxRaven.Data
         {
             _callbacks.Remove(callback);
         }
-        public void AddValueStack(NValue stackingValue, Func<float, float, float> stackingFunc)
+        public void AddValueChain(NValue stackingValue, NData.ChainFunction arithmetic)
         {
-            _valueStacks.Add(stackingValue, stackingFunc);
-            stackingValue.AddListener((prev, next) =>
+            _valueChains.Add(new ChainTuple()
+            {
+                stackingValue = stackingValue,
+                arithmetic = arithmetic
+            });
+            stackingValue.AddListener((prev, cur) =>
             {
                 RecomputeStack();
-                return next;
+                return cur;
             });
         }
         public void RecomputeStack()
         {
-            if(_valueStacks.Count == 0)
+            if (_valueChains.Count == 0)
             {
                 return;
             }
-            float multiple = 0;//_valueStacks[0].value;
-            for (int i = 1; i < _valueStacks.Count; i++)
+            float multiple = 0;
+            foreach (ChainTuple chain in _valueChains)
             {
-                NValue val = _valueStacks[i];
-                multiple *= (1 + val.value);
+                multiple = chain.arithmetic(multiple, chain.stackingValue._value);
             }
             Set(multiple);
         }
         #endregion
+
+        private struct ChainTuple
+        {
+            public NValue stackingValue;
+            public NData.ChainFunction arithmetic;
+        }
     }
+
 }

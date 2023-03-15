@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System;
 using NoxRaven.Statuses;
 using NoxRaven.UnitAgents;
+using System.Linq;
+using NoxRaven.Data;
 
 namespace NoxRaven.Units
 {
@@ -53,68 +55,73 @@ namespace NoxRaven.Units
             _DealDamage(target, damage, dmgOnHit, dmgCrit, dmgSource, dmgType, stopRecursion);
         }
 
-        public void AddModifier(IModifier mod)
+        public void AddModifier(NDataModifier mod)
         {
             if (mod != null)
             {
-                _stats = mod.ApplyModifier(_stats);
-                RecalculateStats(_stats);
+                state.ApplyModifier(mod);
             }
 
         }
-        public void RemoveModifier(IModifier mod)
+        public void RemoveModifier(NDataModifier mod)
         {
             if (mod != null)
             {
-                _stats = mod.UnapplyModifier(_stats);
-                RecalculateStats(_stats);
+                state.UnapplyModifier(mod);
             }
         }
-
-        public T AddAbility<T>() where T : NAbility
+        public void AddAbility(NAbility abil)
         {
-            return (T)AddAbility(typeof(T));
-        }
-        public NAbility AddAbility(Type t)
-        {
-            NAbility abil = (NAbility)Activator.CreateInstance(t, this);
-            abilities.Add(abil);
-            if (abil.mod != null)
+            if (abil.unique)
             {
-                AddModifier(abil.mod);
+                if (!abilitiesUniques.ContainsKey(abil.GetType()))
+                    abilitiesUniques.Add(abil.GetType(), new SortedList<NAbility>());
+                if (abilitiesUniques[abil.GetType()].Count > 0)
+                {
+                    NAbility firstInst = abilitiesUniques[abil.GetType()].First();
+                    if (firstInst.level < abil.level)
+                    {
+                        _UnapplyAbility(firstInst);
+                        _ApplyAbility(abil);
+                    }
+                }
             }
-            foreach (IBehaviour behaviour in abil.localBehaviours)
+            else
             {
-                SubscribeToEvent(behaviour);
+                _ApplyAbility(abil);
             }
-            foreach (IBehaviour behaviour in abil.globalBehaviours)
-            {
-                SubscribeToGlobalEvent(behaviour);
-            }
-            return abil;
+            abilitiesUniques[abil.GetType()].Add(abil);
         }
         public void RemoveAbility(NAbility abil)
         {
-            if (abil.mod != null)
+            if (abil.unique)
             {
-                RemoveModifier(abil.mod);
+                if (!abilitiesUniques.ContainsKey(abil.GetType()))
+                    abilitiesUniques.Add(abil.GetType(), new SortedList<NAbility>());
+                    if (abilitiesUniques[abil.GetType()].Count > 1)
+                    {
+                        NAbility first = abilitiesUniques[abil.GetType()].First();
+                        if(first == abil){
+                         abilitiesUniques[abil.GetType()].Remove(abil);   
+                        _UnapplyAbility(abil);
+                        _ApplyAbility(abilitiesUniques[abil.GetType()].First());
+                        }
+                        
+                    }
             }
-            foreach (IBehaviour behaviour in abil.localBehaviours)
+            else
             {
-                UnsubscribeFromEvent(behaviour);
+                _UnapplyAbility(abil);
+                
             }
-            foreach (IBehaviour behaviour in abil.globalBehaviours)
-            {
-                UnsubscribeFromGlobalEvent(behaviour);
-            }
-            abilities.Remove(abil);
+            abilitiesUniques[abil.GetType()].Remove(abil);
         }
         public Status AddStatus<T>() where T : Status
         {
             Status st = (Status)Activator.CreateInstance(typeof(T), this);
             if (!_statuses.ContainsKey(typeof(T)))
             {
-                _statuses.Add(typeof(T), new SortedSet<Status>(Comparer<Status>.Create((x, y) => x.level.CompareTo(y.level))));
+                _statuses.Add(typeof(T), new SortedList<Status>());
             }
             _statuses[typeof(T)].Add(st);
 
@@ -151,7 +158,7 @@ namespace NoxRaven.Units
         /// <param name="howMuch"></param>
         public virtual void HealHP(float howMuch, bool show = false)
         {
-            float pars = howMuch * _stats.incomingHealing;
+            float pars = howMuch * state[EUnitState.INCOMING_HEALING];
             // TODO onHealHP event
             SetWidgetLife(this, GetWidgetLife(this) + pars);
             if (show)
@@ -165,7 +172,7 @@ namespace NoxRaven.Units
         public virtual void HealMP(float howMuch, bool show = false)
         {
             // TODO onHealMana event
-            SetUnitManaBJ(this, GetUnitState(this, UNIT_STATE_MANA) + howMuch * _stats.incomingMana);
+            SetUnitManaBJ(this, GetUnitState(this, UNIT_STATE_MANA) + howMuch * state[EUnitState.INCOMING_MANA]);
             if (show)
             {
                 location loc = Location(GetUnitX(this) + GetRandomReal(0, 10), GetUnitY(this) + GetRandomReal(0, 5));
@@ -188,27 +195,6 @@ namespace NoxRaven.Units
         {
             _events[pb.GetType().GetGenericArguments()[0].FullName].Remove(pb);
         }
-        // /// <summary>
-        // /// Subscribes to a certain event type
-        // /// </summary>
-        // /// <param name="behaviour"></param>
-        // /// <typeparam name="T"></typeparam>
-        // public void SubscribeToEvent<T>(Behaviour<T> behaviour) where T : Events.EventArgs
-        // {
-        //     SubscribeToEvent(behaviour);
-        // }
-        // /// <summary>
-        // /// Unscubscribes from a certain event type
-        // /// </summary>
-        // /// <param name="behaviour"></param>
-        // /// <typeparam name="T"></typeparam>
-        // public void UnsubscribeFromEvent<T>(Behaviour<T> behaviour) where T : Events.EventArgs
-        // {
-        //     if (_events.ContainsKey(typeof(T).FullName))
-        //     {
-        //         _events[typeof(T).FullName].Remove(behaviour);
-        //     }
-        // }
         /// <summary>
         /// Trigger a certain event type
         /// </summary>

@@ -5,6 +5,7 @@ using static War3Api.Common;
 using static War3Api.Blizzard;
 using NoxRaven.Units;
 using NoxRaven.Frames;
+using NoxRaven.IO;
 
 namespace NoxRaven
 {
@@ -66,6 +67,8 @@ namespace NoxRaven
                 if (!s_isSane)
                     Utils.DisplayMessageToEveryone("Failed sanity check (or it has not been called).", 999f);
                 DestroyTimer(s_sanityTimer);
+                File fs = new File("noxraven\\debug.txt", GetLocalPlayer());
+                fs.WriteRaw(String.Join("\n",Utils.s_debugMessages));
             });
             TimerStart(CreateTimer(), 1800, true, GCRoutine); // funny but really helps
         }

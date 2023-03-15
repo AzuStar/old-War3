@@ -29,28 +29,29 @@ namespace NoxRaven.Units
         private trigger dmgHookTrig;
         private trigger attackHookTrig;
 
-        private Dictionary<Type, SortedSet<Status>> _statuses = new Dictionary<Type, SortedSet<Status>>();
+        private Dictionary<Type, SortedList<Status>> _statuses = new Dictionary<Type, SortedList<Status>>();
         public Dictionary<int, OnHit> onHits = new Dictionary<int, OnHit>();
-        private List<NAbility> abilities = new List<NAbility>();
+        // private List<NAbilityInst> abilities = new List<NAbilityInst>();
+        private Dictionary<Type, SortedList<NAbility>> abilitiesUniques = new Dictionary<Type, SortedList<NAbility>>();
 
-        private Stats _stats = new Stats();
-        public Stats getStats { get => _stats; set => _stats = value; }
-
-        // Final unit state
-        public State state = new State();
+        public UnitState state = new UnitState();
 
         private Dictionary<string, BehaviourList<Events.EventArgs>> _events = new Dictionary<string, BehaviourList<Events.EventArgs>>();
 
+        public float AP => state[EUnitState.GREY_AP] + state[EUnitState.GREEN_AP];
+        public float ATK => state[EUnitState.GREY_ATK] + state[EUnitState.GREEN_ATK];
+        public float ARM => state[EUnitState.GREY_ARM] + state[EUnitState.GREEN_ARM];
+        public float RES => state[EUnitState.GREY_RES] + state[EUnitState.GREEN_RES];
 
-        public int ui_baseDMG => R2I(_stats.baseDMG * (1 + _stats.baseDMGPercent));
-        public int ui_baseAP => R2I(_stats.baseAP * (1 + _stats.baseAPPercent));
-        public int ui_baseARM => R2I(_stats.baseARM * (1 + _stats.baseARMPercent));
-        public int ui_baseMR => R2I(_stats.baseMR * (1 + _stats.baseMRPercent));
+        // public int ui_baseDMG => R2I(state.baseDMG * (1 + state.baseDMGPercent));
+        // public int ui_baseAP => R2I(state.baseAP * (1 + state.baseAPPercent));
+        // public int ui_baseARM => R2I(state.baseARM * (1 + state.baseARMPercent));
+        // public int ui_baseMR => R2I(state.baseMR * (1 + state.baseMRPercent));
 
-        public int ui_bonusDMG => R2I(_stats.bonusDMG + _stats.baseDMGPercentBonus * ui_baseDMG + state.DMG * _stats.totalDMGPercent);
-        public int ui_bonusAP => R2I(_stats.bonusAP + _stats.baseAPPercentBonus * ui_baseAP + state.AP * _stats.totalAPPercent);
-        public int ui_bonusARM => R2I(_stats.bonusARM + _stats.baseARMPercentBonus * ui_baseARM + state.ARM * _stats.totalARMPercent);
-        public int ui_bonusMR => R2I(_stats.bonusMR + _stats.baseMRPercentBonus * ui_baseMR + state.MR * _stats.totalMRPercent);
+        // public int ui_bonusDMG => R2I(state.bonusDMG + state.baseDMGPercentBonus * ui_baseDMG + state.DMG * state.totalDMGPercent);
+        // public int ui_bonusAP => R2I(state.bonusAP + state.baseAPPercentBonus * ui_baseAP + state.AP * state.totalAPPercent);
+        // public int ui_bonusARM => R2I(state.bonusARM + state.baseARMPercentBonus * ui_baseARM + state.ARM * state.totalARMPercent);
+        // public int ui_bonusMR => R2I(state.bonusMR + state.baseMRPercentBonus * ui_baseMR + state.MR * state.totalMRPercent);
 
     }
 }

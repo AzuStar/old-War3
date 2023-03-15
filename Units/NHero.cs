@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using NoxRaven.Data;
 using NoxRaven.Events;
 using NoxRaven.UnitAgents;
 using War3Api;
@@ -9,11 +10,7 @@ namespace NoxRaven.Units
 {
     public class NHero : NUnit
     {
-        private HeroStats _statsPerLevel;
-        protected virtual HeroStats perLevelStats => new HeroStats();
-
-        protected HeroStats getStatsPerLevel { get => _statsPerLevel; set => _statsPerLevel = value; }
-        protected new HeroStats getStats { get => (HeroStats)base.getStats; set => base.getStats = value; }
+        public NDataModifier statsPerLevel = new NDataModifier();
 
         protected float CacheExp;
 
@@ -26,7 +23,7 @@ namespace NoxRaven.Units
         {
             // For now just use war3 built-in experience manipulator
             int lvl = GetHeroLevel(wc3agent);
-            CacheExp += exp * (1 + getStats.experienceGain);
+            CacheExp += exp * (1 + state[EUnitState.EXP_RATE]);
             AddHeroXP(wc3agent, R2I(CacheExp), true);
             CacheExp -= R2I(CacheExp);
             int difference = GetHeroLevel(wc3agent) - lvl;
@@ -47,21 +44,12 @@ namespace NoxRaven.Units
                 newLevel = previouslvl + times
             };
             TriggerEvent(parsEvent);
-            RecalculateStats(getStats);
+            AddModifier(statsPerLevel * times);
         }
 
-        protected override void RecalculateStats(Stats myStats)
+        protected internal NHero(Common.unit u, NDataModifier initialStats = null) : base(u, initialStats)
         {
-            if (_statsPerLevel == null) return;
-            Stats completeHeroStats = myStats + (getStatsPerLevel * (GetHeroLevel(wc3agent) - 1));
-            // recalculate custom stuff like ability tooltips
-            base.RecalculateStats(completeHeroStats);
-        }
-
-        protected internal NHero(Common.unit u, HeroStats initialStats = null) : base(u, initialStats)
-        {
-            _statsPerLevel = perLevelStats;
-            RecalculateStats(getStats);
+            AddModifier(statsPerLevel * GetHeroLevel(wc3agent));
             SetUnitState(wc3agent, UNIT_STATE_LIFE, 9999999);
             SetUnitState(wc3agent, UNIT_STATE_MANA, 9999999);
         }

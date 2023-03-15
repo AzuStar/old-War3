@@ -11,7 +11,7 @@ namespace NoxRaven.Statuses
     /// Base class for all statuses. <br />
     /// Constructor parsed with <see cref="NUnit"/>source, <see cref="NUnit"/>target. <br />
     /// </summary>
-    public abstract class Status
+    public abstract class Status : IComparable<Status>
     {
 
         public enum Polarity : int
@@ -197,5 +197,9 @@ namespace NoxRaven.Statuses
         public abstract void Reset();
         public abstract void OnRemove();
 
+        public int CompareTo(Status other)
+        {
+            return level.CompareTo(other.level);
+        }
     }
 }

@@ -22,7 +22,23 @@ namespace NoxRaven.IO
             TargetPlayer = forWhatPlayer;
             Path = path;
         }
-
+        public void WriteRaw(string payload)
+        {
+            int len = payload.Length;
+            if (GetLocalPlayer() == TargetPlayer.wc3agent)
+            {
+                PreloadGenClear();
+                PreloadGenStart();
+                Preload("\")\n");
+                for (int i = 0; i < len;)
+                {
+                    string chunk = SubString(payload, i, i + ChunkLen);
+                    Preload("\")\n" + chunk + "\n");
+                    i += ChunkLen;
+                }
+                PreloadGenEnd(Path);
+            }
+        }
         public void Write(string payload)
         {
             int len = payload.Length;

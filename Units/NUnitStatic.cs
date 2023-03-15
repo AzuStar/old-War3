@@ -81,12 +81,12 @@ namespace NoxRaven.Units
 
             if (GetUnitAbilityLevel(u, FourCC("Aloc")) > 0) return false;
             if (s_indexer.ContainsKey(War3Api.Common.GetHandleId(u))) return false;
-
             try
             {
                 if (s_customTypes.ContainsKey(GetUnitTypeId(u)))
                     s_indexer[War3Api.Common.GetHandleId(u)] = (NUnit)Activator.CreateInstance(s_customTypes[GetUnitTypeId(u)], u);
-                else if (IsUnitType(u, UNIT_TYPE_HERO))
+                else 
+                if (IsUnitType(u, UNIT_TYPE_HERO))
                     s_indexer[War3Api.Common.GetHandleId(u)] = new NHero(u);
                 else
                     s_indexer[War3Api.Common.GetHandleId(u)] = new NUnit(u);
@@ -104,7 +104,7 @@ namespace NoxRaven.Units
             }
             catch (Exception e)
             {
-                Utils.Debug(e.ToString());
+                Utils.Debug(e.Message);
             }
             u = null;
             return false;
@@ -118,7 +118,7 @@ namespace NoxRaven.Units
             if (!s_indexer.ContainsKey(u.GetId())) return; // this is a very weird thing to happen, but will happen for Neutrals so yeah
             if (u.corpse) return;
 
-            foreach (SortedSet<Status> st in u._statuses.Values)
+            foreach (SortedList<Status> st in u._statuses.Values)
                 foreach (Status s in st)
                 if(s.removeOndeath)
                     s.Remove();

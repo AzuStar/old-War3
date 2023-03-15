@@ -59,7 +59,7 @@ namespace NoxRaven.Data
             _data.Add(id, 0);
             return 0;
         }
-        public IEnumerable<KeyValuePair<int, float>> GetEnumerable()
+        public Dictionary<int, float> GetDictionary()
         {
             return _data;
         }
@@ -109,6 +109,24 @@ namespace NoxRaven.Data
             foreach (int key in left._data.Keys.Union(right._data.Keys).ToHashSet())
             {
                 newstats.Set(key, left.Get(key) / right.Get(key));
+            }
+            return newstats;
+        }
+        public static NDataModifier operator *(NDataModifier left, float right)
+        {
+            NDataModifier newstats = (NDataModifier)Activator.CreateInstance(left.GetType());
+            foreach (int key in left._data.Keys)
+            {
+                newstats.Set(key, left.Get(key) * right);
+            }
+            return newstats;
+        }
+        public static NDataModifier operator /(NDataModifier left, float right)
+        {
+            NDataModifier newstats = (NDataModifier)Activator.CreateInstance(left.GetType());
+            foreach (int key in left._data.Keys)
+            {
+                newstats.Set(key, left.Get(key) / right);
             }
             return newstats;
         }

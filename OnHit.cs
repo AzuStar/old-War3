@@ -1,4 +1,5 @@
-﻿using NoxRaven.Units;
+﻿using NoxRaven.UnitAgents;
+using NoxRaven.Units;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -22,7 +23,7 @@ namespace NoxRaven
         /// <param name="target"></param>
         public void ApplyOnHit(NUnit source, NUnit target, float damage, float processedDamage)
         {
-            if (GetRandomReal(0, 1) < source.getStats.triggerChance * type.chance)
+            if (GetRandomReal(0, 1) < source.state[EUnitState.TRIGGER_CHANCE] * type.chance)
                 if (!type.unique)
                     for (int i = 0; i < count; i++)
                         type.callback.Invoke(source, target, damage, processedDamage, this);

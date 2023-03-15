@@ -30,7 +30,7 @@ namespace NoxRaven
         public static void Debug(string str)
         {
             s_debugMessages.Add(str);
-            DisplayMessageToEveryone("Debug: " + str, 999999);
+            DisplayMessageToEveryone("DLog: " + str, 999999);
         }
 
         /// <summary>

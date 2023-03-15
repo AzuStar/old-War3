@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Dynamic;
 using System.Linq;
 using System.Reflection;
@@ -11,6 +12,7 @@ namespace NoxRaven.Data
     {
         #region Static
         public delegate float StateChangeHandler(float prev, float cur);
+        public delegate float ChainFunction(float value, float chain);
         /// <summary>
         /// Convert a 4-character string to a 32-bit integer, use exactly 4 character. Always. Only.
         /// </summary>
@@ -37,7 +39,7 @@ namespace NoxRaven.Data
         }
         public void ApplyModifier(NDataModifier modifier)
         {
-            IEnumerable<KeyValuePair<int, float>> enumerator = modifier.GetEnumerable();
+            Dictionary<int, float> enumerator = modifier.GetDictionary();
             foreach (KeyValuePair<int, float> kv in enumerator)
             {
                 this[kv.Key] += kv.Value;
@@ -45,7 +47,7 @@ namespace NoxRaven.Data
         }
         public void UnapplyModifier(NDataModifier modifier)
         {
-            IEnumerable<KeyValuePair<int, float>> enumerator = modifier.GetEnumerable();
+            Dictionary<int, float> enumerator = modifier.GetDictionary();
             foreach (KeyValuePair<int, float> kv in enumerator)
             {
                 this[kv.Key] -= kv.Value;
@@ -71,7 +73,7 @@ namespace NoxRaven.Data
                 val.RemoveListener(handler);
             }
         }
-        public void AddValueStack(int targetId, int stackingValueId)
+        public void AddChainStack(int targetId, int stackingValueId, ChainFunction arithmetic)
         {
             // contains
             if (!_data.ContainsKey(targetId))
@@ -82,7 +84,7 @@ namespace NoxRaven.Data
             {
                 _data.Add(stackingValueId, new NValue());
             }
-            _data[targetId].AddValueStack(_data[stackingValueId]);
+            _data[targetId].AddValueChain(_data[stackingValueId], arithmetic);
         }
         public void RecomputeStack(int targetId)
         {
@@ -93,7 +95,8 @@ namespace NoxRaven.Data
         }
         public void ResetFromModifier(NDataModifier modifier)
         {
-            IEnumerable<KeyValuePair<int, float>> enumerator = modifier.GetEnumerable();
+            Dictionary<int, float> enumerator = modifier.GetDictionary();
+            
             foreach (KeyValuePair<int, float> kv in enumerator)
             {
                 this[kv.Key] = kv.Value;

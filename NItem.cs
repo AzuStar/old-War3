@@ -35,9 +35,7 @@ namespace NoxRaven
         protected ItemAction drop = null;
         protected ItemAction use = null;
 
-        protected IModifier mod = null;
-        private List<NAbility> _abilities = new List<NAbility>();
-        protected List<Type> abilities = new List<Type>();
+        public List<NAbility> abilities = new List<NAbility>();
 
         public static void AddCustomType<T>(int typeId) where T : NItem
         {
@@ -81,10 +79,9 @@ namespace NoxRaven
                 item.typeId = GetItemTypeId(it);
             }
             NItem check = s_index[id];
-            nu.AddModifier(check.mod);
-            foreach (Type t in check.abilities)
+            foreach (NAbility ab in check.abilities)
             {
-                check._abilities.Add(nu.AddAbility(t));
+                nu.AddAbility(ab);
             }
             check.pickUp?.Invoke(nu, it);
         }
@@ -96,8 +93,7 @@ namespace NoxRaven
             if (s_index.ContainsKey(id))
             {
                 NItem check = s_index[id];
-                nu.RemoveModifier(check.mod);
-                foreach (NAbility ab in check._abilities)
+                foreach (NAbility ab in check.abilities)
                 {
                     nu.RemoveAbility(ab);
                 }
