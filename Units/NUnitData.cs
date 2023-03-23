@@ -31,8 +31,9 @@ namespace NoxRaven.Units
 
         private Dictionary<Type, SortedList<Status>> _statuses = new Dictionary<Type, SortedList<Status>>();
         public Dictionary<int, OnHit> onHits = new Dictionary<int, OnHit>();
-        // private List<NAbilityInst> abilities = new List<NAbilityInst>();
-        private Dictionary<Type, SortedList<NAbility>> abilitiesUniques = new Dictionary<Type, SortedList<NAbility>>();
+        private Dictionary<Type, SortedList<NAbility>> abilities = new Dictionary<Type, SortedList<NAbility>>();
+        private List<UnitDisposable> _disposables = new List<UnitDisposable>();
+        
 
         public UnitState state = new UnitState();
 

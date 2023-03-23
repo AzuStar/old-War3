@@ -31,13 +31,22 @@ namespace NoxRaven.Units
             source._DealDamage(this, dmg, DamageOnHit.DEFAULT_BASIC_AA, DamageCrit.DEFAULT_BASIC_AA, DamageSource.BASIC_ATTACK, DamageType.PHYSICAL, false);
         }
 
-
-
         private void Remove()
         {
+            // not unit disposable
             foreach (SortedList<Status> st in _statuses.Values)
                 foreach (Status s in st)
                     s.Remove();
+
+            // not unit disposable
+            foreach (SortedList<NAbility> ab in abilities.Values)
+                foreach (NAbility a in ab)
+                    a.DetachAbility();
+
+            foreach (UnitDisposable ud in _disposables)
+            {
+                ud.Dispose();
+            }
             TriggerEvent(new OnRecycle() { Target = this });
             onHits.Clear();
             //AmHits.Clear();
@@ -64,7 +73,8 @@ namespace NoxRaven.Units
         //     HealMP(parsEvent.ManaValue * RegenerationTimeout);
         // }
 
-        internal void _ApplyAbility(NAbility inst){
+        internal void _ApplyAbility(NAbility inst)
+        {
             inst.AttachAbility(this);
             if (inst.modifier != null)
             {
@@ -79,7 +89,8 @@ namespace NoxRaven.Units
                 SubscribeToGlobalEvent(behaviour);
             }
         }
-        internal void _UnapplyAbility(NAbility inst){
+        internal void _UnapplyAbility(NAbility inst)
+        {
             inst.DetachAbility();
             if (inst.modifier != null)
             {
@@ -119,6 +130,14 @@ namespace NoxRaven.Units
             return _statuses.ContainsKey(typeof(StatusType));
         }
         #endregion
+
+        private void UpdateDisposables()
+        {
+            foreach (UnitDisposable disp in _disposables)
+            {
+                disp.Update();
+            }
+        }
 
         private void _DealDamage(NUnit target, float damage, DamageOnHit dmgOnHit, DamageCrit dmgCrit, DamageSource dmgsource, DamageType dmgtype, bool stopRecursion = false)
         {

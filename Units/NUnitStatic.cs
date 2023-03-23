@@ -66,7 +66,15 @@ namespace NoxRaven.Units
                                                                                                                                    // Utility functions
 
 
-            Master.s_globalTick.Add((delta) => { foreach (NUnit ue in s_indexer.Values) ue.Regenerate(delta); });
+            Master.s_globalTick.Add((delta) =>
+            {
+                foreach (NUnit ue in s_indexer.Values)
+                {
+                    if (ue.corpse) continue;
+                    ue.UpdateDisposables();
+                    ue.Regenerate(delta);
+                }
+            });
 
             // Recycle stuff
             DestroyGroup(g);
@@ -85,7 +93,7 @@ namespace NoxRaven.Units
             {
                 if (s_customTypes.ContainsKey(GetUnitTypeId(u)))
                     s_indexer[War3Api.Common.GetHandleId(u)] = (NUnit)Activator.CreateInstance(s_customTypes[GetUnitTypeId(u)], u);
-                else 
+                else
                 if (IsUnitType(u, UNIT_TYPE_HERO))
                     s_indexer[War3Api.Common.GetHandleId(u)] = new NHero(u);
                 else
@@ -104,7 +112,7 @@ namespace NoxRaven.Units
             }
             catch (Exception e)
             {
-                Utils.Debug(e.Message);
+                Utils.Debug("0x0F04: " + e.Message);
             }
             u = null;
             return false;
@@ -120,8 +128,8 @@ namespace NoxRaven.Units
 
             foreach (SortedList<Status> st in u._statuses.Values)
                 foreach (Status s in st)
-                if(s.removeOndeath)
-                    s.Remove();
+                    if (s.removeOndeath)
+                        s.Remove();
 
             OnDeath odmeta = new OnDeath()
             {

@@ -31,9 +31,9 @@ namespace NoxRaven
         public static bool s_chargedStack = true;
 
         public int typeId;
-        protected ItemAction pickUp = null;
-        protected ItemAction drop = null;
-        protected ItemAction use = null;
+        protected event ItemAction pickUp = (manipulator, it) => { };
+        protected event ItemAction drop = (manipulator, it) => { };
+        protected event ItemAction use = (manipulator, it) => { };
 
         public List<NAbility> abilities = new List<NAbility>();
 
@@ -79,11 +79,15 @@ namespace NoxRaven
                 item.typeId = GetItemTypeId(it);
             }
             NItem check = s_index[id];
+            try{
             foreach (NAbility ab in check.abilities)
             {
                 nu.AddAbility(ab);
             }
-            check.pickUp?.Invoke(nu, it);
+            }catch(Exception e){
+                Utils.Debug(e.Message);
+            }
+            check.pickUp(nu, it);
         }
         internal static void _ItemDropped()
         {
@@ -97,7 +101,7 @@ namespace NoxRaven
                 {
                     nu.RemoveAbility(ab);
                 }
-                check.drop?.Invoke(nu, GetManipulatedItem());
+                check.drop(nu, GetManipulatedItem());
             }
         }
         protected NItem()

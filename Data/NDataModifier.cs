@@ -18,12 +18,22 @@ namespace NoxRaven.Data
         public NDataModifier() { }
 
         #region Methods
+        public override string ToString()
+        {
+            string str = "";
+            foreach (int key in _data.Keys)
+            {
+                str += key + ": " + _data[key] + "\n";
+            }
+            return str;
+        }
         // Get and Set
         public NDataModifier MultiplyExisting(NDataModifier right)
         {
             NDataModifier newstats = (NDataModifier)Activator.CreateInstance(this.GetType());
             newstats._data = new Dictionary<int, float>(_data); // this will be existing
-            foreach (int key in _data.Keys.Intersect(right._data.Keys).ToHashSet())
+            HashSet<int> keys = new HashSet<int>(newstats._data.Keys);
+            foreach (int key in keys)
             {
                 newstats.Set(key, Get(key) * right.Get(key));
             }
@@ -76,7 +86,7 @@ namespace NoxRaven.Data
         public static NDataModifier operator +(NDataModifier left, NDataModifier right)
         {
             NDataModifier newstats = (NDataModifier)Activator.CreateInstance(left.GetType());
-            foreach (int key in left._data.Keys.Union(right._data.Keys).ToHashSet())
+            foreach (int key in left._data.Keys.Union(right._data.Keys))
             {
                 newstats.Set(key, left.Get(key) + right.Get(key));
             }
@@ -86,7 +96,7 @@ namespace NoxRaven.Data
         public static NDataModifier operator -(NDataModifier left, NDataModifier right)
         {
             NDataModifier newstats = (NDataModifier)Activator.CreateInstance(left.GetType());
-            foreach (int key in left._data.Keys.Union(right._data.Keys).ToHashSet())
+            foreach (int key in left._data.Keys.Union(right._data.Keys))
             {
                 newstats.Set(key, left.Get(key) - right.Get(key));
             }
@@ -96,7 +106,7 @@ namespace NoxRaven.Data
         public static NDataModifier operator *(NDataModifier left, NDataModifier right)
         {
             NDataModifier newstats = (NDataModifier)Activator.CreateInstance(left.GetType());
-            foreach (int key in left._data.Keys.Union(right._data.Keys).ToHashSet())
+            foreach (int key in left._data.Keys.Intersect(right._data.Keys))
             {
                 newstats.Set(key, left.Get(key) * right.Get(key));
             }
@@ -106,7 +116,7 @@ namespace NoxRaven.Data
         public static NDataModifier operator /(NDataModifier left, NDataModifier right)
         {
             NDataModifier newstats = (NDataModifier)Activator.CreateInstance(left.GetType());
-            foreach (int key in left._data.Keys.Union(right._data.Keys).ToHashSet())
+            foreach (int key in left._data.Keys.Intersect(right._data.Keys))
             {
                 newstats.Set(key, left.Get(key) / right.Get(key));
             }

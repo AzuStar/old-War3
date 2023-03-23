@@ -29,6 +29,8 @@ namespace NoxRaven.UnitAgents
 
         EXP_RATE,
 
+        WINDUP_MODIFIER, 
+
         // Stats from which states above are computed
         BASE_ATK = 100,
         BASE_ATK_PERCENT_BASE,

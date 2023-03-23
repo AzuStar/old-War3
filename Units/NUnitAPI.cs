@@ -70,51 +70,75 @@ namespace NoxRaven.Units
                 state.UnapplyModifier(mod);
             }
         }
+        public void AddDisposable(UnitDisposable ud){
+            _disposables.Add(ud);
+        }
+        public void RemoveDisposable(UnitDisposable ud){
+            _disposables.Remove(ud);
+        }
         public void AddAbility(NAbility abil)
         {
+            if (!abilities.ContainsKey(abil.GetType()))
+                abilities.Add(abil.GetType(), new SortedList<NAbility>());//Comparer<NAbility>.Create((a, b) => b.level - a.level)));
             if (abil.unique)
             {
-                if (!abilitiesUniques.ContainsKey(abil.GetType()))
-                    abilitiesUniques.Add(abil.GetType(), new SortedList<NAbility>());
-                if (abilitiesUniques[abil.GetType()].Count > 0)
+                if (abilities[abil.GetType()].Count > 0)
                 {
-                    NAbility firstInst = abilitiesUniques[abil.GetType()].First();
-                    if (firstInst.level < abil.level)
+                    NAbility firstInst = abilities[abil.GetType()].First();
+                    abilities[abil.GetType()].Add(abil);
+                    NAbility updatedInst = abilities[abil.GetType()].First();
+                    if (updatedInst == abil)
                     {
                         _UnapplyAbility(firstInst);
                         _ApplyAbility(abil);
                     }
                 }
+                else
+                {
+                    _ApplyAbility(abil);
+                    abilities[abil.GetType()].Add(abil);
+                }
             }
             else
             {
                 _ApplyAbility(abil);
+                abilities[abil.GetType()].Add(abil);
             }
-            abilitiesUniques[abil.GetType()].Add(abil);
+
         }
         public void RemoveAbility(NAbility abil)
         {
+            if (!abilities.ContainsKey(abil.GetType()))
+                abilities.Add(abil.GetType(), new SortedList<NAbility>());//Comparer<NAbility>.Create((a, b) => b.level - a.level)));
             if (abil.unique)
             {
-                if (!abilitiesUniques.ContainsKey(abil.GetType()))
-                    abilitiesUniques.Add(abil.GetType(), new SortedList<NAbility>());
-                    if (abilitiesUniques[abil.GetType()].Count > 1)
+
+                if (abilities[abil.GetType()].Count > 1)
+                {
+                    NAbility first = abilities[abil.GetType()].First();
+                    if (first == abil)
                     {
-                        NAbility first = abilitiesUniques[abil.GetType()].First();
-                        if(first == abil){
-                         abilitiesUniques[abil.GetType()].Remove(abil);   
+                        abilities[abil.GetType()].Remove(abil);
                         _UnapplyAbility(abil);
-                        _ApplyAbility(abilitiesUniques[abil.GetType()].First());
-                        }
-                        
+                        _ApplyAbility(abilities[abil.GetType()].First());
                     }
+                    else
+                    {
+                        abilities[abil.GetType()].Remove(abil);
+                    }
+                }
+                else
+                {
+                    _UnapplyAbility(abil);
+                    abilities[abil.GetType()].Remove(abil);
+                }
             }
             else
             {
                 _UnapplyAbility(abil);
-                
+                abilities[abil.GetType()].Remove(abil);
             }
-            abilitiesUniques[abil.GetType()].Remove(abil);
+
         }
         public Status AddStatus<T>() where T : Status
         {

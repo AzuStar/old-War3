@@ -26,7 +26,9 @@ namespace NoxRaven.Units
                 state[BASE_ARMOR] = BlzGetUnitRealField(u, UNIT_RF_DEFENSE);
             }
             else
+            {
                 state.ResetFromModifier(initialStats);
+            }
             state.AddListener(MAX_HP, (prev, cur) =>
             {
                 BlzSetUnitMaxHP(this, R2I(state[MAX_HP] + Utils.ROUND_DOWN_CONST_OVERHEAD));
@@ -68,15 +70,8 @@ namespace NoxRaven.Units
                 };
                 attacker.TriggerEvent(attackEvt);
             });
-        }
 
-        // protected virtual void RecalculateStats(Stats myStats)
-        // {
-        //     BlzSetUnitAttackCooldown(wc3agent, myStats.baseAttackCooldown / (1 + myStats.attackSpeed), 0);
-        //     SetUnitMoveSpeed(wc3agent, myStats.baseMS * (1 + myStats.baseMSPercent));
-        //     BlzSetUnitMaxHP(this, R2I(((myStats.baseHP * (1 + myStats.baseHPPercent)) * (1 + myStats.baseHPPercentBonus) + myStats.bonusHP) * (1 + myStats.totalHPPercent) + Utils.ROUND_DOWN_CONST_OVERHEAD)); // rounding issues
-        //     BlzSetUnitMaxMana(this, R2I(((myStats.baseMP * (1 + myStats.baseMPPercent)) * (1 + myStats.baseMPPercentBonus) + myStats.bonusMP) * (1 + myStats.totalMPPercent) + Utils.ROUND_DOWN_CONST_OVERHEAD)); // rounding issues
-        // }
+        }
 
         protected virtual void Regenerate(float delta)
         {

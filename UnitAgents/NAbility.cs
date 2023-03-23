@@ -74,7 +74,8 @@ namespace NoxRaven.UnitAgents
 
         public int CompareTo(NAbility other)
         {
-            return level.CompareTo(other.level);
+            // descending order
+            return other.level.CompareTo(level);
         }
     }
 }
