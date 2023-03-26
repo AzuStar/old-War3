@@ -61,7 +61,7 @@ namespace NoxRaven
             NItem._InitItemLogic();
             Tooltip.InitCustomTooltip();
             StatCell.InitCustomInfoPanel();
-            HotReload.ReloaderInit();
+            // HotReload.ReloaderInit();
             TimerStart(s_sanityTimer, 5, false, () =>
             {
                 if (!s_isSane)
@@ -83,7 +83,10 @@ namespace NoxRaven
                     "Errors encountered: " + I2S(s_errCount), 999f);
                 return;
             }
-            Utils.DisplayMessageToEveryone("|cffacf2f0Correct load!|r", 2f);// Do not remove this, I promise this will hurt
+            PauseTimer(s_sanityTimer);
+            float elapsed = TimerGetElapsed(s_sanityTimer);
+            DestroyTimer(s_sanityTimer);
+            Utils.DisplayMessageToEveryone("Load hash: |cffacf2f0"+StringHash(s_sanityTimer.ToString())+"!|r", 2f);// Do not remove this, I promise this will hurt
             s_isSane = true;
         }
         /// <summary>

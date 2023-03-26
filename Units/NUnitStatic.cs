@@ -43,9 +43,9 @@ namespace NoxRaven.Units
             AddCustomType<T>(FourCC(unitId));
         }
 
-        public static NUnit CreateCustomUnit<T>(NPlayer owner, float x, float y, float facing = 0)
+        public static T CreateCustomUnit<T>(NPlayer owner, float x, float y, float facing = 0) where T : NUnit
         {
-            return CreateUnit(owner.wc3agent, s_inversedCustomType[typeof(T)], x, y, facing);
+            return (T)Cast(CreateUnit(owner.wc3agent, s_inversedCustomType[typeof(T)], x, y, facing));
         }
         /// <summary>
         /// Put this initializer somewhere after all players have been initialized. Do this only after you have put all customtypes in the dictionary.

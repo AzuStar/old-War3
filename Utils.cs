@@ -7,6 +7,7 @@ using static War3Api.Blizzard;
 using System.Numerics;
 using System.Linq;
 using NoxRaven.Units;
+using System.Reflection;
 
 namespace NoxRaven
 {
@@ -57,8 +58,8 @@ namespace NoxRaven
         /// <param name="effect"></param>
         public static void DelayedInvoke(float timeout, Action effect)
         {
-            timer t = CreateTimer();
-            TimerStart(t, timeout, false, () => { effect.Invoke(); DestroyTimer(t); });
+            timer __t = CreateTimer();
+            TimerStart(__t, timeout, false, () => { effect.Invoke(); DestroyTimer(__t); });
         }
 
         // public static void InvokeOverTime(float timeout, float tick, Action effect)
@@ -206,6 +207,7 @@ namespace NoxRaven
         {
             return string.Format("[{0}]", string.Join(", ", collection));
         }
+
 
     }
 }

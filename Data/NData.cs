@@ -19,7 +19,7 @@ namespace NoxRaven.Data
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int FourCC(string s)
         {
-            return s[0] | (s[1] << 8) | (s[2] << 16) | (s[3] << 24);
+            return War3Api.Common.FourCC(s);
         }
         #endregion
         #region Data
@@ -96,7 +96,7 @@ namespace NoxRaven.Data
         public void ResetFromModifier(NDataModifier modifier)
         {
             Dictionary<int, float> enumerator = modifier.GetDictionary();
-            
+
             foreach (KeyValuePair<int, float> kv in enumerator)
             {
                 this[kv.Key] = kv.Value;
@@ -107,10 +107,6 @@ namespace NoxRaven.Data
         public void Set(Enum id, float val)
         {
             Set(id.GetHashCode(), val);
-        }
-        public void Set(string id, float val)
-        {
-            Set(NData.FourCC(id), val);
         }
         public virtual void Set(int id, float val)
         {
@@ -125,10 +121,6 @@ namespace NoxRaven.Data
         {
             return Get(id.GetHashCode());
         }
-        public float Get(string id)
-        {
-            return Get(NData.FourCC(id));
-        }
         public virtual float Get(int id)
         {
             if (_data.TryGetValue(id, out NValue val))
@@ -140,7 +132,6 @@ namespace NoxRaven.Data
         #endregion
 
         public float this[Enum id] { get => Get(id); set => Set(id, value); }
-        public float this[string id] { get => Get(id); set => Set(id, value); }
         public float this[int id] { get => Get(id); set => Set(id, value); }
 
     }

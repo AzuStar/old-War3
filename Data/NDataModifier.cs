@@ -32,20 +32,16 @@ namespace NoxRaven.Data
         {
             NDataModifier newstats = (NDataModifier)Activator.CreateInstance(this.GetType());
             newstats._data = new Dictionary<int, float>(_data); // this will be existing
-            HashSet<int> keys = new HashSet<int>(newstats._data.Keys);
-            foreach (int key in keys)
+            foreach (int key in newstats._data.Keys.ToArray())
             {
-                newstats.Set(key, Get(key) * right.Get(key));
+                if (right._data.ContainsKey(key))
+                    newstats.Set(key, Get(key) * right.Get(key));
             }
             return newstats;
         }
         public void Set(Enum id, float val)
         {
             Set(id.GetHashCode(), val);
-        }
-        public void Set(string id, float val)
-        {
-            Set(NData.FourCC(id), val);
         }
         public void Set(int id, float val)
         {
@@ -56,10 +52,6 @@ namespace NoxRaven.Data
         public float Get(Enum id)
         {
             return Get(id.GetHashCode());
-        }
-        public float Get(string id)
-        {
-            return Get(NData.FourCC(id));
         }
         public float Get(int id)
         {
@@ -141,7 +133,6 @@ namespace NoxRaven.Data
             return newstats;
         }
         public float this[Enum id] { get => Get(id); set => Set(id, value); }
-        public float this[string id] { get => Get(id); set => Set(id, value); }
         public float this[int id] { get => Get(id); set => Set(id, value); }
         #endregion
     }
