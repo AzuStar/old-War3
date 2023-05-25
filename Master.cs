@@ -38,6 +38,10 @@ namespace NoxRaven
             _selectedUnit = FirstOfGroup(_selectedGroup);
             GroupClear(_selectedGroup);
             GetUnitName(_selectedUnit);
+            if(NUnit.Cast(_selectedUnit) == null)
+            {
+                return null;
+            }
             if (_selectedUnit == null)
             {
                 return null;

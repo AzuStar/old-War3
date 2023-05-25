@@ -23,7 +23,7 @@ namespace NoxRaven.IO
             string result = "";
             for (int i = 0; i < Size; i++)
                 result += Chunks[i];
-            return result;
+            return Base64.Base64Decode(result);
         }
     }
 }

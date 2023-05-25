@@ -17,6 +17,8 @@ namespace NoxRaven.IO
         public readonly string Path;
         public readonly NPlayer TargetPlayer;
 
+        
+
         public File(string path, NPlayer forWhatPlayer)
         {
             TargetPlayer = forWhatPlayer;
@@ -43,6 +45,7 @@ namespace NoxRaven.IO
         {
             int len = payload.Length;
             int level = 0;
+            payload = Base64.Base64Encode(payload);
             if (GetLocalPlayer() == TargetPlayer.wc3agent)
             {
                 PreloadGenClear();

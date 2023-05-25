@@ -24,7 +24,7 @@ namespace NoxRaven.Units
 
         public void Execute(NUnit whoToKill)
         {
-            RawDamage(whoToKill, GetWidgetLife(whoToKill));
+            RawDamage(whoToKill, GetWidgetLife(whoToKill)+1);
         }
 
         public int GetId() => War3Api.Common.GetHandleId(wc3agent);

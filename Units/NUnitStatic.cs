@@ -12,7 +12,7 @@ namespace NoxRaven.Units
         public static Dictionary<int, NUnit> s_indexer = new Dictionary<int, NUnit>();
         private static Dictionary<int, Type> s_customTypes = new Dictionary<int, Type>();
         private static Dictionary<Type, int> s_inversedCustomType = new Dictionary<Type, int>();
-        private static int _resetAAAbility = FourCC("A00E");
+        private static int _resetAAAbility = FourCC("ASPD");
         private static bool _damageEngineIgnore = false;
 
         private static Dictionary<string, BehaviourList<Events.EventArgs>> _globalEvents = new Dictionary<string, BehaviourList<Events.EventArgs>>();
@@ -47,6 +47,11 @@ namespace NoxRaven.Units
         {
             return (T)Cast(CreateUnit(owner.wc3agent, s_inversedCustomType[typeof(T)], x, y, facing));
         }
+        public static NUnit CreateCustomUnit(Type unitType, NPlayer owner, float x, float y, float facing = 0)
+        {
+            if (!s_inversedCustomType.ContainsKey(unitType)) throw new Exception("Unit type not found in custom types dictionary.");
+            return (NUnit)Cast(CreateUnit(owner.wc3agent, s_inversedCustomType[unitType], x, y, facing));
+        }
         /// <summary>
         /// Put this initializer somewhere after all players have been initialized. Do this only after you have put all customtypes in the dictionary.
         /// </summary>
@@ -62,8 +67,13 @@ namespace NoxRaven.Units
             GroupEnumUnitsInRect(g, rec, Filter(AttachClass));
 
             // Deattach when unit leaves the map
-            TriggerRegisterLeaveRegion(CreateTrigger(), reg, Filter(() => { ((NUnit)GetLeavingUnit()).Remove(); return false; })); // catch unit removal, destroy everything attached
-                                                                                                                                   // Utility functions
+            TriggerRegisterLeaveRegion(CreateTrigger(), reg, Filter(() =>
+            {
+                if (s_indexer.ContainsKey(War3Api.Common.GetHandleId(GetLeavingUnit())))
+                    ((NUnit)GetLeavingUnit()).Remove();
+                return false;
+            })); // catch unit removal, destroy everything attached
+                 // Utility functions
 
 
             Master.s_globalTick.Add((delta) =>
@@ -78,6 +88,7 @@ namespace NoxRaven.Units
 
             // Recycle stuff
             DestroyGroup(g);
+            RemoveRect(rec);
             g = null;
             rec = null;
             reg = null;
@@ -168,6 +179,8 @@ namespace NoxRaven.Units
         /// <typeparam name="T"></typeparam>
         public static void UnsubscribeFromGlobalEvent(IBehaviour pb)
         {
+            if (!_globalEvents.ContainsKey(pb.GetType().GetGenericArguments()[0].FullName))
+                return;
             _globalEvents[pb.GetType().GetGenericArguments()[0].FullName].Remove(pb);
         }
 

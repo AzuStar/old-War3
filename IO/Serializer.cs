@@ -10,52 +10,134 @@ namespace NoxRaven.IO
 {
     public static class Serializer
     {
-        public static string SerializeToJSON<T>(T obj)
+        private static int _iter;
+        public static T Deserialize<T>(string str) where T : ISerialized
+        {
+            Dictionary<string, string> dict = Deserialize(str);
+            Type _type = typeof(T);
+            T obj = (T)Activator.CreateInstance(_type);
+            _type.GetMethod("Deserialize").Invoke(obj, new object[] { dict });
+
+            return obj;
+        }
+
+        public static Dictionary<string, string> Deserialize(string str)
+        {
+            Dictionary<string, string> dict = new Dictionary<string, string>();
+            for (_iter = 0; _iter < str.Length; _iter++)
+            {
+                if (str[_iter] == '"')
+                {
+                    string key = "";
+                    string value = "";
+                    _iter++;
+                    while (str[_iter] != '"')
+                    {
+                        key += str[_iter];
+                        _iter++;
+                    }
+                    // now we need to find a substring that contains the entire object
+                    // object could be "string", 123, true, {object}, [array]
+
+                    while (str[_iter] != ':') _iter++;
+                    _iter++;
+                    while (str[_iter] == ' ') _iter++;
+                    if (str[_iter] == '{')
+                    {
+                        int bracketCount = 0;
+                        if (str[_iter] == '{') bracketCount++;
+                        while (bracketCount != 0)
+                        {
+                            value += str[_iter];
+                            _iter++;
+                            if (str[_iter] == '{') bracketCount++;
+                            else if (str[_iter] == '}') bracketCount--;
+                        }
+                        value += str[_iter];
+                    }
+                    else if (str[_iter] == '[')
+                    {
+                        int bracketCount = 0;
+                        if (str[_iter] == '[') bracketCount++;
+                        while (bracketCount != 0)
+                        {
+                            value += str[_iter];
+                            _iter++;
+                            if (str[_iter] == '[') bracketCount++;
+                            else if (str[_iter] == ']') bracketCount--;
+                        }
+                        value += str[_iter];
+                    }
+                    else if (str[_iter] == '"')
+                    {
+                        value += str[_iter];
+                        _iter++;
+                        while (str[_iter] != '"')
+                        {
+                            value += str[_iter];
+                            _iter++;
+                        }
+                        value += str[_iter];
+                    }
+                    else
+                    {
+                        while (str[_iter] != ',' && str[_iter] != '}' && str[_iter] != ']')
+                        {
+                            value += str[_iter];
+                            _iter++;
+                        }
+                        value.Replace(" ", "");
+                    }
+
+                    dict.Add(key, value);
+                }
+
+            }
+            return dict;
+        }
+
+        public static string Serialize<T>(T obj) where T : ISerialized
         {
 
             StringBuilder sb = new StringBuilder();
-            Serialize(obj, sb);
+            SerializeGeneric(obj, sb);
             return sb.ToString();
 
         }
 
-        private static void Serialize(object obj, StringBuilder sb)
+        public static void SerializeGeneric(object obj, StringBuilder sb)
         {
-            try
+            if (obj == null)
             {
-                if (obj == null)
-                {
-                    sb.Append("null");
-                    return;
-                }
-
-                Type type = obj.GetType();
-
-                if (type == typeof(int) || type == typeof(float) || type == typeof(bool))
-                {
-                    sb.Append(obj.ToString());
-                }
-                else if (type == typeof(string))
-                {
-                    sb.Append($"\"{obj}\"");
-                }
-                else if (type.IsArray || typeof(IEnumerable).IsAssignableFrom(type))
-                {
-                    SerializeArray(obj as IEnumerable, sb);
-                }
-                else if (typeof(IDictionary).IsAssignableFrom(type))
-                {
-                    SerializeDictionary(obj as IDictionary, sb);
-                }
-                else
-                {
-                    SerializeObject(obj, sb);
-                }
+                sb.Append("null");
+                return;
             }
-            catch { }
+
+            Type type = obj.GetType();
+
+            if (type == typeof(int) || type == typeof(float) || type == typeof(bool))
+            {
+                sb.Append(obj.ToString());
+            }
+            else if (type == typeof(string))
+            {
+                sb.Append($"\"{obj}\"");
+            }
+            // else if (typeof(IDictionary).IsAssignableFrom(type))
+            // {
+            //     SerializeDictionary(obj as IDictionary, sb);
+            // }
+            else if (type.IsArray || typeof(IEnumerable).IsAssignableFrom(type))
+            {
+                SerializeArray(obj as IEnumerable, sb);
+            }
+            else if (typeof(ISerialized).IsAssignableFrom(type))
+            {
+                SerializeObject(obj, sb);
+            }
         }
 
-        private static void SerializeArray(IEnumerable array, StringBuilder sb)
+        public static void SerializeArray(IEnumerable array, StringBuilder sb)
         {
             sb.Append("[");
             bool first = true;
@@ -67,56 +149,44 @@ namespace NoxRaven.IO
                     sb.Append(",");
                 }
 
-                Serialize(item, sb);
+                SerializeGeneric(item, sb);
                 first = false;
             }
             sb.Append("]");
         }
 
-        private static void SerializeObject(object obj, StringBuilder sb)
+        public static void SerializeObject(object obj, StringBuilder sb)
         {
             sb.Append("{");
-            bool first = true;
 
             Type _type = obj.GetType();
-            string[] names = _type.GetField("__fieldNames").GetValue(obj) as string[];
-
-            foreach (string name in names)
-            {
-                FieldInfo field = _type.GetField(name);
-                if (!first)
-                {
-                    sb.Append(",");
-                }
-
-                sb.Append($"\"{field.Name}\":");
-                object value = field.GetValue(obj);
-                Serialize(value, sb);
-                first = false;
-            }
+            _type.GetMethod("Serialize").Invoke(obj, new object[] { sb });
 
             sb.Append("}");
         }
 
-        private static void SerializeDictionary(IDictionary dictionary, StringBuilder sb)
-        {
-            sb.Append("{");
-            bool first = true;
+        // private static void SerializeDictionary(IDictionary dictionary, StringBuilder sb)
+        // {
+        //     sb.Append("{");
+        //     bool first = true;
 
-            foreach (DictionaryEntry entry in dictionary)
-            {
-                if (!first)
-                {
-                    sb.Append(",");
-                }
+        //     foreach (object key in dictionary.Keys)
+        //     {
+        //         if (!first)
+        //         {
+        //             sb.Append(",");
+        //         }
 
-                sb.Append($"\"{entry.Key}\":");
-                Serialize(entry.Value, sb);
-                first = false;
-            }
+        //         sb.Append($"\"{key.ToString()}\":");
 
-            sb.Append("}");
-        }
+        //         sb.Append("{");
+        //         Serialize(dictionary[key], sb);
+        //         sb.Append("}");
+        //         first = false;
+        //     }
+
+        //     sb.Append("}");
+        // }
     }
 
 }
