@@ -1,17 +1,16 @@
-using static War3Api.Common;
-using static War3Api.Blizzard;
-using NoxRaven;
-using NoxRaven.Events;
-using System.Collections.Generic;
 using System;
-using NoxRaven.Statuses;
-using NoxRaven.UnitAgents;
+using System.Collections.Generic;
 using System.Linq;
+using NoxRaven;
 using NoxRaven.Data;
+using NoxRaven.Events;
+using NoxRaven.UnitAgents;
+using static War3Api.Blizzard;
+using static War3Api.Common;
 
-namespace NoxRaven.Units
+namespace NoxRaven
 {
-    public partial class NUnit
+    public partial class NAgent
     {
         /// <summary>
         /// Call this to remove unit instantly.
@@ -22,9 +21,9 @@ namespace NoxRaven.Units
             Remove();
         }
 
-        public void Execute(NUnit whoToKill)
+        public void Execute(NAgent whoToKill)
         {
-            RawDamage(whoToKill, GetWidgetLife(whoToKill)+1);
+            RawDamage(whoToKill, GetWidgetLife(whoToKill) + 1);
         }
 
         public int GetId() => War3Api.Common.GetHandleId(wc3agent);
@@ -34,12 +33,22 @@ namespace NoxRaven.Units
         /// </summary>
         /// <param name="target"></param>
         /// <param name="damage"></param>
-        public void RawDamage(NUnit target, float damage)
+        public void RawDamage(NAgent target, float damage)
         {
             _damageEngineIgnore = true;
-            UnitDamageTarget(this, target, damage, true, false, ATTACK_TYPE_CHAOS, DAMAGE_TYPE_UNIVERSAL, null);
+            UnitDamageTarget(
+                this,
+                target,
+                damage,
+                true,
+                false,
+                ATTACK_TYPE_CHAOS,
+                DAMAGE_TYPE_UNIVERSAL,
+                null
+            );
             _damageEngineIgnore = false;
-            if (GetWidgetLife(target) <= 0.305) AwaitRemoval(target, this);// weird bug BECAUSE WC3REFUNDED SHIT HEHE
+            if (GetWidgetLife(target) <= 0.305)
+                AwaitRemoval(target, this); // weird bug BECAUSE WC3REFUNDED SHIT HEHE
         }
 
         public void ResetBasicAttackTimer()
@@ -50,7 +59,15 @@ namespace NoxRaven.Units
         /// <summary>
         /// Damage parsers that takes care of all calculations. Damage parser calculates outgoing damage from the unit.
         /// </summary>
-        public void DealDamage(NUnit target, float damage, DamageOnHit dmgOnHit, DamageCrit dmgCrit, DamageSource dmgSource, DamageType dmgType, bool stopRecursion = false)
+        public void DealDamage(
+            NAgent target,
+            float damage,
+            DamageOnHit dmgOnHit,
+            DamageCrit dmgCrit,
+            DamageSource dmgSource,
+            DamageType dmgType,
+            bool stopRecursion = false
+        )
         {
             _DealDamage(target, damage, dmgOnHit, dmgCrit, dmgSource, dmgType, stopRecursion);
         }
@@ -61,8 +78,8 @@ namespace NoxRaven.Units
             {
                 state.ApplyModifier(mod);
             }
-
         }
+
         public void RemoveModifier(NDataModifier mod)
         {
             if (mod != null)
@@ -70,87 +87,92 @@ namespace NoxRaven.Units
                 state.UnapplyModifier(mod);
             }
         }
-        public void AddDisposable(UnitDisposable ud){
+
+        public void AddDisposable(UnitDisposable ud)
+        {
             _disposables.Add(ud);
         }
-        public void RemoveDisposable(UnitDisposable ud){
+
+        public void RemoveDisposable(UnitDisposable ud)
+        {
             _disposables.Remove(ud);
         }
+
         public void AddAbility(NAbility abil)
         {
-            if (!abilities.ContainsKey(abil.GetType()))
-                abilities.Add(abil.GetType(), new SortedList<NAbility>());//Comparer<NAbility>.Create((a, b) => b.level - a.level)));
-            if (abil.unique)
+            if (!_abilities.ContainsKey(abil.GetType()))
+                _abilities.Add(abil.GetType(), new SortedList<NAbility>());
+
+            if (abil.unique && _abilities[abil.GetType()].Count > 0)
             {
-                if (abilities[abil.GetType()].Count > 0)
+                NAbility firstInst = _abilities[abil.GetType()].First();
+                _abilities[abil.GetType()].Add(abil);
+                NAbility updatedInst = _abilities[abil.GetType()].First();
+                if (updatedInst == abil)
                 {
-                    NAbility firstInst = abilities[abil.GetType()].First();
-                    abilities[abil.GetType()].Add(abil);
-                    NAbility updatedInst = abilities[abil.GetType()].First();
-                    if (updatedInst == abil)
-                    {
-                        _UnapplyAbility(firstInst);
-                        _ApplyAbility(abil);
-                    }
-                }
-                else
-                {
+                    _UnapplyAbility(firstInst);
                     _ApplyAbility(abil);
-                    abilities[abil.GetType()].Add(abil);
                 }
             }
             else
             {
+                _abilities[abil.GetType()].Add(abil);
                 _ApplyAbility(abil);
-                abilities[abil.GetType()].Add(abil);
             }
-
+            abil.OnAdded();
         }
+
         public void RemoveAbility(NAbility abil)
         {
-            if (!abilities.ContainsKey(abil.GetType()))
-                abilities.Add(abil.GetType(), new SortedList<NAbility>());//Comparer<NAbility>.Create((a, b) => b.level - a.level)));
-            if (abil.unique)
-            {
+            if (!_abilities.ContainsKey(abil.GetType()))
+                _abilities.Add(abil.GetType(), new SortedList<NAbility>());
 
-                if (abilities[abil.GetType()].Count > 1)
+            abil.OnRemoved();
+            if (abil.unique && _abilities[abil.GetType()].Count > 1)
+            {
+                NAbility first = _abilities[abil.GetType()].First();
+                if (first == abil)
                 {
-                    NAbility first = abilities[abil.GetType()].First();
-                    if (first == abil)
-                    {
-                        abilities[abil.GetType()].Remove(abil);
-                        _UnapplyAbility(abil);
-                        _ApplyAbility(abilities[abil.GetType()].First());
-                    }
-                    else
-                    {
-                        abilities[abil.GetType()].Remove(abil);
-                    }
+                    _abilities[abil.GetType()].Remove(abil);
+                    _UnapplyAbility(abil);
+                    _ApplyAbility(_abilities[abil.GetType()].First());
                 }
                 else
                 {
-                    _UnapplyAbility(abil);
-                    abilities[abil.GetType()].Remove(abil);
+                    _abilities[abil.GetType()].Remove(abil);
                 }
             }
             else
             {
                 _UnapplyAbility(abil);
-                abilities[abil.GetType()].Remove(abil);
+                _abilities[abil.GetType()].Remove(abil);
             }
-
         }
-        public Status AddStatus<T>() where T : Status
+
+        /// <summary>
+        /// Returns all abilities of type T (or derived) in _abilities (sorted by priority)
+        /// </summary>
+        public List<T> GetAllAbilities<T>()
+            where T : NAbility
         {
-            Status st = (Status)Activator.CreateInstance(typeof(T), this);
-            if (!_statuses.ContainsKey(typeof(T)))
+            List<T> list = new List<T>();
+            // search for ability of type (fast) or any derived type in _abilities
+            if (_abilities.TryGetValue(typeof(T), out SortedList<NAbility> abils))
+                foreach (var abil in abils)
+                {
+                    list.Add((T)abil);
+                }
+            foreach (var kv in _abilities)
             {
-                _statuses.Add(typeof(T), new SortedList<Status>());
+                if (kv.Key.IsSubclassOf(typeof(T)))
+                    foreach (var abil in kv.Value)
+                    {
+                        list.Add((T)abil);
+                    }
             }
-            _statuses[typeof(T)].Add(st);
-
-            return st;
+            return list;
         }
+
         // public void RemoveStatus(int id)
         // {
         //     _statuses.Remove(id);
@@ -167,6 +189,7 @@ namespace NoxRaven.Units
         {
             HealHP(percentHealed * (BlzGetUnitMaxHP(this) - GetWidgetLife(this)), show);
         }
+
         /// <summary>
         /// Simple function that heals a unit by percentHealed (%) of Max HP.<para />
         /// Range of percentHealed: 0.00 - 1.00
@@ -176,31 +199,62 @@ namespace NoxRaven.Units
         {
             HealHP(percentHealed * BlzGetUnitMaxHP(this), show);
         }
+
         /// <summary>
         /// Simple function that heals a unit by howMuch amount (flat).
         /// </summary>
         /// <param name="howMuch"></param>
-        public virtual void HealHP(float howMuch, bool show = false)
+        public void HealHP(float howMuch, bool show = false)
         {
             float pars = howMuch * state[EUnitState.INCOMING_HEALING];
             // TODO onHealHP event
             SetWidgetLife(this, GetWidgetLife(this) + pars);
             if (show)
             {
-                location loc = Location(GetUnitX(this) + GetRandomReal(0, 10), GetUnitY(this) + GetRandomReal(0, 5));
-                Utils.TextDirectionRandom("+" + Utils.NotateNumber(R2I(pars)), loc, 5.7f, 128, 255, 128, 0, 0.7f, GetOwningPlayer(this));
+                location loc = Location(
+                    GetUnitX(this) + GetRandomReal(0, 10),
+                    GetUnitY(this) + GetRandomReal(0, 5)
+                );
+                Utils.TextDirectionRandom(
+                    "+" + Utils.NotateNumber(R2I(pars)),
+                    loc,
+                    5.7f,
+                    128,
+                    255,
+                    128,
+                    0,
+                    0.7f,
+                    GetOwningPlayer(this)
+                );
                 RemoveLocation(loc);
                 loc = null;
             }
         }
-        public virtual void HealMP(float howMuch, bool show = false)
+
+        public void HealMP(float howMuch, bool show = false)
         {
             // TODO onHealMana event
-            SetUnitManaBJ(this, GetUnitState(this, UNIT_STATE_MANA) + howMuch * state[EUnitState.INCOMING_MANA]);
+            SetUnitManaBJ(
+                this,
+                GetUnitState(this, UNIT_STATE_MANA) + howMuch * state[EUnitState.INCOMING_MANA]
+            );
             if (show)
             {
-                location loc = Location(GetUnitX(this) + GetRandomReal(0, 10), GetUnitY(this) + GetRandomReal(0, 5));
-                Utils.TextDirectionRandom("+" + Utils.NotateNumber(R2I(howMuch)), loc, 5.7f, 128, 128, 255, 0, 0.7f, GetOwningPlayer(this));
+                location loc = Location(
+                    GetUnitX(this) + GetRandomReal(0, 10),
+                    GetUnitY(this) + GetRandomReal(0, 5)
+                );
+                Utils.TextDirectionRandom(
+                    "+" + Utils.NotateNumber(R2I(howMuch)),
+                    loc,
+                    5.7f,
+                    128,
+                    128,
+                    255,
+                    0,
+                    0.7f,
+                    GetOwningPlayer(this)
+                );
                 RemoveLocation(loc);
                 loc = null;
             }
@@ -213,18 +267,21 @@ namespace NoxRaven.Units
             {
                 _events.Add(fullName, new BehaviourList<Events.EventArgs>());
             }
-            _events[pb.GetType().GetGenericArguments()[0].FullName].Add(pb);
+            _events[fullName].Add(pb);
         }
+
         public void UnsubscribeFromEvent(IBehaviour pb)
         {
             _events[pb.GetType().GetGenericArguments()[0].FullName].Remove(pb);
         }
+
         /// <summary>
         /// Trigger a certain event type
         /// </summary>
         /// <param name="eventMeta"></param>
         /// <typeparam name="T"></typeparam>
-        public void TriggerEvent<T>(T eventMeta) where T : Events.EventArgs
+        public void TriggerEvent<T>(T eventMeta)
+            where T : Events.EventArgs
         {
             if (_events.ContainsKey(typeof(T).FullName))
             {

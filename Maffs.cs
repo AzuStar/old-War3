@@ -8,27 +8,28 @@ namespace NoxRaven
     {
         public static Vector2 DirectionVector(float distance, float angle)
         {
-            float X = (float)(distance * Math.Cos(Common.Deg2Rad(angle)));
-            float Y = (float)(distance * Math.Sin(Common.Deg2Rad(angle)));
+            float X = (float)(distance * Math.Cos(angle * Blizzard.bj_DEGTORAD));
+            float Y = (float)(distance * Math.Sin(angle * Blizzard.bj_DEGTORAD));
             return new Vector2(X, Y);
         }
 
         public static Vector2 PolarProjection(Vector2 start, float distance, float angle)
         {
-            float X = (float)(start.X + distance * Math.Cos(Common.Deg2Rad(angle)));
-            float Y = (float)(start.Y + distance * Math.Sin(Common.Deg2Rad(angle)));
-            return new Vector2(X, Y);
+            return start + DirectionVector(distance, angle);
         }
-
-        /// <summarY>
-        /// Returns angle between points in Degrees
-        /// </summarY>
-        /// <param name="point1"></param>
-        /// <param name="point2"></param>
-        /// <returns></returns>
-        public static float AngleBetweenPoints(Vector2 point1, Vector2 point2)
+        public static float GetSquaredDistance(Vector2 v1, Vector2 v2)
         {
-            return Common.Deg2Rad((float)Math.Atan2(point1.Y - point2.Y, point1.X - point2.X));
+            float dx = v2.X - v1.X;
+            float dy = v2.Y - v1.Y;
+            return dx * dx + dy * dy;
+        }
+        public static float GetDistance(Vector2 v1, Vector2 v2)
+        {
+            return (float)Math.Sqrt(GetSquaredDistance(v1, v2));
+        }
+        public static float GetFacingTowardsAngle(Vector2 position, Vector2 facingTowardsPosition)
+        {
+            return Common.Atan2(facingTowardsPosition.Y - position.Y, facingTowardsPosition.X - position.X) * Blizzard.bj_RADTODEG;
         }
     }
 }

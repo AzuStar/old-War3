@@ -5,54 +5,73 @@ using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Text;
+using NoxRaven.IO;
+using War3Api;
 
 namespace NoxRaven.Data
 {
     [System.Serializable]
-    public sealed class NDataModifier : ICloneable
+    public class NDataModifier : ICloneable
     {
         #region Data
+        public static NDataModifier Default => new NDataModifier();
         private Dictionary<int, float> _data = new Dictionary<int, float>();
         #endregion
 
         public NDataModifier() { }
 
         #region Methods
+        public bool IsEmpty
+        {
+            get => _data.Count == 0;
+        }
+
         public override string ToString()
         {
-            string str = "";
-            foreach (int key in _data.Keys)
-            {
-                str += key + ": " + _data[key] + "\n";
-            }
-            return str;
+            StringBuilder sb = new StringBuilder();
+            Serializer.SerializeObject(this._data, sb);
+            return sb.ToString();
         }
+
         // Get and Set
         public NDataModifier MultiplyExisting(NDataModifier right)
         {
-            NDataModifier newstats = (NDataModifier)Activator.CreateInstance(this.GetType());
-            newstats._data = new Dictionary<int, float>(_data); // this will be existing
-            foreach (int key in newstats._data.Keys.ToArray())
+            if (right == null)
+                return this;
+            NDataModifier newstats = (NDataModifier)this.Clone();
+            foreach (int key in _data.Keys.Intersect(right._data.Keys).ToHashSet())
             {
-                if (right._data.ContainsKey(key))
-                    newstats.Set(key, Get(key) * right.Get(key));
+                newstats.Set(key, Get(key) * right.Get(key));
             }
             return newstats;
         }
+
         public void Set(Enum id, float val)
         {
-            Set(id.GetHashCode(), val);
+            Set(Convert.ToInt32(id), val);
         }
+
+        public void Set(string id, float val)
+        {
+            Set(Common.FourCC(id), val);
+        }
+
         public void Set(int id, float val)
         {
             _data[id] = val;
-
         }
 
         public float Get(Enum id)
         {
-            return Get(id.GetHashCode());
+            return Get(Convert.ToInt32(id));
         }
+
+        public float Get(string id)
+        {
+            return Get(Common.FourCC(id));
+        }
+
         public float Get(int id)
         {
             if (_data.TryGetValue(id, out float val))
@@ -61,7 +80,8 @@ namespace NoxRaven.Data
             _data.Add(id, 0);
             return 0;
         }
-        public Dictionary<int, float> GetDictionary()
+
+        public IEnumerable<KeyValuePair<int, float>> GetEnumerable()
         {
             return _data;
         }
@@ -74,11 +94,21 @@ namespace NoxRaven.Data
         }
         #endregion
 
+        public static NDataModifier From(Dictionary<Enum, float> data)
+        {
+            NDataModifier modifier = new NDataModifier();
+            foreach (KeyValuePair<Enum, float> kv in data)
+            {
+                modifier.Set(Convert.ToInt32(kv.Key), kv.Value);
+            }
+            return modifier;
+        }
+
         #region Operators
         public static NDataModifier operator +(NDataModifier left, NDataModifier right)
         {
             NDataModifier newstats = (NDataModifier)Activator.CreateInstance(left.GetType());
-            foreach (int key in left._data.Keys.Union(right._data.Keys))
+            foreach (int key in left._data.Keys.Union(right._data.Keys).ToHashSet())
             {
                 newstats.Set(key, left.Get(key) + right.Get(key));
             }
@@ -88,7 +118,7 @@ namespace NoxRaven.Data
         public static NDataModifier operator -(NDataModifier left, NDataModifier right)
         {
             NDataModifier newstats = (NDataModifier)Activator.CreateInstance(left.GetType());
-            foreach (int key in left._data.Keys.Union(right._data.Keys))
+            foreach (int key in left._data.Keys.Union(right._data.Keys).ToHashSet())
             {
                 newstats.Set(key, left.Get(key) - right.Get(key));
             }
@@ -98,7 +128,7 @@ namespace NoxRaven.Data
         public static NDataModifier operator *(NDataModifier left, NDataModifier right)
         {
             NDataModifier newstats = (NDataModifier)Activator.CreateInstance(left.GetType());
-            foreach (int key in left._data.Keys.Intersect(right._data.Keys))
+            foreach (int key in left._data.Keys.Union(right._data.Keys).ToHashSet())
             {
                 newstats.Set(key, left.Get(key) * right.Get(key));
             }
@@ -108,33 +138,28 @@ namespace NoxRaven.Data
         public static NDataModifier operator /(NDataModifier left, NDataModifier right)
         {
             NDataModifier newstats = (NDataModifier)Activator.CreateInstance(left.GetType());
-            foreach (int key in left._data.Keys.Intersect(right._data.Keys))
+            foreach (int key in left._data.Keys.Union(right._data.Keys).ToHashSet())
             {
                 newstats.Set(key, left.Get(key) / right.Get(key));
             }
             return newstats;
         }
-        public static NDataModifier operator *(NDataModifier left, float right)
+
+        public float this[Enum id]
         {
-            NDataModifier newstats = (NDataModifier)Activator.CreateInstance(left.GetType());
-            foreach (int key in left._data.Keys)
-            {
-                newstats.Set(key, left.Get(key) * right);
-            }
-            return newstats;
+            get => Get(id);
+            set => Set(id, value);
         }
-        public static NDataModifier operator /(NDataModifier left, float right)
+        public float this[string id]
         {
-            NDataModifier newstats = (NDataModifier)Activator.CreateInstance(left.GetType());
-            foreach (int key in left._data.Keys)
-            {
-                newstats.Set(key, left.Get(key) / right);
-            }
-            return newstats;
+            get => Get(id);
+            set => Set(id, value);
         }
-        public float this[Enum id] { get => Get(id); set => Set(id, value); }
-        public float this[int id] { get => Get(id); set => Set(id, value); }
+        public float this[int id]
+        {
+            get => Get(id);
+            set => Set(id, value);
+        }
         #endregion
     }
-
 }

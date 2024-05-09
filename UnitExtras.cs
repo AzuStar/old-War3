@@ -4,6 +4,8 @@ using System.Text;
 
 using static War3Api.Common;
 using static War3Api.Blizzard;
+using System.Numerics;
+using War3Api;
 
 namespace NoxRaven
 {
@@ -12,18 +14,18 @@ namespace NoxRaven
     /// </summary>
     public static class UnitExperimentals
     {
-        static timer s_knockbackTimer;
-        static List<PushedUnit> s_pushed = new List<PushedUnit>();
-        static UnitExperimentals()
+        static List<PushedUnit> pushedList = new List<PushedUnit>();
+
+        internal static void InitUnitExperimentals()
         {
-            s_knockbackTimer = CreateTimer();
-            // Max possible smoothness @ 64 fps
-            TimerStart(s_knockbackTimer, Master.TICK_DELTA, true, () =>
+            Master.s_globalTick.Add((delta) =>
             {
-                if (s_pushed.Count > 0)
-                    foreach (PushedUnit pu in s_pushed)
-                        if (pu.Move())
-                            s_pushed.Remove(pu);
+                if (pushedList.Count > 0)
+                    foreach (PushedUnit pu in pushedList)
+                        if (pu.Move(delta))
+                        {
+                            pushedList.Remove(pu);
+                        }
             });
         }
         /// <summary>
@@ -38,9 +40,17 @@ namespace NoxRaven
 
         //}
 
+        public static void Dash(unit target, float duration, Vector2 targetPosition, bool actionBlocked)
+        {
+            Vector2 currentPosition = new Vector2(GetUnitX(target), GetUnitY(target));
+            float range = Maffs.GetDistance(currentPosition, targetPosition);
+            float angle = Maffs.GetFacingTowardsAngle(targetPosition, currentPosition);
+            PushTarget(target, duration, angle, range, actionBlocked);
+        }
+
         public static void PushTarget(unit target, float duration, float angle, float range, bool actionBlocked)
         {
-            s_pushed.Add(new PushedUnit(target, duration, angle, range, actionBlocked));
+            pushedList.Add(new PushedUnit(target, duration, angle, range, actionBlocked));
         }
 
     }
@@ -63,7 +73,7 @@ namespace NoxRaven
             ActionsBlocked = actionBlocked;
         }
 
-        public bool Move()
+        public bool Move(float delta)
         {
             float xi = GetUnitX(Unit) + Cos;
             float yi = GetUnitY(Unit) + Sin;
@@ -77,11 +87,11 @@ namespace NoxRaven
                     SetUnitX(Unit, xi);
                     SetUnitY(Unit, yi);
                 }
-                if(IsUnitDeadBJ(Unit))
-                {
-                    return true;
-                }
-            return (TimeLeft -= Master.TICK_DELTA) <= 0;
+            if (IsUnitDeadBJ(Unit))
+            {
+                return true;
+            }
+            return (TimeLeft -= delta) <= 0;
         }
     }
 }

@@ -1,17 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
-using static War3Api.Common;
-using static War3Api.Blizzard;
-using NoxRaven.Units;
 using NoxRaven.Frames;
 using NoxRaven.IO;
+using static War3Api.Blizzard;
+using static War3Api.Common;
 
 namespace NoxRaven
 {
     public static class Master
     {
-        public const float TICKS_PER_SECOND = 128; // internal wc3:reforged logic tick is about 128
+        public const float TICKS_PER_SECOND = 64; // internal wc3:reforged logic tick is about 128
         public const float TICK_DELTA = 1 / TICKS_PER_SECOND;
         public const int VERSION = 1;
         public static bool s_badLoad = false;
@@ -28,7 +28,7 @@ namespace NoxRaven
         /// <summary>
         /// Retrieves first selected unit, for which unit info would have been displayed normally.
         /// </summary>
-        public static NUnit GetSelectedUnit()
+        public static NAgent GetSelectedUnit()
         {
             player p = null;
             p = GetLocalPlayer();
@@ -38,7 +38,7 @@ namespace NoxRaven
             _selectedUnit = FirstOfGroup(_selectedGroup);
             GroupClear(_selectedGroup);
             GetUnitName(_selectedUnit);
-            if(NUnit.Cast(_selectedUnit) == null)
+            if (NAgent.Cast(_selectedUnit) == null)
             {
                 return null;
             }
@@ -48,6 +48,7 @@ namespace NoxRaven
             }
             return _selectedUnit;
         }
+
         /// <summary>
         /// Run when all static data is initialized.<br />
         /// Types taht need to be initialized before running: UnitEntity Custom Classes, Players, Items
@@ -56,26 +57,49 @@ namespace NoxRaven
         {
             BlzLoadTOCFile("noxraven\\NUnitFrames.toc");
             timer ticker = CreateTimer();
-            TimerStart(ticker, TICK_DELTA, true, () =>
-            {
-                foreach (var action in s_globalTick)
-                    action(TimerGetElapsed(ticker));
-            });
-            NUnit.InitUnitLogic();
+            TimerStart(
+                ticker,
+                TICK_DELTA,
+                true,
+                () =>
+                {
+                    try
+                    {
+                        foreach (var action in s_globalTick)
+                            action(TimerGetElapsed(ticker));
+                    }
+                    catch (Exception e)
+                    {
+                        Utils.Debug(e.Message + e.TargetSite + e.StackTrace);
+                    }
+                }
+            );
+            NAgent.InitUnitLogic();
             NItem._InitItemLogic();
             Tooltip.InitCustomTooltip();
             StatCell.InitCustomInfoPanel();
+            UnitExperimentals.InitUnitExperimentals();
+            Projectile.InitProjectileLogic();
             // HotReload.ReloaderInit();
-            TimerStart(s_sanityTimer, 5, false, () =>
-            {
-                if (!s_isSane)
-                    Utils.DisplayMessageToEveryone("Failed sanity check (or it has not been called).", 999f);
-                DestroyTimer(s_sanityTimer);
-                File fs = new File("noxraven\\debug.txt", GetLocalPlayer());
-                fs.WriteRaw(String.Join("\n",Utils.s_debugMessages));
-            });
+            TimerStart(
+                s_sanityTimer,
+                5,
+                false,
+                () =>
+                {
+                    if (!s_isSane)
+                        Utils.DisplayMessageToEveryone(
+                            "Failed sanity check (or it has not been called).",
+                            999f
+                        );
+                    DestroyTimer(s_sanityTimer);
+                    File fs = new File("noxraven\\debug.txt", GetLocalPlayer());
+                    fs.WriteRaw(String.Join("\n", Utils.s_debugMessages));
+                }
+            );
             TimerStart(CreateTimer(), 1800, true, GCRoutine); // funny but really helps
         }
+
         /// <summary>
         /// Put at the very end of Main.
         /// </summary>
@@ -83,16 +107,22 @@ namespace NoxRaven
         {
             if (s_badLoad)
             {
-                Utils.DisplayMessageToEveryone("Something went wrong OwO\n" +
-                    "Errors encountered: " + I2S(s_errCount), 999f);
+                Utils.DisplayMessageToEveryone(
+                    "Something went wrong OwO\n" + "Errors encountered: " + I2S(s_errCount),
+                    999f
+                );
                 return;
             }
             PauseTimer(s_sanityTimer);
             float elapsed = TimerGetElapsed(s_sanityTimer);
             DestroyTimer(s_sanityTimer);
-            Utils.DisplayMessageToEveryone("Load hash: |cffacf2f0"+StringHash(s_sanityTimer.ToString())+"!|r", 2f);// Do not remove this, I promise this will hurt
+            Utils.DisplayMessageToEveryone(
+                "Load hash: |cffacf2f0" + StringHash(s_sanityTimer.ToString()) + "!|r",
+                2f
+            ); // Do not remove this, I promise this will hurt
             s_isSane = true;
         }
+
         /// <summary>
         /// TODO: Dynamically adjust this
         /// </summary>

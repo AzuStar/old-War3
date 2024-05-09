@@ -1,8 +1,7 @@
-﻿using NoxRaven.UnitAgents;
-using NoxRaven.Units;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using NoxRaven.UnitAgents;
 using static War3Api.Common;
 
 namespace NoxRaven
@@ -16,18 +15,20 @@ namespace NoxRaven
         {
             this.type = type;
         }
+
         /// <summary>
         /// Reverse the source and target to make it AmHit.
         /// </summary>
         /// <param name="source"></param>
         /// <param name="target"></param>
-        public void ApplyOnHit(NUnit source, NUnit target, float damage, float processedDamage)
+        public void ApplyOnHit(NAgent source, NAgent target, float damage, float processedDamage)
         {
             if (GetRandomReal(0, 1) < source.state[EUnitState.TRIGGER_CHANCE] * type.chance)
                 if (!type.unique)
                     for (int i = 0; i < count; i++)
                         type.callback.Invoke(source, target, damage, processedDamage, this);
-                else type.callback.Invoke(source, target, damage, processedDamage, this);
+                else
+                    type.callback.Invoke(source, target, damage, processedDamage, this);
         }
     }
 }

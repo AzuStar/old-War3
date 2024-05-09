@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using static War3Api.Common;
-using static War3Api.Blizzard;
-using NoxRaven.Units;
-using NoxRaven.UnitAgents;
 using NoxRaven.Events;
+using NoxRaven.UnitAgents;
+using static War3Api.Blizzard;
+using static War3Api.Common;
 
 namespace NoxRaven
 {
@@ -16,7 +15,7 @@ namespace NoxRaven
     /// </summary>
     public class NItem
     {
-        public delegate void ItemAction(NUnit manipulator, item it);
+        public delegate void ItemAction(NAgent manipulator, item it);
         public static Dictionary<int, NItem> s_index = new Dictionary<int, NItem>();
         public static Dictionary<int, Type> s_customTypes = new Dictionary<int, Type>();
         public static Dictionary<Type, int> s_inverseCustomTypes = new Dictionary<Type, int>();
@@ -37,18 +36,21 @@ namespace NoxRaven
 
         public List<NAbility> abilities = new List<NAbility>();
 
-        public static void AddCustomType<T>(int typeId) where T : NItem
+        public static void AddCustomType<T>(int typeId)
+            where T : NItem
         {
             s_customTypes.Add(typeId, typeof(T));
             s_inverseCustomTypes.Add(typeof(T), typeId);
         }
-        public static void AddCustomType<T>(string type) where T : NItem
+
+        public static void AddCustomType<T>(string type)
+            where T : NItem
         {
             AddCustomType<T>(FourCC(type));
         }
+
         internal static void _InitItemLogic()
         {
-
             TriggerRegisterAnyUnitEventBJ(itemPickUp, EVENT_PLAYER_UNIT_PICKUP_ITEM);
             TriggerRegisterAnyUnitEventBJ(itemDrop, EVENT_PLAYER_UNIT_PAWN_ITEM);
             TriggerRegisterAnyUnitEventBJ(itemDrop, EVENT_PLAYER_UNIT_DROP_ITEM);
@@ -64,35 +66,41 @@ namespace NoxRaven
             //         check.use.Invoke(GetManipulatingUnit());
             // });
         }
+
         internal static void _ItemPickedUp()
         {
             item it = GetManipulatedItem();
-            NUnit nu = GetManipulatingUnit();
+            NAgent nu = GetManipulatingUnit();
             int id = GetHandleId(it);
             if (!s_index.ContainsKey(id))
             {
                 // Custom item
                 Type type = s_customTypes[GetItemTypeId(it)];
-                if (type == null) return;
+                if (type == null)
+                    return;
                 NItem item = (NItem)Activator.CreateInstance(type, true);
                 s_index.Add(id, item);
                 item.typeId = GetItemTypeId(it);
             }
             NItem check = s_index[id];
-            try{
-            foreach (NAbility ab in check.abilities)
+            try
             {
-                nu.AddAbility(ab);
+                foreach (NAbility ab in check.abilities)
+                {
+                    nu.AddAbility(ab);
+                }
             }
-            }catch(Exception e){
-                Utils.Debug(e.Message);
+            catch (Exception e)
+            {
+                Utils.Debug("0x0F03: " + e.Message);
             }
             check.pickUp(nu, it);
         }
+
         internal static void _ItemDropped()
         {
             item it = GetManipulatedItem();
-            NUnit nu = GetManipulatingUnit();
+            NAgent nu = GetManipulatingUnit();
             int id = GetHandleId(it);
             if (s_index.ContainsKey(id))
             {
@@ -104,6 +112,7 @@ namespace NoxRaven
                 check.drop(nu, GetManipulatedItem());
             }
         }
+
         protected NItem()
         {
             // s_customTypes.Add(typeId, this.GetType());

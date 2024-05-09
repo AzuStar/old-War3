@@ -6,7 +6,7 @@ namespace NoxRaven.UnitAgents
         {
             applyCrit = true,
             guaranteedCrit = false,
-            critDamageBonus = 0,
+            critDamageMultiplier = 0,
             critChanceBonus = 0,
         };
 
@@ -18,7 +18,7 @@ namespace NoxRaven.UnitAgents
 
         public bool applyCrit;
         public bool guaranteedCrit = false;
-        public float critDamageBonus = 0;
+        public float critDamageMultiplier = 0;
         public float critChanceBonus = 0;
 
     }

@@ -10,112 +10,97 @@ namespace NoxRaven.UnitAgents
     public sealed class UnitState : NData
     {
         #region Data
+        // default dependencies for all units
+        public static List<NDataDependency> dependencies = new List<NDataDependency>()
+        {
+            // MAX_HP = BASE_HP * (1 + BASE_HP_PERCENT_BASE) + BONUS_HP
+            new NDataDependency(MAX_HP, BASE_HP, EArithmetic.SET),
+            new NDataDependency(MAX_HP, BASE_HP_PERCENT_BASE, EArithmetic.PERCENT_MULTIPLY),
+            new NDataDependency(MAX_HP, BONUS_HP_PERCENT_BASE, EArithmetic.PERCENT_MULTIPLY),
+            new NDataDependency(MAX_HP, BONUS_HP, EArithmetic.ADD),
+            new NDataDependency(MAX_HP, BONUS_HP_PERCENT_TOTAL, EArithmetic.PERCENT_MULTIPLY),
+
+            // MAX_MP = BASE_MP * (1 + BASE_MP_PERCENT_BASE) + BONUS_MP
+            new NDataDependency(MAX_MP, BASE_MP, EArithmetic.SET),
+            new NDataDependency(MAX_MP, BASE_MP_PERCENT_BASE, EArithmetic.PERCENT_MULTIPLY),
+            new NDataDependency(MAX_MP, BONUS_MP_PERCENT_BASE, EArithmetic.PERCENT_MULTIPLY),
+            new NDataDependency(MAX_MP, BONUS_MP, EArithmetic.ADD),
+            new NDataDependency(MAX_MP, BONUS_MP_PERCENT_TOTAL, EArithmetic.PERCENT_MULTIPLY),
+
+            // GREY_ATK = BASE_ATK * (1 + BASE_ATK_PERCENT_BASE)
+            new NDataDependency(GREY_ATK, BASE_ATK, EArithmetic.SET),
+            new NDataDependency(GREY_ATK, BASE_ATK_PERCENT_BASE, EArithmetic.PERCENT_MULTIPLY),
+            // GREEN_ATK = (GREY_ATK * (1 + BONUS_ATK_PERCENT_BASE) + BONUS_ATK) * (1 + BONUS_ATK_PERCENT_TOTAL) - GREY_ATK
+            new NDataDependency(GREEN_ATK, GREY_ATK, EArithmetic.SET),
+            new NDataDependency(GREEN_ATK, BONUS_ATK_PERCENT_BASE, EArithmetic.PERCENT_MULTIPLY),
+            new NDataDependency(GREEN_ATK, BONUS_ATK, EArithmetic.ADD),
+            new NDataDependency(GREEN_ATK, BONUS_ATK_PERCENT_TOTAL, EArithmetic.PERCENT_MULTIPLY),
+            new NDataDependency(GREEN_ATK, GREY_ATK, EArithmetic.SUBTRACT),
+            new NDataDependency(ATK, GREY_ATK, EArithmetic.SET),
+            new NDataDependency(ATK, GREEN_ATK, EArithmetic.ADD),
+
+            // GREY_AP = BASE_AP * (1 + BASE_AP_PERCENT_BASE)
+            new NDataDependency(GREY_AP, BASE_AP, EArithmetic.SET),
+            new NDataDependency(GREY_AP, BASE_AP_PERCENT_BASE, EArithmetic.PERCENT_MULTIPLY),
+            // GREEN_AP = (GREY_AP * (1 + BONUS_AP_PERCENT_BASE) + BONUS_AP) * (1 + BONUS_AP_PERCENT_TOTAL) - GREY_AP
+            new NDataDependency(GREEN_AP, GREY_AP, EArithmetic.SET),
+            new NDataDependency(GREEN_AP, BONUS_AP_PERCENT_BASE, EArithmetic.PERCENT_MULTIPLY),
+            new NDataDependency(GREEN_AP, BONUS_AP, EArithmetic.ADD),
+            new NDataDependency(GREEN_AP, BONUS_AP_PERCENT_TOTAL, EArithmetic.PERCENT_MULTIPLY),
+            new NDataDependency(GREEN_AP, GREY_AP, EArithmetic.SUBTRACT),
+            new NDataDependency(AP, GREY_AP, EArithmetic.SET),
+            new NDataDependency(AP, GREEN_AP, EArithmetic.ADD),
+
+
+            // RLD = (RELOAD_TIME/(1+ATTACK_SPEED))
+            new NDataDependency(RELOAD_TIME, BASE_RELOAD_TIME, EArithmetic.SET),
+            new NDataDependency(RELOAD_TIME, ATTACK_SPEED, EArithmetic.PERCENT_DIVIDE),
+
+            // ARMOR
+            new NDataDependency(GREY_ARMOR, BASE_ARMOR, EArithmetic.SET),
+            new NDataDependency(GREY_ARMOR, BASE_ARMOR_PERCENT_BASE, EArithmetic.PERCENT_MULTIPLY),
+
+            new NDataDependency(GREEN_ARMOR, GREY_ARMOR, EArithmetic.SET),
+            new NDataDependency(GREEN_ARMOR, BONUS_ARMOR_PERCENT_BASE, EArithmetic.PERCENT_MULTIPLY),
+            new NDataDependency(GREEN_ARMOR, BONUS_ARMOR, EArithmetic.ADD),
+            new NDataDependency(GREEN_ARMOR, BONUS_ARMOR_PERCENT_TOTAL, EArithmetic.PERCENT_MULTIPLY),
+            new NDataDependency(GREEN_ARMOR, GREY_ARMOR, EArithmetic.SUBTRACT),
+            new NDataDependency(ARMOR, GREY_ARMOR, EArithmetic.SET),
+            new NDataDependency(ARMOR, GREEN_ARMOR, EArithmetic.ADD),
+
+            // RESISTANCE
+            new NDataDependency(GREY_MAGIC_RESIST, BASE_MAGIC_RESIST, EArithmetic.SET),
+            new NDataDependency(GREY_MAGIC_RESIST, BASE_MAGIC_RESIST_PERCENT_BASE, EArithmetic.PERCENT_MULTIPLY),
+
+            new NDataDependency(GREEN_MAGIC_RESIST, GREY_MAGIC_RESIST, EArithmetic.SET),
+            new NDataDependency(GREEN_MAGIC_RESIST, BONUS_MAGIC_RESIST_PERCENT_BASE, EArithmetic.PERCENT_MULTIPLY),
+            new NDataDependency(GREEN_MAGIC_RESIST, BONUS_MAGIC_RESIST, EArithmetic.ADD),
+            new NDataDependency(GREEN_MAGIC_RESIST, BONUS_MAGIC_RESIST_PERCENT_TOTAL, EArithmetic.PERCENT_MULTIPLY),
+            new NDataDependency(GREEN_MAGIC_RESIST, GREY_MAGIC_RESIST, EArithmetic.SUBTRACT),
+            new NDataDependency(MAGIC_RESIST, GREY_MAGIC_RESIST, EArithmetic.SET),
+            new NDataDependency(MAGIC_RESIST, GREEN_MAGIC_RESIST, EArithmetic.ADD),
+
+            new NDataDependency(ATTACK_RANGE, BASE_ATTACK_RANGE, EArithmetic.SET),
+
+            new NDataDependency(HP_REG, BASE_HP_REGEN, EArithmetic.SET),
+            new NDataDependency(HP_REG, BASE_HP_REGEN_PERCENT_BASE, EArithmetic.PERCENT_MULTIPLY),
+
+            new NDataDependency(MP_REG, BASE_MP_REGEN, EArithmetic.SET),
+            new NDataDependency(MP_REG, BASE_MP_REGEN_PERCENT_BASE, EArithmetic.PERCENT_MULTIPLY),
+
+            new NDataDependency(MOVEMENT_SPEED, BASE_MOVE_SPEED, EArithmetic.SET),
+            new NDataDependency(MOVEMENT_SPEED, BASE_MOVE_SPEED_PERCENT_BASE, EArithmetic.PERCENT_MULTIPLY),
+
+            new NDataDependency(ABSORBTION, BASE_ABSORB, EArithmetic.SET),
+            new NDataDependency(ABSORBTION, BASE_ABSORB_PERCENT_BASE, EArithmetic.PERCENT_MULTIPLY),
+        };
+        public override List<NDataDependency> defaultDependencies => dependencies;
         #endregion
 
         #region Constructors
-        public UnitState()
-        {
-            // SetStateChain(GREY_ATK, BASE_ATK);
-            AddChainStack(GREY_ATK, BASE_ATK, (val, chain) => chain);
-            AddChainStack(GREY_ATK, BASE_ATK_PERCENT_BASE, (val, chain) => val * (1 + chain));
-
-            AddChainStack(GREEN_ATK, GREY_ATK, (val, chain) => chain);
-            AddChainStack(GREEN_ATK, BONUS_ATK_PERCENT_BASE, (val, chain) => val * (1 + chain));
-            AddChainStack(GREEN_ATK, BONUS_ATK, (val, chain) => val + chain);
-            AddChainStack(GREEN_ATK, BONUS_ATK_PERCENT_TOTAL, (val, chain) => val * (1 + chain));
-            AddChainStack(GREEN_ATK, GREY_ATK, (val, chain) => val - chain);
-
-            // chainstack for AP
-            AddChainStack(GREY_AP, BASE_AP, (val, chain) => chain);
-            AddChainStack(GREY_AP, BASE_AP_PERCENT_BASE, (val, chain) => val * (1 + chain));
-            
-            AddChainStack(GREEN_AP, GREY_AP, (val, chain) => chain);
-            AddChainStack(GREEN_AP, BONUS_AP_PERCENT_BASE, (val, chain) => val * (1 + chain));
-            AddChainStack(GREEN_AP, BONUS_AP, (val, chain) => val + chain);
-            AddChainStack(GREEN_AP, BONUS_AP_PERCENT_TOTAL, (val, chain) => val * (1 + chain));
-            AddChainStack(GREEN_AP, GREY_AP, (val, chain) => val - chain);
-
-            // chainstack for ARMOR
-            AddChainStack(GREY_ARM, BASE_ARMOR, (val, chain) => chain);
-            AddChainStack(GREY_ARM, BASE_ARMOR_PERCENT_BASE, (val, chain) => val * (1 + chain));
-
-            AddChainStack(GREEN_ARM, GREY_ARM, (val, chain) => chain);
-            AddChainStack(GREEN_ARM, BONUS_ARMOR_PERCENT_BASE, (val, chain) => val * (1 + chain));
-            AddChainStack(GREEN_ARM, BONUS_ARMOR, (val, chain) => val + chain);
-            AddChainStack(GREEN_ARM, BONUS_ARMOR_PERCENT_TOTAL, (val, chain) => val * (1 + chain));
-            AddChainStack(GREEN_ARM, GREY_ARM, (val, chain) => val - chain);
-
-            // chainstack for RESIST
-            AddChainStack(GREY_RES, BASE_MAGIC_RESIST, (val, chain) => chain);
-            AddChainStack(GREY_RES, BASE_MAGIC_RESIST_PERCENT_BASE, (val, chain) => val * (1 + chain));
-
-            AddChainStack(GREEN_RES, GREY_RES, (val, chain) => chain);
-            AddChainStack(GREEN_RES, BONUS_MAGIC_RESIST_PERCENT_BASE, (val, chain) => val * (1 + chain));
-            AddChainStack(GREEN_RES, BONUS_MAGIC_RESIST, (val, chain) => val + chain);
-            AddChainStack(GREEN_RES, BONUS_MAGIC_RESIST_PERCENT_TOTAL, (val, chain) => val * (1 + chain));
-            AddChainStack(GREEN_RES, GREY_RES, (val, chain) => val - chain);
-
-            // chainstack for HP
-            AddChainStack(MAX_HP, BASE_HP, (val, chain) => chain);
-            AddChainStack(MAX_HP, BASE_HP_PERCENT_BASE, (val, chain) => val * (1 + chain));
-            AddChainStack(MAX_HP, BONUS_HP_PERCENT_BASE, (val, chain) => val + chain);
-            AddChainStack(MAX_HP, BONUS_HP, (val, chain) => val + chain);
-            AddChainStack(MAX_HP, BONUS_HP_PERCENT_TOTAL, (val, chain) => val * (1 + chain));
-
-            AddChainStack(MAX_MP, BASE_MP, (val, chain) => chain);
-            AddChainStack(MAX_MP, BASE_MP_PERCENT_BASE, (val, chain) => val * (1 + chain));
-            AddChainStack(MAX_MP, BONUS_MP_PERCENT_BASE, (val, chain) => val + chain);
-            AddChainStack(MAX_MP, BONUS_MP, (val, chain) => val + chain);
-            AddChainStack(MAX_MP, BONUS_MP_PERCENT_TOTAL, (val, chain) => val * (1 + chain));
-
-            AddChainStack(ABS, BASE_ABSORB, (val, chain) => chain);
-            AddChainStack(ABS, BASE_ABSORB_PERCENT_BASE, (val, chain) => val * (1 + chain));
-
-            AddChainStack(UNIT_MS, BASE_MOVE_SPEED, (val, chain) => chain);
-            AddChainStack(UNIT_MS, BASE_MOVE_SPEED_PERCENT_BASE, (val, chain) => val * (1 + chain));
-
-            AddChainStack(RLD, RELOAD_TIME, (val, chain) => chain);
-            AddChainStack(RLD, ATTACK_SPEED, (val, chain) => val / (1 + chain));
-
-            AddChainStack(RNG, BASE_ATTACK_RANGE, (val, chain) => chain);
-
-            AddChainStack(HP_REG, BASE_HP_REGEN, (val, chain) => chain);
-            AddChainStack(HP_REG, BASE_HP_REGEN_PERCENT_BASE, (val, chain) => val * (1 + chain));
-
-            AddChainStack(MP_REG, BASE_MP_REGEN, (val, chain) => chain);
-            AddChainStack(MP_REG, BASE_MP_REGEN_PERCENT_BASE, (val, chain) => val * (1 + chain));
-
-            // // recompute those states
-            RecomputeStack((int)GREY_ATK);
-            RecomputeStack((int)GREY_AP);
-            RecomputeStack((int)GREY_ARM);
-            RecomputeStack((int)GREY_RES);
-            RecomputeStack((int)MAX_HP);
-            RecomputeStack((int)MAX_MP);
-            RecomputeStack((int)ABS);
-            RecomputeStack((int)UNIT_MS);
-            RecomputeStack((int)RLD);
-            RecomputeStack((int)RNG);
-            RecomputeStack((int)HP_REG);
-            RecomputeStack((int)MP_REG);
-        }
-
-
         #endregion
 
         #region Methods
-        public void AddChainStack(EUnitState target, EUnitState chain, NData.ChainFunction arithmetic)
-        {
-            AddChainStack((int)target, (int)chain, arithmetic);
-        }
-        public void AddListener(EUnitState id, StateChangeHandler callback)
-        {
-            AddListener((int)id, callback);
-        }
-        public void RemoveListener(EUnitState id, StateChangeHandler callback)
-        {
-            RemoveListener((int)id, callback);
-        }
         public void SetMax(EUnitState statId, EUnitState maxId)
         {
             Set(statId, this[maxId]);

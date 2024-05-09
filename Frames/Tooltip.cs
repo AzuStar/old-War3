@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Security.Cryptography.X509Certificates;
 using NoxRaven;
-using NoxRaven.Units;
 using static War3Api.Common;
 
 namespace NoxRaven.Frames
@@ -10,9 +9,9 @@ namespace NoxRaven.Frames
     public class Tooltip : IDisposable
     {
         public framehandle tooltipFrame;
-        public Func<NUnit, string> updateCallback;
+        public Func<NAgent, string> updateCallback;
 
-        public Tooltip(framehandle buttonParent, Func<NUnit, string> update)
+        public Tooltip(framehandle buttonParent, Func<NAgent, string> update)
         {
             updateCallback = update;
             tooltipFrame = BlzCreateFrameByType("SIMPLEFRAME", "", buttonParent, "", 0);
@@ -20,7 +19,6 @@ namespace NoxRaven.Frames
             BlzFrameSetVisible(tooltipFrame, false);
             s_tooltips.Add(this);
         }
-
 
         public static framehandle s_parent;
         public static framehandle s_tooltipBox;
@@ -34,12 +32,31 @@ namespace NoxRaven.Frames
             s_parent = BlzGetFrameByName("ConsoleUIBackdrop", 0);
             s_tooltipBox = BlzCreateFrame("NU_TT_Command_TextBox", s_parent, 0, 0);
             s_tooltipTextTitle = BlzCreateFrame("NU_TTE_Command_TextTitle", s_tooltipBox, 0, 0);
-            s_tooltipTextDescription = BlzCreateFrame("NU_TTE_Command_TextDescription", s_tooltipBox, 0, 0);
+            s_tooltipTextDescription = BlzCreateFrame(
+                "NU_TTE_Command_TextDescription",
+                s_tooltipBox,
+                0,
+                0
+            );
 
             BlzFrameSetAbsPoint(s_tooltipTextTitle, FRAMEPOINT_BOTTOMRIGHT, 0.79f, 0.18f);
             BlzFrameSetSize(s_tooltipTextTitle, 0.275f, 0);
-            BlzFrameSetPoint(s_tooltipBox, FRAMEPOINT_TOPLEFT, s_tooltipTextTitle, FRAMEPOINT_TOPLEFT, -0.004f, 0.004f);
-            BlzFrameSetPoint(s_tooltipBox, FRAMEPOINT_BOTTOMRIGHT, s_tooltipTextTitle, FRAMEPOINT_BOTTOMRIGHT, 0.004f, -0.004f);
+            BlzFrameSetPoint(
+                s_tooltipBox,
+                FRAMEPOINT_TOPLEFT,
+                s_tooltipTextTitle,
+                FRAMEPOINT_TOPLEFT,
+                -0.004f,
+                0.004f
+            );
+            BlzFrameSetPoint(
+                s_tooltipBox,
+                FRAMEPOINT_BOTTOMRIGHT,
+                s_tooltipTextTitle,
+                FRAMEPOINT_BOTTOMRIGHT,
+                0.004f,
+                -0.004f
+            );
             BlzFrameSetVisible(s_tooltipBox, false);
             // TriggerAddAction(s_tooltipTrig, () =>
             // {
@@ -52,37 +69,39 @@ namespace NoxRaven.Frames
             // BlzFrameSetText(s_tooltipText, text);
             // BlzFrameSetVisible(s_tooltipBox, true);
             // });
-            Master.s_globalTick.Add((delta) =>
-            {
-                try
+            Master.s_globalTick.Add(
+                (delta) =>
                 {
-                    bool flag = false;
-                    foreach (var tooltip in s_tooltips)
+                    try
                     {
-                        if (BlzFrameIsVisible(tooltip.tooltipFrame))
+                        bool flag = false;
+                        foreach (var tooltip in s_tooltips)
                         {
-                            string text;
-                            NUnit u = Master.GetSelectedUnit();
-
-                            if (u != null && tooltip.updateCallback != null)
+                            if (BlzFrameIsVisible(tooltip.tooltipFrame))
                             {
-                                text = tooltip.updateCallback(u);
-                            }
-                            else text = "Tooltip is missing!";
-                            BlzFrameSetText(s_tooltipTextTitle, text);
-                            flag = true;
-                            break;
-                        }
-                    }
-                    BlzFrameSetVisible(s_tooltipBox, flag);
-                }
-                catch (Exception e)
-                {
-                    Utils.Debug(e.Message);
-                }
-            });
-        }
+                                string text;
+                                NAgent u = Master.GetSelectedUnit();
 
+                                if (u != null && tooltip.updateCallback != null)
+                                {
+                                    text = tooltip.updateCallback(u);
+                                }
+                                else
+                                    text = "Tooltip is missing!";
+                                BlzFrameSetText(s_tooltipTextTitle, text);
+                                flag = true;
+                                break;
+                            }
+                        }
+                        BlzFrameSetVisible(s_tooltipBox, flag);
+                    }
+                    catch (Exception e)
+                    {
+                        // Utils.Debug(e.Message);
+                    }
+                }
+            );
+        }
 
         public void Dispose()
         {

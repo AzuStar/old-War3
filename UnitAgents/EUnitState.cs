@@ -6,30 +6,31 @@ namespace NoxRaven.UnitAgents
         // these are states that are used by the engine
         MAX_MP = 0,
         MAX_HP,
-        SLD,
         MP_REG,
         HP_REG,
 
+        ATK,
         GREY_ATK,
         GREEN_ATK,
+
+        AP,
         GREY_AP,
         GREEN_AP,
-        RLD,
 
-        GREY_ARM,
-        GREEN_ARM,
-        GREY_RES,
-        GREEN_RES,
+        RELOAD_TIME,
 
-        ABS,
-        DMG_REDUCE,
+        ARMOR,
+        GREY_ARMOR,
+        GREEN_ARMOR,
 
-        UNIT_MS,
-        RNG,
+        MAGIC_RESIST,
+        GREY_MAGIC_RESIST,
+        GREEN_MAGIC_RESIST,
 
-        EXP_RATE,
+        ABSORBTION,
 
-        WINDUP_MODIFIER, 
+        MOVEMENT_SPEED,
+        ATTACK_RANGE,
 
         // Stats from which states above are computed
         BASE_ATK = 100,
@@ -50,7 +51,7 @@ namespace NoxRaven.UnitAgents
         /// 2/1 = 2 (0.5 )
         /// </summary>
         ATTACK_SPEED,
-        RELOAD_TIME,
+        BASE_RELOAD_TIME,
 
         BASE_ATTACK_RANGE,
 
@@ -83,11 +84,23 @@ namespace NoxRaven.UnitAgents
         BONUS_MAGIC_RESIST_PERCENT_BASE,
         BONUS_MAGIC_RESIST_PERCENT_TOTAL,
 
-        PENETRATION_ARMOR,
-        PENETRATION_MAGIC_RESIST,
+        BASE_ABSORB,
+        BASE_ABSORB_PERCENT_BASE,
 
-        CRIT_CHANCE,
-        CRIT_DAMAGE,
+        BASE_MOVE_SPEED,
+        BASE_MOVE_SPEED_PERCENT_BASE,
+
+        // *****************
+        // * direct access *
+        // *****************
+
+        /// <summary>
+        /// This is a Chance diceroll event happens. 
+        /// For example, passive ability with 25% activation chance to deal extra damage will have 50% chance if this value is 2.
+        /// </summary>
+        TRIGGER_CHANCE = 1000,
+        DAMAGE_RESIST,
+
         /// <summary>
         /// Life restored from amount of ALL PHYSICAL damage DEALT <br/>
         /// Damage flags affected by life steal: isBaseAttack, isCrit, isOnhit, isPhysical
@@ -109,22 +122,18 @@ namespace NoxRaven.UnitAgents
 
         DODGE_CHANCE,
 
-        
-        //*********
-        // * Util *
-        //*********
-        /// <summary>
-        /// This is a Chance diceroll event happens. 
-        /// For example, passive ability with 25% activation chance to deal extra damage will have 50% chance if this value is 2.
-        /// </summary>
-        DAMAGE_RESIST,
-        TRIGGER_CHANCE,
+        EXP_RATE,
 
-        BASE_ABSORB,
-        BASE_ABSORB_PERCENT_BASE,
 
-        BASE_MOVE_SPEED,
-        BASE_MOVE_SPEED_PERCENT_BASE,
+        // old artifact
+        WINDUP_MODIFIER,
 
+        PENETRATION_ARMOR,
+        PENETRATION_MAGIC_RESIST,
+
+        CRIT_CHANCE,
+        CRIT_DAMAGE,
+
+        COOLDOWN_REDUCTION,
     }
 }

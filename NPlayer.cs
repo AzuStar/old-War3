@@ -30,14 +30,13 @@ namespace NoxRaven
 
         public static NPlayer FromId(int id) => players[id];
 
-        public static implicit operator NPlayer(player p){
-            return players[GetPlayerId(p)];
-        }
-
         public void SendMessage(string msg, float timeout, RecipientType whoGets)
         {
             timer msgt = CreateTimer();
             TimerStart(msgt, timeout, false, () => { BlzDisplayChatMessage(wc3agent, (int)whoGets, msg); DestroyTimer(msgt); });
         }
+
+        public static implicit operator player(NPlayer p) => p.wc3agent;
+        public static implicit operator NPlayer(player p) => FromId(GetPlayerId(p));
     }
 }
